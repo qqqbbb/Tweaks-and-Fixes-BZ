@@ -23,6 +23,7 @@ namespace Tweaks_Fixes
         public static bool canBreathe = false;
         public static bool loadingDone = false;
         public static bool english = false;
+        public static System.Random rndm = new System.Random();
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 

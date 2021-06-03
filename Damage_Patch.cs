@@ -9,7 +9,7 @@ namespace Tweaks_Fixes
 {
     class Damage_Patch
     {
-        static System.Random rndm = new System.Random();
+        //static System.Random rndm = new System.Random();
 
         static void SetBloodColor(GameObject go)
         {   // GenericCreatureHit(Clone)
@@ -340,7 +340,7 @@ namespace Tweaks_Fixes
                         {
                             if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
                             {
-                                int rnd = rndm.Next(1, (int)Player.main.liveMixin.maxHealth);
+                                int rnd = Main.rndm.Next(1, (int)Player.main.liveMixin.maxHealth);
                                 if (rnd < damage)
                                 {
                                     //AddDebug("DropHeldItem");

@@ -6,14 +6,19 @@ namespace Tweaks_Fixes
 {
     class Creature_Tweaks
     {
-
-        [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
+        //[HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
         {
             public static void Postfix(FleeOnDamage __instance, DamageInfo damageInfo)
             { //
+                if (damageInfo.dealer == Player.main.gameObject)
+                { // these 2 are the same
+                    AddDebug(" moveTo " + __instance.moveTo);
+                    AddDebug(" originalTargetPosition " + __instance.swimBehaviour.originalTargetPosition);
+                }
+
                 __instance.moveTo = __instance.swimBehaviour.originalTargetPosition * damageInfo.damage;
-                //AddDebug(" moveTo " + __instance.moveTo);
+
                 //__instance.timeToFlee = Time.time;
                 //if (damageInfo.type == DamageType.Heat)
                 //{
@@ -31,8 +36,6 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(FleeOnDamage), nameof(FleeOnDamage.OnTakeDamage))]
         internal class FleeOnDamage_OnTakeDamage_Prefix_Patch
         {
-            static System.Random rndm = new System.Random();
-
             private static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
             {
                 //int health = (int)__instance.creature.liveMixin?.health; 
@@ -47,7 +50,7 @@ namespace Tweaks_Fixes
                         //AddDebug("damage dealer " + damageInfo.dealer.name);
                         //int maxHealth = (int)liveMixin.maxHealth;
                         int halfMaxHealth = Mathf.RoundToInt(liveMixin.maxHealth * .5f);
-                        int rnd = rndm.Next(1, halfMaxHealth);
+                        int rnd = Main.rndm.Next(1, halfMaxHealth);
 
                         if (liveMixin.health > halfMaxHealth || rnd < liveMixin.health)
                         {
@@ -91,7 +94,6 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
 
         [HarmonyPatch(typeof(CreatureDeath), nameof(CreatureDeath.OnKill))]
         class CreatureDeath_OnKill_Prefix_Patch

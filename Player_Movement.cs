@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
         //static int invSize;
         static Equipment equipment;
         static Survival survival;
-        static float swimMaxAllowedY = .6f; // .6
+        //static float swimMaxAllowedY = .6f; // .6
 
         [HarmonyPatch(typeof(Player), "Start")]
         class Player_Start_Patch

@@ -134,7 +134,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Survival), "Eat")]
         class Survival_Eat_patch
         {
-            static System.Random rndm = new System.Random();
+            //static System.Random rndm = new System.Random();
 
             public static bool Prefix(Survival __instance, GameObject useObj, ref bool __result)
             {
@@ -216,9 +216,9 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                int rndFood = rndm.Next(minFood, maxFood);
+                int rndFood = Main.rndm.Next(minFood, maxFood);
                 float finalFood = Mathf.Min(food, rndFood);
-                int rndWater = rndm.Next(minWater, maxWater);
+                int rndWater = Main.rndm.Next(minWater, maxWater);
                 float finalWater = Mathf.Min(water, rndWater);
                 if (Main.config.newHungerSystem && __instance.food > 100f && finalFood > 0)
                 {
