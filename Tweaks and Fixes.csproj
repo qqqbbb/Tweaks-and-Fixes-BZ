@@ -82,6 +82,7 @@
   <ItemGroup>
     <Compile Include="Battery_Patch.cs" />
     <Compile Include="Aquarium_Fix.cs" />
+    <Compile Include="Storage_Patch.cs" />
     <Compile Include="Hoverbike_Patch.cs" />
     <Compile Include="Exosuit_Patch.cs" />
     <Compile Include="Player_Movement.cs" />

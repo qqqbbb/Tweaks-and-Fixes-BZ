@@ -106,8 +106,11 @@ namespace Tweaks_Fixes
         //public int escapePodMaxPower = 25;
         //[Toggle("Life pod power tweaks", Tooltip = "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod's power cells are 30% charged. Game has to be reloaded after changing this.")]
         //public bool escapePodPowerTweak = false;
+        [Slider("Energy consumption multiplier", 0f, 4f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amout of energy consumed by things that require a power source will be multiplied by this.")]
+        public float energyConsMult = 1f;
         [Slider("Crafted battery charge percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Charge percent of batteries and power cells you craft will be set to this.")]
         public int craftedBatteryCharge = 100;
+
         [Choice("Losing items when you die", Tooltip = "When set to 'All' you will drop every item in your inventory when you die.")]
         public LoseItemsOnDeath loseItemsOnDeath;
 

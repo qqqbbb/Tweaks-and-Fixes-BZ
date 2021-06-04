@@ -9,6 +9,16 @@ namespace Tweaks_Fixes
 {
     class Battery_Patch
     {
+        [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
+        class EnergyMixin_OnAfterDeserialize_Patch
+        {
+            static void Prefix(EnergyMixin __instance, ref float amount)
+            {
+                //AddDebug("ConsumeEnergy");
+                amount *= Main.config.energyConsMult;
+            }
+        }
+
         //[HarmonyPatch(typeof(Charger), "Start")]
         class Charger_Start_Patch
         {
@@ -58,6 +68,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Battery __instance)
             {
+                //__instance._capacity *= Main.config.batteryMult;
                 if (Main.crafterOpen)
                 {
                     //AddDebug("crafterOpen");

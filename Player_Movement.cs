@@ -153,7 +153,7 @@ namespace Tweaks_Fixes
                             waterMult = Mathf.Abs(Main.survival.water / 100f);
                             waterMult = 1f - waterMult;
                         }
-                        __result = (foodMult + waterMult) * .5f;
+                        __result *= (foodMult + waterMult) * .5f;
                     }
                 }
                 if (Main.config.invMultWater > 0f)
