@@ -18,17 +18,8 @@ namespace Tweaks_Fixes
         //static Survival survival;
         //static LiveMixin liveMixin;
         public static GUIHand gUIHand;
-        public static float exitWaterOffset = 0.8f; // 0.8f
+        //public static float exitWaterOffset = 0.8f; // 0.8f
         public static float crushPeriod = 3f;
-
-        public static void DisableExosuitClawArmScan()
-        {
-            if (PDAScanner.mapping.ContainsKey(TechType.ExosuitClawArmFragment))
-            {
-                //Main.Message("DisableExosuitClawArmScan");
-                PDAScanner.mapping.Remove(TechType.ExosuitClawArmFragment);
-            }
-        }
 
         //[HarmonyPatch(typeof(Survival), nameof(Survival.Reset))]
         internal class Survival_Reset_Patch
@@ -51,7 +42,11 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(BodyTemperature __instance, float cold)
             {
-                __instance.currentColdMeterValue = Mathf.Clamp(__instance.currentColdMeterValue + cold * Main.config.coldMult, 0f, __instance.coldMeterMaxValue);
+                if (cold > 0f)
+                    __instance.currentColdMeterValue = Mathf.Clamp(__instance.currentColdMeterValue + cold * Main.config.coldMult, 0f, __instance.coldMeterMaxValue);
+                else
+                    __instance.currentColdMeterValue = Mathf.Clamp(__instance.currentColdMeterValue + cold, 0f, __instance.coldMeterMaxValue);
+
                 return false;
             }
         }

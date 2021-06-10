@@ -12,6 +12,8 @@ namespace Tweaks_Fixes
     [Menu("Tweaks and Fixes")]
     public class Config : ConfigFile
     {
+        [Slider("Day/night cycle speed multiplier", 0f, 4f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
+        public float gameSpeed = 1f;
         [Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
         public float playerDamageMult = 1f;
         [Slider("Vehicle damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage your vehicles take will be multiplied by this.")]
@@ -199,6 +201,14 @@ namespace Tweaks_Fixes
             { "highcapacitytank" },
         };
         public float medKitHPperSecond = 50f;
+
+        static void UpdateGameSpeed()
+        {
+            if (DayNightCycle.main)
+            {
+                DayNightCycle.main._dayNightSpeed = Main.config.gameSpeed;
+            }
+        }
 
         static void UpdateBaseLight()
         {

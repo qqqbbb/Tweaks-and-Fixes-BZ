@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 using UnityEngine;
 using static ErrorMessage;
 
@@ -103,31 +103,58 @@ namespace Tweaks_Fixes
         {
             internal static void Postfix(Inventory __instance, ref ItemAction __result, InventoryItem item, int button)
             {
-                //AddDebug("GetItemAction");
+                //AddDebug("GetItemAction button " + button + " " + item.item.name + " " + __result);
                 Pickupable pickupable = item.item;
                 TechType tt = pickupable.GetTechType();
                 if (Main.config.cantEatUnderwater && Player.main.IsUnderwater())
                 {
-                    if (pickupable.gameObject.GetComponent<Eatable>())
+                    if (__result == ItemAction.Eat && pickupable.gameObject.GetComponent<Eatable>())
                     {
                         __result = ItemAction.None;
-                        return;
                     }
-                }
-                if (tt == TechType.FirstAidKit)
-                {
-                    if (Main.config.cantUseMedkitUnderwater && Player.main.IsUnderwater())
+                    else if (__result == ItemAction.Use && tt == TechType.FirstAidKit)
                     {
                         __result = ItemAction.None;
-                        return;
                     }
-                    //LiveMixin liveMixin = Player.main.GetComponent<LiveMixin>();
-                    //if (liveMixin.maxHealth - liveMixin.health < 0.1f)
-                    //    __result = ItemAction.None;
                 }
+
             }
         }
 
+        [HarmonyPatch(typeof(TooltipFactory), "ItemActions")]
+        internal class TooltipFactory_ItemActions_Patch
+        { // for some items UI did not tell they can be dropped 
+            internal static bool Prefix(StringBuilder sb, global::InventoryItem item)
+            {
+                //AddDebug("ItemActions " + item.item.name);
+                bool canBindItem = Inventory.main.GetCanBindItem(item) && GameInput.IsKeyboardAvailable();
+                ItemAction itemAction1 = Inventory.main.GetItemAction(item, 0);
+                ItemAction itemAction2 = Inventory.main.GetItemAction(item, 1);
+                ItemAction itemAction3 = Inventory.main.GetItemAction(item, 2);
+                ItemAction itemAction4 = Inventory.main.GetItemAction(item, 3);
+                bool usingController = GameInput.GetPrimaryDevice() == GameInput.Device.Controller;
+                //if (!canBindItem && (itemAction1 | itemAction3 | itemAction4) == ItemAction.None)
+                //if (itemAction1 == ItemAction.None && itemAction2 == ItemAction.None && itemAction3 == ItemAction.None && itemAction4 == ItemAction.None)
+                //{
+                //    AddDebug("return");
+                //    return false;
+                //}
+
+                 if (canBindItem && !usingController)
+                    TooltipFactory.WriteAction(sb, TooltipFactory.stringKeyRange15, TooltipFactory.stringBindQuickSlot);
+                if (itemAction4 != ItemAction.None)
+                    TooltipFactory.WriteAction(sb, TooltipFactory.stringButton3, TooltipFactory.GetUseActionString(itemAction4));
+                if (itemAction1 != ItemAction.None)
+                    TooltipFactory.WriteAction(sb, TooltipFactory.stringButton0, TooltipFactory.GetUseActionString(itemAction1));
+                if (itemAction3 != ItemAction.None)
+                    TooltipFactory.WriteAction(sb, TooltipFactory.stringButton2, TooltipFactory.GetUseActionString(itemAction3));
+                if (itemAction2 == ItemAction.None)
+                    return false;
+                //AddDebug("WriteAction");
+                TooltipFactory.WriteAction(sb, TooltipFactory.stringButton1, TooltipFactory.GetUseActionString(itemAction2));
+                return false;
+            }
+        }
 
     }
 }

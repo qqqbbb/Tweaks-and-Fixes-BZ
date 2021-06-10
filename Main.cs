@@ -16,6 +16,7 @@ namespace Tweaks_Fixes
     [QModCore]
     public class Main
     {
+        public static float version = 1.02f;
         public static GUIHand guiHand;
         public static PDA pda;
         public static Survival survival;
@@ -26,6 +27,74 @@ namespace Tweaks_Fixes
         public static System.Random rndm = new System.Random();
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
+
+        public static T CopyComponent<T>(T original, GameObject destination) where T : Component
+        {
+            System.Type type = original.GetType();
+            var dst = destination.GetComponent(type) as T;
+            if (!dst) dst = destination.AddComponent(type) as T;
+            var fields = type.GetFields();
+            foreach (var field in fields)
+            {
+                if (field.IsStatic) continue;
+                field.SetValue(dst, field.GetValue(original));
+            }
+            var props = type.GetProperties();
+            foreach (var prop in props)
+            {
+                if (!prop.CanWrite || !prop.CanWrite || prop.Name == "name") continue;
+                prop.SetValue(dst, prop.GetValue(original, null), null);
+            }
+            return dst as T;
+        }
+
+        public static T[] GetComponentsInDirectChildren<T>(Component parent, bool includeInactive = false) where T : Component
+        {
+            List<T> tmpList = new List<T>();
+            foreach (Transform transform in parent.transform)
+            {
+                if (includeInactive || transform.gameObject.activeInHierarchy)
+                    tmpList.AddRange(transform.GetComponents<T>());
+            }
+            return tmpList.ToArray();
+        }
+
+        public static T[] GetComponentsInDirectChildren<T>(GameObject parent, bool includeInactive = false) where T : Component
+        {
+            List<T> tmpList = new List<T>();
+            foreach (Transform transform in parent.transform)
+            {
+                if (includeInactive || transform.gameObject.activeInHierarchy)
+                {
+                    T[] components = transform.GetComponents<T>();
+                    if (components.Length > 0)
+                        tmpList.AddRange(components);
+                }
+            }
+            return tmpList.ToArray();
+        }
+
+        public static GameObject GetParent(GameObject go)
+        {
+            //if (go.name.Contains("(Clone)"))
+            if (go.GetComponent<PrefabIdentifier>())
+            {
+                //AddDebug("name " + go.name);
+                return go;
+            }
+            Transform t = go.transform;
+            while (t.parent != null)
+            {
+                //if (t.parent.name.Contains("(Clone)"))
+                if (t.parent.GetComponent<PrefabIdentifier>())
+                {
+                    //AddDebug("parent.name " + t.parent.name);
+                    return t.parent.gameObject;
+                }
+                t = t.parent.transform;
+            }
+            return null;
+        }
 
         public static float NormalizeTo01range(int value, int min, int max)
         {
@@ -81,15 +150,6 @@ namespace Tweaks_Fixes
                 newValue = ((value - oldMin) * newRange) / oldRange + newMin;
             }
             return newValue;
-        }
-
-        public static void DisableExosuitClawArmScan()
-        {
-            if (PDAScanner.mapping.ContainsKey(TechType.ExosuitClawArmFragment))
-            {
-                //Main.Message("DisableExosuitClawArmScan");
-                PDAScanner.mapping.Remove(TechType.ExosuitClawArmFragment);
-            }
         }
 
         public static bool IsEatableFishAlive(GameObject go)
@@ -193,13 +253,9 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                AddDebug("TrackTravelStats");
-                if (config.activeSlot != -1)
-                {
-                    //Inventory.main.quickSlots.SelectImmediate(config.activeSlot);
-                    //Inventory.main.quickSlots.DeselectImmediate();
-                    Inventory.main.quickSlots.Select(config.activeSlot);
-                }
+
+                    AddDebug("TrackTravelStats");
+
             }
         }
 

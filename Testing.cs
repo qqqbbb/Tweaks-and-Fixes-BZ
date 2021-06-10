@@ -40,7 +40,7 @@ namespace Tweaks_Fixes
                 //    AddDebug("Effective Ambient Temp " + (int)effectiveAmbientTemperature);
                 //    AddDebug("isExposed " + bt.isExposed);
                 //}
-                //AddDebug("inHovercraft " + Player.main.inHovercraft);
+
                 //AddDebug("heldItem " + Inventory.main.quickSlots.heldItem.ToString());
                 //if (Player.main.currentMountedVehicle)
                 //    AddDebug("currentMountedVehicle " + Player.main.currentMountedVehicle);
@@ -73,16 +73,17 @@ namespace Tweaks_Fixes
 
                 if (Input.GetKey(KeyCode.C))
                 {
-                    TechType tt = TechType.IceBubble;
-                    string classid = CraftData.GetClassIdForTechType(tt);
-                    CoroutineTask<GameObject> result = AddressablesUtility.InstantiateAsync("PrefabInstance/Bubble", position: Player.main.transform.position);
-                    GameObject bubble = result.GetResult();
-                    if (bubble)
-                    {
-                        AddDebug("BUBBLE");
-                    }
+                    AddDebug("SeaTruckUpgrades.slotIDs.Length " + SeaTruckUpgrades.slotIDs.Length);
+                    //TechType tt = TechType.IceBubble;
+                    //string classid = CraftData.GetClassIdForTechType(tt);
+                    //CoroutineTask<GameObject> result = AddressablesUtility.InstantiateAsync("PrefabInstance/Bubble", position: Player.main.transform.position);
+                    //GameObject bubble = result.GetResult();
+                    //if (bubble)
+                    //{
+                    //    AddDebug("BUBBLE");
+                    //}
 
-                    if (UWE.PrefabDatabase.TryGetPrefabFilename(classid, out string filename))
+                    //if (UWE.PrefabDatabase.TryGetPrefabFilename(classid, out string filename))
                     {
                         //AddDebug("spawn IceBubble");
                         //TaskResult<GameObject> taskResult = new TaskResult<GameObject>();
