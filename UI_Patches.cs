@@ -10,6 +10,8 @@ namespace Tweaks_Fixes
 {
     class UI_Patches
     {
+        static bool fishTooltip = false;
+
         private static IEnumerator IntroSequence(ExpansionIntroManager introManager, uGUI_ExpansionIntro __instance)
         {
             IntroVignette.isIntroActive = true;
@@ -30,7 +32,7 @@ namespace Tweaks_Fixes
             VRLoadingOverlay.Hide();
             if (!QuickLaunchHelper.IsQuickLaunching())
             {
-                while (!UnityEngine.Input.anyKeyDown)
+                while (!Input.anyKeyDown)
                     yield return null;
             }
             if (FPSInputModule.current)
@@ -74,15 +76,46 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(GUIHand), "GetActionString")]
+        //[HarmonyPatch(typeof(Inventory), "GetAllItemActions")]
+        class Inventory_GetAllItemActions_Patch
+        {
+            static bool Prefix(Inventory __instance, InventoryItem item, ref ItemAction __result)
+            {
+                //AddDebug("GetAllItemActions " + item.item.GetTechName() + " " + __result);
+                //if (Main.IsEatableFish(item.item.gameObject))
+                //{
+                    //__result = ItemAction.Drop;
+                    //__result = __result | ItemAction.Eat;
+                    //return false;
+                    //if ((__result & ItemAction.Drop) != ItemAction.None)
+                //}
+                return true;
+            }
+            static void Postfix(Inventory __instance, InventoryItem item, ItemAction __result)
+            {
+                AddDebug("GetAllItemActions " + item.item.GetTechName() + " " + __result);
+
+            }
+        }
+
+        //[HarmonyPatch(typeof(GUIHand), "GetActionString")]
         class GUIHand_GetActionString_Patch
         { 
             public static void Postfix(GUIHand __instance, ItemAction action, Pickupable pickupable, ref string __result)
             {
-                if (Main.config.eatFishOnRelease && action == ItemAction.Drop && Main.IsEatableFish(pickupable.gameObject))
+                GameModeUtils.GetGameMode(out GameModeOption mode, out GameModeOption _);
+                bool survival = !GameModeUtils.IsOptionActive(mode, GameModeOption.NoSurvival);
+                //AddDebug("survival " + survival);
+                if (Main.IsEatableFish(pickupable.gameObject))
                 {
-                    //AddDebug("GetActionString " + action);
-                    __result = "ItemActionEat";
+                    bool cantEat = Main.config.cantEatUnderwater && Player.main.IsUnderwater();
+                    //AddDebug("GetActionString " + action + " " + __result);
+                    //__result = "ItemActionEat";
+                    string dropText = __result;
+
+                    //string dropText = HandReticle.main.GetText(GUIHand.GetActionString(action, pickupable), true, GameInput.Button.LeftHand);
+                    //HandReticle.main.SetText(HandReticle.TextType.Use, GUIHand.GetActionString(action, pickupable), true, GameInput.Button.RightHand);
+                    //HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, text);
                 }
             }
         }
@@ -315,47 +348,114 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(GUIHand), "OnUpdate")]
         class GUIHand_OnUpdate_Patch
         { // UI tells you if looking at dead fish 
+            static string altToolButton = string.Empty;
+            static string rightHandButton = string.Empty;
             public static void Postfix(GUIHand __instance)
             {
+                PlayerTool tool = __instance.GetTool();
+                if (tool)
+                {
+                    Flare flare = tool as Flare;
+                    if (flare)
+                    {
+                        bool lit = flare.flareActivateTime > 0;
+                        string text = string.Empty;
+                        string throwFlare = lit ? Main.config.throwFlare : Main.config.lightAndThrowFlare;
+                        if (Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false))
+                            text = throwFlare + " (" + rightHandButton + ")";
+                        if (string.IsNullOrEmpty(altToolButton))
+                            altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
+                        if (string.IsNullOrEmpty(rightHandButton))
+                            rightHandButton = uGUI.FormatButton(GameInput.Button.RightHand);
+
+                        if (!lit)
+                        {
+                            string text1 = Main.config.lightFlare + " (" + altToolButton + ")";
+                            if (string.IsNullOrEmpty(text))
+                                text = text1;
+                            else
+                                text = text + ",  " + text1;
+                        }
+                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
+                    }
+                }
+
+                GameModeUtils.GetGameMode(out GameModeOption mode, out GameModeOption _);
+                bool survival = !GameModeUtils.IsOptionActive(mode, GameModeOption.NoSurvival);
+                //AddDebug("survival " + survival);
+                InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
+                if (survival && heldItem != null && Main.IsEatableFish(heldItem.item.gameObject))
+                {
+                    string text = string.Empty;
+                    ItemAction allItemActions = Inventory.main.GetAllItemActions(heldItem);
+                    if ((allItemActions & ItemAction.Drop) != ItemAction.None)
+                    {
+                        text = GUIHand.GetActionString(ItemAction.Drop, heldItem.item);
+                        text = HandReticle.main.GetText(text, true, GameInput.Button.RightHand);
+                    }
+                    bool cantEat = Main.config.cantEatUnderwater && Player.main.IsUnderwater();
+                    if (!cantEat)
+                    {
+                        string eatText = GUIHand.GetActionString(ItemAction.Eat, heldItem.item);
+                        eatText = HandReticle.main.GetText(eatText, true, GameInput.Button.AltTool);
+                        if (string.IsNullOrEmpty(text))
+                            text = eatText;
+                        else
+                            text = text + ", " + eatText;
+                        if (GameInput.GetButtonDown(GameInput.Button.AltTool))
+                        {
+                            Inventory.main.ExecuteItemAction(ItemAction.Eat, heldItem);
+                            return;
+                        }
+                    }
+                    HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
+                }
                 if (!__instance.activeTarget)
                     return;
                 //AddDebug("activeTarget layer " + __instance.activeTarget.layer);
                 //if (__instance.activeTarget.layer == LayerID.NotUseable)
                 //    AddDebug("activeTarget Not Useable layer ");
-                TechType techType = CraftData.GetTechType(__instance.activeTarget);
-                if (techType != TechType.None)
+                TechType targetTT = CraftData.GetTechType(__instance.activeTarget);
+                if (targetTT == TechType.None)
+                    return;
+
+                if (targetTT == TechType.Flare && Main.english)
                 {
-                    //AddDebug("OnUpdate " + __instance.activeTarget.name);
-                    LiveMixin liveMixin = __instance.activeTarget.GetComponentInParent<LiveMixin>();
-                    if (liveMixin && !liveMixin.IsAlive())
+                    //AddDebug("activeTarget Flare");
+                    string name = Language.main.Get(targetTT);
+                    name = "Burnt out " + name;
+                    HandReticle.main.SetText(HandReticle.TextType.Hand, name, false);
+                }
+                //AddDebug("OnUpdate " + __instance.activeTarget.name);
+                LiveMixin liveMixin = __instance.activeTarget.GetComponentInParent<LiveMixin>();
+                if (liveMixin && !liveMixin.IsAlive())
+                {
+                    //AddDebug("health " + liveMixin.health);
+                    Pickupable pickupable = liveMixin.GetComponent<Pickupable>();
+                    //CreatureEgg ce = liveMixin.GetComponent<CreatureEgg>();
+                    //if (ce)
+                    //    name = Language.main.Get(ce.overrideEggType);
+                    string name = Language.main.Get(targetTT);
+                    //AddDebug("name " + name);
+                    if (pickupable)
                     {
-                        //AddDebug("health " + liveMixin.health);
-                        Pickupable pickupable = liveMixin.GetComponent<Pickupable>();
-                        //CreatureEgg ce = liveMixin.GetComponent<CreatureEgg>();
-                        //if (ce)
-                        //    name = Language.main.Get(ce.overrideEggType);
-                        string name = Language.main.Get(techType);
-                        //AddDebug("name " + name);
-                        if (pickupable)
-                        {
-                            if (pickupable.overrideTechType != TechType.None)
-                                name = Language.main.Get(pickupable.overrideTechType);
+                        if (pickupable.overrideTechType != TechType.None)
+                            name = Language.main.Get(pickupable.overrideTechType);
 
-                            name = Language.main.GetFormat<string>("DeadFormat", name);
-                            //name = LanguageCache.GetPickupText(techType);
-                            name = Language.main.GetFormat<string>("PickUpFormat", name);
-                            HandReticle.main.SetIcon(pickupable.usePackUpIcon ? HandReticle.IconType.PackUp : HandReticle.IconType.Hand);
-                            HandReticle.main.SetText(HandReticle.TextType.Hand, name, false, GameInput.Button.LeftHand);
-                        }
-                        else
-                        {
-                            //AddDebug("name " + name);
-                            name = Language.main.GetFormat<string>("DeadFormat", name);
-                            //HandReticle.main.SetInteractTextRaw(name, string.Empty);
-                            HandReticle.main.SetText(HandReticle.TextType.Hand, name, true);
-                        }
-
+                        name = Language.main.GetFormat<string>("DeadFormat", name);
+                        //name = LanguageCache.GetPickupText(techType);
+                        name = Language.main.GetFormat<string>("PickUpFormat", name);
+                        HandReticle.main.SetIcon(pickupable.usePackUpIcon ? HandReticle.IconType.PackUp : HandReticle.IconType.Hand);
+                        HandReticle.main.SetText(HandReticle.TextType.Hand, name, false, GameInput.Button.LeftHand);
                     }
+                    else
+                    {
+                        //AddDebug("name " + name);
+                        name = Language.main.GetFormat<string>("DeadFormat", name);
+                        //HandReticle.main.SetInteractTextRaw(name, string.Empty);
+                        HandReticle.main.SetText(HandReticle.TextType.Hand, name, true);
+                    }
+
                 }
             }
         }
@@ -397,14 +497,9 @@ namespace Tweaks_Fixes
             static bool Prefix(uGUI_FeedbackCollector __instance)
             {
                 //AddDebug("uGUI_FeedbackCollector HintShow");
-                if (Main.config.disableHints)
-                    return false;
-
-                return true;
+                    return !Main.config.disableHints;
             }
         }
-
-
 
         [HarmonyPatch(typeof(PlayerWorldArrows), "CreateWorldArrows")]
         internal class PlayerWorldArrows_CreateWorldArrows_Patch
@@ -436,6 +531,22 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(TooltipFactory), "ItemCommons")]
         class TooltipFactory_ItemCommons_Patch
         {
+            static void Prefix(StringBuilder sb, TechType techType, GameObject obj)
+            {
+                if (!Main.english)
+                    return;
+
+                Flare flare = obj.GetComponent<Flare>();
+                if (flare)
+                {
+                    //AddDebug("flare.energyLeft " + flare.energyLeft);
+                    if (flare.energyLeft <= 0f)
+                        TooltipFactory.WriteTitle(sb, "Burnt out ");
+                    else if (flare.flareActivateTime > 0f)
+                        TooltipFactory.WriteTitle(sb, "Lit ");
+                }
+                fishTooltip = Main.IsEatableFish(obj);
+            }
             static void Postfix(ref StringBuilder sb, TechType techType, GameObject obj)
             {
 
@@ -467,6 +578,30 @@ namespace Tweaks_Fixes
                     Rigidbody rb = obj.GetComponent<Rigidbody>();
                     if (rb)
                         TooltipFactory.WriteDescription(sb, "mass " + rb.mass);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Language), "FormatString", new Type[] { typeof(string), typeof(object[]) })]
+        class Language_FormatString_Patch
+        {
+            static void Postfix(string format, ref string __result, object[] args)
+            {
+                //AddDebug("FormatString " + format + " " + args.Length);
+                //AddDebug("FormatString " + __result);
+                if (!fishTooltip || Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(int))
+                    return;
+                //AddDebug("FormatString GetType " + args[0].GetType());
+                int value = (int)args[0];
+                if (value > 0f && format.Contains("FOOD:") || format.Contains("H₂O:"))
+                {
+                    string[] tokens = __result.Split(':');
+                    if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                        __result = tokens[0] + ": min 0, max " + value;
+                    else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                        __result = tokens[0] + ": min -" + value + ", max " + value;
+                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                        __result = tokens[0] + ": min -" + value + ", max 0";
                 }
             }
         }

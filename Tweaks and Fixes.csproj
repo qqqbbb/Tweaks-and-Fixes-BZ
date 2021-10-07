@@ -81,8 +81,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Battery_Patch.cs" />
-    <Compile Include="Aquarium_Fix.cs" />
+    <Compile Include="Drop_Pod_Patch.cs" />
+    <Compile Include="Flare_Patch.cs" />
+    <Compile Include="Fragment_Patch.cs" />
+    <Compile Include="Plants_Patch.cs" />
     <Compile Include="Game_Speed_Patch.cs" />
+    <Compile Include="Predators_Patch.cs" />
     <Compile Include="Storage_Patch.cs" />
     <Compile Include="Hoverbike_Patch.cs" />
     <Compile Include="Exosuit_Patch.cs" />
@@ -98,7 +102,6 @@
     <Compile Include="NoBreakingWithHands.cs" />
     <Compile Include="Gravsphere_Patch.cs" />
     <Compile Include="Food_Patch.cs" />
-    <Compile Include="Fish_Patches.cs" />
     <Compile Include="Crush_Damage.cs" />
     <Compile Include="Damage_Patch.cs" />
     <Compile Include="Creature_Tweaks.cs" />

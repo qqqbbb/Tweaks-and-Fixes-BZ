@@ -9,6 +9,7 @@ namespace Tweaks_Fixes
 {
     class Craft_Patch
     {
+        static float hoverBikeBuildTime = 0f;
 
         [HarmonyPatch(typeof(Crafter), "Craft")]
         class Crafter_Craft_Patch
@@ -18,6 +19,19 @@ namespace Tweaks_Fixes
                 //AddDebug("Craft " + techType);
                 duration *= Main.config.craftTimeMult;
                 //return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(HoverpadConstructor), "TryStartConstructBike")]
+        internal class HoverpadConstructor_Patch
+        {
+            public static void Prefix(HoverpadConstructor __instance)
+            {
+                if (hoverBikeBuildTime == 0f)
+                    hoverBikeBuildTime = __instance.timeToConstruct;
+
+                __instance.timeToConstruct = hoverBikeBuildTime * Main.config.craftTimeMult;
+                //AddDebug("TryStartConstructBike " + __instance.timeToConstruct);
             }
         }
 

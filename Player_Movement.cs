@@ -10,23 +10,8 @@ namespace Tweaks_Fixes
 {
     internal class Player_Movement
     {
-        static float oceanLevel;
-        //static int invSize;
-        static Equipment equipment;
-        static Survival survival;
         //static float swimMaxAllowedY = .6f; // .6
 
-        [HarmonyPatch(typeof(Player), "Start")]
-        class Player_Start_Patch
-        {
-            static void Postfix(Player __instance)
-            {
-                oceanLevel = Ocean.GetOceanLevel();
-                //invSize = Inventory.main.container.sizeX * Inventory.main.container.sizeY;
-                equipment = Inventory.main.equipment;
-                survival = Player.main.GetComponent<Survival>();
-            }
-        }
         // AlterMaxSpeed AdjustGroundSpeed
         public static float GetInvMult()
         {
@@ -89,20 +74,20 @@ namespace Tweaks_Fixes
                 //AddDebug("AlterMaxSpeed");
                 __result = inMaxSpeed;
 
-                TechType suit = equipment.GetTechTypeInSlot("Body");
+                TechType suit = Main.equipment.GetTechTypeInSlot("Body");
                 if (suit != TechType.None)
                     __result *= 0.9f;
                 //!!!
                 //if (Player.main.motorMode != Player.MotorMode.Seaglide)
                 //    Utils.AdjustSpeedScalarFromWeakness(ref __result);
 
-                TechType fins = equipment.GetTechTypeInSlot("Foots");
+                TechType fins = Main.equipment.GetTechTypeInSlot("Foots");
                 if (fins == TechType.Fins)
                     __result *= 1.2f;
                 else if (fins == TechType.UltraGlideFins)
                     __result *= 1.3f;
 
-                TechType tank = equipment.GetTechTypeInSlot("Tank");
+                TechType tank = Main.equipment.GetTechTypeInSlot("Tank");
                 if (tank == TechType.PlasteelTank)
                     __result *= 0.97f;
                 else if (tank != TechType.None)
@@ -120,7 +105,7 @@ namespace Tweaks_Fixes
                             __result *= 0.7f;
                     }
                 }
-                if (Player.main.gameObject.transform.position.y > oceanLevel)
+                if (Player.main.gameObject.transform.position.y > Main.oceanLevel)
                     __result *= 1.3f;
 
                 //float ms = (float)System.Math.Round(Player.main.movementSpeed * 10f) / 10f;
@@ -187,13 +172,12 @@ namespace Tweaks_Fixes
             }
         }
 
-
         [HarmonyPatch(typeof(MainCameraControl), "GetCameraBob")]
         class MainCameraControl_GetCameraBob_Patch
         {
             static bool Prefix(MainCameraControl __instance, ref bool __result)
             {
-                if (Main.config.playerMoveTweaks)
+                if (!Main.config.cameraBobbing)
                 {
                     __result = false;
                     return false;
@@ -332,14 +316,14 @@ namespace Tweaks_Fixes
 
         private static float AdjustGroundSpeed(float maxSpeed)
         {
-            TechType suit = equipment.GetTechTypeInSlot("Body");
+            TechType suit = Main.equipment.GetTechTypeInSlot("Body");
             if (suit != TechType.None)
                 maxSpeed *= 0.9f;
-            TechType fins = equipment.GetTechTypeInSlot("Foots");
+            TechType fins = Main.equipment.GetTechTypeInSlot("Foots");
             if (fins != TechType.None)
                 maxSpeed *= 0.9f;
 
-            TechType tank = equipment.GetTechTypeInSlot("Tank");
+            TechType tank = Main.equipment.GetTechTypeInSlot("Tank");
             if (tank == TechType.PlasteelTank)
                 maxSpeed *= 0.97f;
             else if (tank != TechType.None)

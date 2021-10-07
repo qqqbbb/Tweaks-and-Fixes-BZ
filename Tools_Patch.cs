@@ -8,7 +8,7 @@ namespace Tweaks_Fixes
 {
     class Tools_Patch
     {
-        static float originalIntensity = -1f;
+        //static float originalIntensity = -1f;
         [HarmonyPatch(typeof(Knife), nameof(Knife.OnToolUseAnim))]
         class Knife_OnToolUseAnim_Postfix_Patch
         {
@@ -86,45 +86,11 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(nameof(Flare.OnDraw))]
-        [HarmonyPostfix]
-        internal static void OnDraw(Flare __instance)
-        {
-            if (originalIntensity == -1f)
-                originalIntensity = __instance.originalIntensity;
-
-            //AddDebug("throwDuration " + __instance.throwDuration);
-            //__instance.originalIntensity = originalIntensity * Main.config.flareIntensity;
-        }
-
-        //[HarmonyPatch(typeof(Flare), "OnDrop")]
-        class Flare_OnDrop_Patch
-        {
-            public static bool Prefix(Flare __instance)
-            {
-                if (__instance.isThrowing)
-                {
-                    //__instance.GetComponent<Rigidbody>().AddForce(MainCamera.camera.transform.forward * __instance.dropForceAmount);
-                    //__instance.GetComponent<Rigidbody>().AddTorque(__instance.transform.right * __instance.dropTorqueAmount);
-                    //__instance.isThrowing = false;
-                }
-                //AddDebug("energyLeft " + __instance.energyLeft);
-                if (__instance.energyLeft < 1800f)
-                {
-                    if (__instance.fxControl && !__instance.fxIsPlaying)
-                        __instance.fxControl.Play(1);
-                    __instance.fxIsPlaying = true;
-                }
-                return false;
-            }
-        }
-
         [HarmonyPatch(typeof(Constructor), "OnEnable")]
         class Constructor_OnEnable_Patch
         {
             static void Postfix(Constructor __instance)
             {
-
                 ImmuneToPropulsioncannon itpc = __instance.GetComponent<ImmuneToPropulsioncannon>();
                 if (itpc)
                 {
@@ -132,7 +98,21 @@ namespace Tweaks_Fixes
                     UnityEngine.Object.Destroy(itpc);
                 }
                 //itpc.enabled = false;
+            }
+        }
 
+        [HarmonyPatch(typeof(FlashLight), nameof(FlashLight.Start))]
+        public class FlashLight_Start_Patch
+        {
+            public static void Prefix(FlashLight __instance)
+            {
+                Light[] lights = __instance.GetComponentsInChildren<Light>(true);
+                //AddDebug("FlashLight lights " + lights.Length);
+                for (int i = lights.Length - 1; i >= 0; i--)
+                {
+                    if (lights[i].type == LightType.Point)
+                        UnityEngine.Object.Destroy(lights[i].gameObject);
+                }
             }
         }
 

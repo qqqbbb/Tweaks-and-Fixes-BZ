@@ -18,7 +18,7 @@ namespace Tweaks_Fixes
                 if (tt == TechType.None)
                     continue;
                 //AddDebug("Start Loot tt " + tt);
-                Main.Log("Start Loot " + tt + " " + loot.Value);
+                // Main.Log("Start Loot " + tt + " " + loot.Value);
                 TaskResult<GameObject> result = new TaskResult<GameObject>();
                 TaskResult<GameObject> taskResult = result;
                 for (int i = 0; i < loot.Value; i++)

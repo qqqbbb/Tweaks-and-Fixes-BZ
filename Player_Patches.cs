@@ -17,7 +17,7 @@ namespace Tweaks_Fixes
     {
         //static Survival survival;
         //static LiveMixin liveMixin;
-        public static GUIHand gUIHand;
+        //public static GUIHand gUIHand;
         //public static float exitWaterOffset = 0.8f; // 0.8f
         public static float crushPeriod = 3f;
 
@@ -63,15 +63,14 @@ namespace Tweaks_Fixes
                 AddDebug("Test end ");
             }
 
-            static void Postfix(Player __instance)
-            {
-                gUIHand = Player.main.GetComponent<GUIHand>();
+            //static void Postfix(Player __instance)
+            //{
+            //    gUIHand = Player.main.GetComponent<GUIHand>();
                 //if (Main.config.cantScanExosuitClawArm)
                 //    DisableExosuitClawArmScan();
 
                 //__instance.StartCoroutine(Test());
-
-            }
+            //}
         }
 
         //[HarmonyPatch(typeof(CrushDamage), "GetDepth")]

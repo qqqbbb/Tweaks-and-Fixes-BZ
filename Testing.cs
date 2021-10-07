@@ -17,6 +17,7 @@ namespace Tweaks_Fixes
 {
     class Testing
     {
+        //static HashSet<SeaTruckSegment> segments = new HashSet<SeaTruckSegment>();
         private Vector3 ClipWithTerrain(GameObject go)
         {
             Vector3 origin = go.transform.position;
@@ -26,6 +27,34 @@ namespace Tweaks_Fixes
             //    return;
             //go.transform.position.y = Mathf.Max(go.transform.position.y, hitInfo.point.y + 0.3f);
             return origin;
+        }
+
+        //[HarmonyPatch(typeof(uGUI_QuickSlots), "OnSelect")]
+        class uGUI_QuickSlots_OnSelect_Patch
+        {
+            static bool Prefix(uGUI_QuickSlots __instance, int slotID)
+            {
+                //AddDebug("uGUI_QuickSlots OnSelect");
+                if (__instance.selector == null)
+                    AddDebug("selector == null");
+                if (__instance.target == null || __instance.selector == null)
+                    return false;
+                if (slotID < 0)
+                {
+                    __instance.selector.enabled = false;
+                }
+                else
+                {
+                    if (__instance.selector.rectTransform == null)
+                    {
+                        AddDebug("selector.rectTransform == null");
+                        return false;
+                    }
+                    __instance.selector.rectTransform.anchoredPosition = __instance.GetPosition(slotID);
+                    __instance.selector.enabled = true;
+                }
+                return false;
+            }
         }
 
         //[HarmonyPatch(typeof(Player), "Update")]
@@ -40,12 +69,20 @@ namespace Tweaks_Fixes
                 //    AddDebug("Effective Ambient Temp " + (int)effectiveAmbientTemperature);
                 //    AddDebug("isExposed " + bt.isExposed);
                 //}
-
                 //AddDebug("heldItem " + Inventory.main.quickSlots.heldItem.ToString());
-                //if (Player.main.currentMountedVehicle)
-                //    AddDebug("currentMountedVehicle " + Player.main.currentMountedVehicle);
-                //if (Player.main._currentInterior != null) 
-                //    AddDebug("_currentInterior " + Player.main._currentInterior);
+                //bool inTruck = Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment;
+                //AddDebug("inTruck " + inTruck);
+                //AddDebug("IsPilotingSeatruck " + Player.main.IsPilotingSeatruck());
+                //AddDebug("inExosuit " + Player.main.inExosuit);
+                if (Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment)
+                {
+                    //SeaTruckSegment sts = (SeaTruckSegment)Player.main._currentInterior;
+                    //Rigidbody rb = sts.GetComponent<Rigidbody>();
+                    //if (rb)
+                    //{
+                    //    AddDebug("vel " + rb.velocity.x);
+                    //}
+                }
                 //if (Player.main._currentSub)
                 //    AddDebug("_currentSub " + Player.main._currentSub);
                 //if (Player.main.inExosuit)
@@ -73,7 +110,6 @@ namespace Tweaks_Fixes
 
                 if (Input.GetKey(KeyCode.C))
                 {
-                    AddDebug("SeaTruckUpgrades.slotIDs.Length " + SeaTruckUpgrades.slotIDs.Length);
                     //TechType tt = TechType.IceBubble;
                     //string classid = CraftData.GetClassIdForTechType(tt);
                     //CoroutineTask<GameObject> result = AddressablesUtility.InstantiateAsync("PrefabInstance/Bubble", position: Player.main.transform.position);
@@ -115,8 +151,21 @@ namespace Tweaks_Fixes
                     Targeting.GetTarget(Player.main.gameObject, 5f, out GameObject target, out float targetDist);
                     if (target)
                     {
-
-
+                        PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
+                        if (pi)
+                        {
+                            AddDebug("target " + pi.gameObject.name);
+                            AddDebug("target TechType " + CraftData.GetTechType(pi.gameObject));
+                            int x = (int)pi.transform.position.x;
+                            int y = (int)pi.transform.position.y;
+                            int z = (int)pi.transform.position.z;
+                            AddDebug(x + " " + y + " " + z);
+                        }
+                        else
+                        {
+                            AddDebug("target " + target.name);
+                            AddDebug("target TechType " + CraftData.GetTechType(target));
+                        }
                     }
                     if (Main.guiHand.activeTarget)
                     {
@@ -134,50 +183,94 @@ namespace Tweaks_Fixes
                     else if (Input.GetAxis("Mouse ScrollWheel") < 0f)
                     {
                     }
-
-                    //else
-
-                    //Inventory.main.DropHeldItem(true);
-                    //Player.main.liveMixin.TakeDamage(99);
-                    //Pickupable held = Inventory.main.GetHeld();
-                    //AddDebug("isUnderwaterForSwimming " + Player.main.isUnderwaterForSwimming.value);
-                    //AddDebug("isUnderwater " + Player.main.isUnderwater.value);
-                    //LaserCutObject laserCutObject = 
-                    //Inventory.main.quickSlots.Select(1);
-
-                    if (Main.guiHand.activeTarget)
-                    {
-                        //AddDebug("activeTarget " + Main.guiHand.activeTarget.name);
-                        //AddDebug(" " + CraftData.GetTechType(Main.guiHand.activeTarget));
-                        //RadiatePlayerInRange radiatePlayerInRange = Main.guiHand.activeTarget.GetComponent<RadiatePlayerInRange>();
-                        //if (radiatePlayerInRange)
-                        {
-
-                        }
-                        //else
-                        //    AddDebug("no radiatePlayerInRange " );
-
-                    }
-                    //if (target)
-                    //    Main.Message(" target " + target.name);
-                    //else
-                    //{
-                    //TechType techType = CraftData.GetTechType(target);
-                    //HarvestType harvestTypeFromTech = CraftData.GetHarvestTypeFromTech(techType);
-                    //TechType harvest = CraftData.GetHarvestOutputData(techType);
-                    //Main.Message("techType " + techType.AsString() );
-                    //Main.Message("name " + target.name);
-                    //}
                 }
             }
         }
 
-        //[HarmonyPatch(typeof(uGUI_InventoryTab), "OnPointerClick")]
-        class uGUI_InventoryTab_OnPointerClick_Patch
+        //[HarmonyPatch(typeof(SkyApplier))]
+        internal class SkyApplier_Patch
         {
-            public static void Prefix(InventoryItem item, int button)
+            //[HarmonyPrefix]
+            //[HarmonyPatch("ApplySkybox")]
+            public static bool ApplySkyboxPrefix(SkyApplier __instance)
             {
-                AddDebug("OnPointerClick " + button);
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (tt != TechType.ThermalPlantFragment)
+                    return true;
+                //Main.Log("ApplySkybox " + __instance.name + " " + __instance.transform.position.x);
+                __instance.applyPosition = __instance.transform.position;
+                mset.Sky sky = __instance.environmentSky;
+                if (sky == null)
+                {
+                    sky = WaterBiomeManager.main.GetBiomeEnvironment(__instance.applyPosition);
+                    //Main.Log("GetBiomeEnvironment " + __instance.name + " " + __instance.transform.position.x);
+                }
+                if (sky == __instance.skyApplied)
+                    return false;
+
+                if (__instance.skyApplied != null)
+                {
+                    __instance.skyApplied.UnregisterSkyApplier(__instance);
+                    //Main.Log("UnregisterSkyApplier " + __instance.name + " " + __instance.transform.position.x);
+                }
+                __instance.skyApplied = sky;
+                if (sky == null)
+                    return false;
+                Main.Log("ApplySkybox " + __instance.name + " " + __instance.transform.position.x);
+                for (int index = 0; index < __instance.renderers.Length; ++index)
+                {
+                    Renderer renderer = __instance.renderers[index];
+                    if (renderer)
+                    {
+                        sky.ApplyFast(renderer, 0);
+                        Main.Log("ApplyFast " + __instance.name + " " + __instance.transform.position.x);
+                    }
+                }
+                sky.RegisterSkyApplier(__instance);
+                return false;
+            }
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Initialize")]
+            public static bool InitializePrefix(SkyApplier __instance)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (tt != TechType.ThermalPlantFragment)
+                    return true;
+
+                if (!SkyApplier.IsWorldReady())
+                    return false;
+
+                //AddDebug("Initialize " + __instance.name + " " + __instance.transform.position.x);
+                if (!__instance.environmentSky)
+                {
+                    __instance.OnEnvironmentChanged(SkyApplier.GetEnvironment(__instance.gameObject, __instance.anchorSky));
+                    if(__instance.customSkyPrefab)
+                    Main.Log("OnEnvironmentChanged " + __instance.name + " " + __instance.transform.position.x + " " + __instance.customSkyPrefab.name);
+                    //Main.Log("OnEnvironmentChanged " + __instance.name + " " + __instance.anchorSky);
+                }
+                if (__instance.emissiveFromPower)
+                {
+                    __instance.cellLighting = __instance.GetComponentInParent<BaseCellLighting>();
+                    if (__instance.cellLighting)
+                    {
+                        Main.Log("RegisterSkyApplier " + __instance.name + " " + __instance.transform.position.x);
+                        __instance.cellLighting.RegisterSkyApplier(__instance);
+                    }
+                }
+                if (!__instance.dynamic)
+                    __instance.enabled = false;
+                __instance.initialized = true;
+                return false;
+            }
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Initialize")]
+            public static void InitializePostfix(SkyApplier __instance)
+            {
+                //AddDebug("Initialize Postfix " + __instance.name);
+                //__instance.OnEnvironmentChanged(null);
+                //__instance.OnEnvironmentChanged(__instance.sky);
+                //__instance.OnEnvironmentChanged(SkyApplier.GetEnvironment(__instance.gameObject, __instance.anchorSky));
+                //__instance.ApplySkybox();
             }
         }
     }

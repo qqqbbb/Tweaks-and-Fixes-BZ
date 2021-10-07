@@ -7,7 +7,6 @@ namespace Tweaks_Fixes
 {
     public static class Base_Light
     {
-        //public static HashSet<SubRoot> bases = new HashSet<SubRoot>();
         public static HashSet<BaseCellLighting> bcls = new HashSet<BaseCellLighting>();
 
         public static void UpdateBaseLights()

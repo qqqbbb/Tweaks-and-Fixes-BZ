@@ -14,8 +14,45 @@ namespace Tweaks_Fixes
         {
             static void Prefix(EnergyMixin __instance, ref float amount)
             {
-                //AddDebug("ConsumeEnergy");
-                amount *= Main.config.energyConsMult;
+                if (__instance.GetComponent<Hoverbike>())
+                {
+                    //AddDebug("Hoverbike ConsumeEnergy");
+                    amount *= Main.config.vehicleEnergyConsMult;
+                }
+                else
+                {
+                    //AddDebug("EnergyMixin ConsumeEnergy");
+                    amount *= Main.config.toolEnergyConsMult;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Vehicle), "ConsumeEngineEnergy")]
+        class Vehicle_ConsumeEngineEnergy_Patch
+        {
+            static void Prefix(Vehicle __instance, ref float energyCost)
+            {
+                //AddDebug("Vehicle ConsumeEnergy");
+                energyCost *= Main.config.vehicleEnergyConsMult;
+            }
+        }
+
+        [HarmonyPatch(typeof(PowerSystem), nameof(PowerSystem.ConsumeEnergy))]
+        class PowerSystem_ConsumeEnergy_Patch
+        {
+            static void Prefix(ref float amount, IPowerInterface powerInterface)
+            {
+                PowerRelay pr = powerInterface as PowerRelay;
+                if (pr && pr.GetComponent<SeaTruckSegment>())
+                {
+                    amount *= Main.config.vehicleEnergyConsMult;
+                    //AddDebug(" SeaTruck ConsumeEnergy ");
+                }
+                else
+                {
+                    //AddDebug(" base ConsumeEnergy ");
+                    amount *= Main.config.baseEnergyConsMult;
+                }
             }
         }
 
@@ -68,7 +105,6 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Battery __instance)
             {
-                //__instance._capacity *= Main.config.batteryMult;
                 if (Main.crafterOpen)
                 {
                     //AddDebug("crafterOpen");

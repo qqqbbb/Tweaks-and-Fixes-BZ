@@ -1,11 +1,13 @@
 ﻿using HarmonyLib;
 using UnityEngine;
+using System.Collections.Generic;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     class Creature_Tweaks
     {
+        public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
         //[HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
         {
@@ -33,50 +35,44 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(CreatureEgg), "GetHatchDuration")]
+        class CreatureEgg_GetHatchDuration_Patch
+        {
+            public static bool Prefix(CreatureEgg __instance, ref float __result)
+            {
+                __result = 1200f * Main.config.eggHatchTimeMult * __instance.daysBeforeHatching * (NoCostConsoleCommand.main.fastHatchCheat ? 0.01f : 1f);
+                //AddDebug("GetHatchDuration " + __instance.creatureType + " " + __result);
+                return false;
+            }
+        }
+
         [HarmonyPatch(typeof(FleeOnDamage), nameof(FleeOnDamage.OnTakeDamage))]
         internal class FleeOnDamage_OnTakeDamage_Prefix_Patch
         {
             private static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
             {
-                //int health = (int)__instance.creature.liveMixin?.health; 
-                //Main.Message("creaturesDontFlee " + Main.config.creaturesDontFlee);
-                if (Main.config.predatorsDontFlee)
-                {
-                    LiveMixin liveMixin = __instance.creature.liveMixin;
-                    AggressiveWhenSeeTarget agr = __instance.GetComponent<AggressiveWhenSeeTarget>();
-                    if (liveMixin && agr)
-                    { //  && damageInfo.dealer == Player.main
-                      //if (damageInfo.dealer)
-                        //AddDebug("damage dealer " + damageInfo.dealer.name);
-                        //int maxHealth = (int)liveMixin.maxHealth;
-                        int halfMaxHealth = Mathf.RoundToInt(liveMixin.maxHealth * .5f);
-                        int rnd = Main.rndm.Next(1, halfMaxHealth);
-
-                        if (liveMixin.health > halfMaxHealth || rnd < liveMixin.health)
-                        {
-                            damageInfo.damage = 0f;
-                            //AddDebug("Dont flee");
-                            //Main.Message("health " + liveMixin.health + " rnd100 " + rnd100);
-                        }
-                        return false;
+                LiveMixin liveMixin = __instance.creature.liveMixin;
+                AggressiveWhenSeeTarget agr = __instance.GetComponent<AggressiveWhenSeeTarget>();
+                if (liveMixin && agr && liveMixin.IsAlive())
+                { //  && damageInfo.dealer == Player.main
+                    //if (damageInfo.dealer)
+                    //  Main.Message("damage dealer " + damageInfo.dealer.name);
+                    int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
+                    //int halfMaxHealth = Mathf.RoundToInt(liveMixin.maxHealth * .5f);
+                    int rnd = Main.rndm.Next(1, maxHealth);
+                    //float aggrMult = Mathf.Clamp(Main.config.aggrMult, 0f, 2f);
+                    int health = Mathf.RoundToInt(liveMixin.health * Main.config.aggrMult);
+                    //if (health > halfMaxHealth || rnd < health)
+                    if (health > rnd)
+                    {
+                        damageInfo.damage = 0f;
+                        //Main.Message("health " + liveMixin.health + " rnd100 " + rnd100);
                     }
-                }
-                return true;
-            }
-        }
+                    if (Main.config.aggrMult == 3f)
+                        damageInfo.damage = 0f;
 
-        //[HarmonyPatch(typeof(FMOD_CustomEmitter), nameof(FMOD_CustomEmitter.Play))]
-        public static class ReaperLeviathan_FMOD_CustomEmitter_Patch
-        {
-            public static bool Prefix(FMOD_CustomEmitter __instance)
-            {
-                //if (Main.config.disableReaperRoar && __instance.gameObject.GetComponent<ReaperLeviathan>())
-                //{
-                    //AddDebug("FMOD_CustomEmitter Play ");
-                    //if (__instance.asset)
-                    //    AddDebug("asset " + __instance.asset.id);
-                //    return false;
-                //}
+                    return false;
+                }
                 return true;
             }
         }
@@ -86,7 +82,10 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Creature __instance)
             {
-                if (__instance is SpinnerFish)
+                VFXSurface vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                vFXSurface.surfaceType = VFXSurfaceTypes.organic;
+
+                if (__instance is SpinnerFish || __instance is RockGrub)
                 {
                     CreatureDeath cd = __instance.GetComponent<CreatureDeath>();
                     if (cd)
@@ -101,8 +100,60 @@ namespace Tweaks_Fixes
             public static void Prefix(CreatureDeath __instance)
             {
                 if (Main.config.creaturesRespawn)
-                {
                     __instance.respawnOnlyIfKilledByCreature = false;
+            }
+        }
+
+        [HarmonyPatch(typeof(Pickupable), "AllowedToPickUp")]
+        class Pickupable_AllowedToPickUp_Patch
+        {
+            public static void Postfix(Pickupable __instance, ref bool __result)
+            {
+                //__result = __instance.isPickupable && Time.time - __instance.timeDropped > 1.0 && Player.main.HasInventoryRoom(__instance);
+                if (Main.config.noFishCatching && Main.IsEatableFishAlive(__instance.gameObject))
+                {
+                    __result = false;
+                    if (Player.main._currentWaterPark)
+                    {
+                        __result = true;
+                        //AddDebug("WaterPark ");
+                        return;
+                    }
+
+                    PropulsionCannonWeapon pc = Inventory.main.GetHeldTool() as PropulsionCannonWeapon;
+                    if (pc && pc.propulsionCannon.grabbedObject == __instance.gameObject)
+                    {
+                        //AddDebug("PropulsionCannonWeapon ");
+                        __result = true;
+                        return;
+                    }
+                    foreach (Pickupable p in Gravsphere_Patch.gravSphereFish)
+                    {
+                        if (p == __instance)
+                        {
+                            //AddDebug("Gravsphere ");
+                            __result = true;
+                            return;
+                        }
+                    }
+                }
+
+            }
+        }
+
+        [HarmonyPatch(typeof(SwimBehaviour))]
+        class SwimBehaviour_SwimToInternal_patch
+        {
+            [HarmonyPatch(nameof(SwimBehaviour.SwimToInternal))]
+            public static void Prefix(SwimBehaviour __instance, ref float velocity)
+            {
+                if (Main.IsEatableFish(__instance.gameObject))
+                {
+                    velocity *= Main.config.fishSpeedMult;
+                }
+                else
+                {
+                    velocity *= Main.config.creatureSpeedMult;
                 }
             }
         }
@@ -148,7 +199,6 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
 
         //[HarmonyPatch(typeof(FleeOnDamage), "Evaluate")]
         class FleeOnDamage_Evaluate_Prefix_Patch

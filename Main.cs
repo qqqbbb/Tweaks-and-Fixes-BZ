@@ -16,10 +16,11 @@ namespace Tweaks_Fixes
     [QModCore]
     public class Main
     {
-        public static float version = 1.02f;
         public static GUIHand guiHand;
         public static PDA pda;
         public static Survival survival;
+        public static float oceanLevel;
+        public static Equipment equipment;
         public static bool crafterOpen = false;
         public static bool canBreathe = false;
         public static bool loadingDone = false;
@@ -242,6 +243,8 @@ namespace Tweaks_Fixes
                 //IngameMenuHandler.RegisterOnSaveEvent(config.Save);
                 guiHand = __instance.GetComponent<GUIHand>();
                 pda = __instance.GetPDA();
+                oceanLevel = Ocean.GetOceanLevel();
+                equipment = Inventory.main.equipment;
                 //if (config.cantScanExosuitClawArm)
                 //    DisableExosuitClawArmScan();
 
@@ -307,14 +310,13 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(SaveLoadManager), "ClearSlotAsync")]
+        [HarmonyPatch(typeof(SaveLoadManager), "ClearSlotAsync")]
         internal class SaveLoadManager_ClearSlotAsync_Patch
         {
             public static void Postfix(SaveLoadManager __instance, string slotName)
             {
                 //AddDebug("ClearSlotAsync " + slotName);
-                //config.escapePodSmokeOut.Remove(slotName);
-                //config.openedWreckDoors.Remove(slotName);
+                config.podPower.Remove(SaveLoadManager.main.currentSlot);
                 config.Save();
             }
         }
@@ -338,8 +340,9 @@ namespace Tweaks_Fixes
             else
                 config.playerCamRot = -1f;
 
+            config.podPower[SaveLoadManager.main.currentSlot] = Drop_Pod_Patch.podPowerSource.power;
             config.activeSlot = Inventory.main.quickSlots.activeSlot;
-            InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
+            //InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
             //if (heldItem.item.GetTechType() == TechType.Seaglide)
             //    config.activeSlot = -1;
 
@@ -351,7 +354,6 @@ namespace Tweaks_Fixes
         [QModPatch]
         public static void Load()
         {
-
             config.Load();
             Assembly assembly = Assembly.GetExecutingAssembly();
             new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
@@ -359,8 +361,6 @@ namespace Tweaks_Fixes
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
 
             LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
-
-           
         }
         //public static bool dayNightSpeedLoaded = false;
         [QModPostPatch]
@@ -394,6 +394,12 @@ namespace Tweaks_Fixes
 
                 if (tt != TechType.None)
                     Gravsphere_Patch.gravTrappable.Add(tt);
+            }
+            foreach (var kv in config.damageMult_)
+            {
+                TechTypeExtensions.FromString(kv.Key, out TechType tt, true);
+                if (tt != TechType.None)
+                    Damage_Patch.damageMult.Add(tt, kv.Value);
             }
         }
     }
