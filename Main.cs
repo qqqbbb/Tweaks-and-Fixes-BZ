@@ -340,7 +340,9 @@ namespace Tweaks_Fixes
             else
                 config.playerCamRot = -1f;
 
-            config.podPower[SaveLoadManager.main.currentSlot] = Drop_Pod_Patch.podPowerSource.power;
+            if (Drop_Pod_Patch.podPowerSource)
+                config.podPower[SaveLoadManager.main.currentSlot] = Drop_Pod_Patch.podPowerSource.power;
+
             config.activeSlot = Inventory.main.quickSlots.activeSlot;
             //InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
             //if (heldItem.item.GetTechType() == TechType.Seaglide)

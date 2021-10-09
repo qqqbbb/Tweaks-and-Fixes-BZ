@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
         public bool alwaysBestLOD = false;
         [Choice("Unmanned vehicles can be attacked", Tooltip = "When 'Only_if_lights_on' is selected, you have to unpower your seatruck to prevent attacks on it.")]
         public EmptyVehicleCanBeAttacked emptyVehicleCanBeAttacked;
-        [Slider("Drop pod max power", 0, 100, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "If this is not 0 your drop pod's max power will be set to this and will regenerate during the day. The game has to be reloaded after changing this.")]
+        [Slider("Drop pod max power", 0, 100, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "If this is not 0 your drop pod's max power will be set to this. Drop pod's power will regenerate during the day. The game has to be reloaded after changing this.")]
         public int dropPodMaxPower = 0;
         [Slider("Fruit growth time", 0, 100, DefaultValue = 1, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a lantern tree fruit, a root pustule, a frost anemone heart, a creepvine seed cluster, a Preston's plant fruit to grow. You have to reload your game after changing this.")]
         public int fruitGrowTime = 1;
