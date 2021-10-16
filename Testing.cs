@@ -148,7 +148,27 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug(" Base_Light.bases " +);
                     //Inventory.main.quickSlots.SelectImmediate(Main.config.activeSlot);
-                    Targeting.GetTarget(Player.main.gameObject, 5f, out GameObject target, out float targetDist);
+                    GameObject target = Main.guiHand.activeTarget;
+                    //AddDebug("activeTarget parent " + target.transform.parent.name);
+                    //AddDebug("activeTarget parent parent " + target.transform.parent.parent.name);
+
+                    if (target)
+                    {
+                        GameObject bike = target.transform.parent.parent.gameObject;
+                        if (bike && target.transform.parent.parent.GetComponent<Hoverbike>())
+                        {
+                            EnergyMixin em = bike.GetComponent<EnergyMixin>();
+                            if (em)
+                                AddDebug("charge " + em.charge);
+                            Transform lightT = bike.transform.Find("Deployed/Lights");
+                            if (lightT)
+                                AddDebug("light " + lightT.gameObject.activeSelf);
+                        }
+                    }
+                    if (!target)
+                    { 
+                        Targeting.GetTarget(Player.main.gameObject, 5f, out target, out float targetDist);
+                    }
                     if (target)
                     {
                         PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
@@ -166,16 +186,6 @@ namespace Tweaks_Fixes
                             AddDebug("target " + target.name);
                             AddDebug("target TechType " + CraftData.GetTechType(target));
                         }
-                    }
-                    if (Main.guiHand.activeTarget)
-                    {
-                        //VFXSurface[] vFXSurfaces = __instance.GetAllComponentsInChildren<VFXSurface>();
-                        //if (vFXSurfaces.Length == 0)
-                        //    AddDebug(" " + Main.guiHand.activeTarget.name + " no VFXSurface");
-                        //else
-                        //    AddDebug(" " + Main.guiHand.activeTarget.name);
-
-                        //AddDebug("TechType " + CraftData.GetTechType(Main.guiHand.activeTarget));
                     }
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {

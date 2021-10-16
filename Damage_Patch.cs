@@ -128,11 +128,11 @@ namespace Tweaks_Fixes
                 }
                 if (!__instance.allowDamageToPlayer)
                 {
-                    GameObject gameObject = collision.gameObject;
+                    GameObject colTarget = collision.gameObject;
                     GameObject entityRoot = UWE.Utils.GetEntityRoot(collision.gameObject);
                     if (entityRoot)
-                        gameObject = entityRoot;
-                    if (gameObject.Equals(Player.main.gameObject))
+                        colTarget = entityRoot;
+                    if (colTarget.Equals(Player.main.gameObject))
                         return false;
                 }
                 if (!__instance.damageBases && UWE.Utils.GetComponentInHierarchy<Base>(collision.gameObject))
@@ -153,7 +153,7 @@ namespace Tweaks_Fixes
                     if (!skip)
                     {
                         //AddDebug(" myMass " + myMass);
-                        //AddDebug(targetLM.name + " damage " + targetDamage);
+                        //AddDebug(targetLM.name + " health " + targetLM.health + " damage " + targetDamage);
                         targetLM.TakeDamage(targetDamage, position, DamageType.Collide, __instance.gameObject);
                         __instance.timeLastDamage = Time.time;
                         prevColTarget = rb;

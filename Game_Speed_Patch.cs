@@ -160,5 +160,14 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(WeatherSetTuning), "GetEventDuration")]
+        class WeatherSetTuning_GetEventDuration_Patch
+        {
+            static void Postfix(WeatherSetTuning __instance, ref float __result)
+            {
+                __result /= DayNightCycle.main._dayNightSpeed;
+                //AddDebug(__instance.weatherSet.name + " GetEventDuration " + __result);
+            }
+        }
     }
 }

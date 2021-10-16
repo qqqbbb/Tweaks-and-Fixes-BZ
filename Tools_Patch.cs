@@ -111,7 +111,7 @@ namespace Tweaks_Fixes
                 for (int i = lights.Length - 1; i >= 0; i--)
                 {
                     if (lights[i].type == LightType.Point)
-                        UnityEngine.Object.Destroy(lights[i].gameObject);
+                        lights[i].enabled = false;
                 }
             }
         }

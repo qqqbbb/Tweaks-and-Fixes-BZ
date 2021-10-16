@@ -12,7 +12,7 @@ namespace Tweaks_Fixes
     [Menu("Tweaks and Fixes")]
     public class Config : ConfigFile
     {
-        [Slider("Day/night cycle speed", 0f, 4f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
+        [Slider("Day/night cycle speed", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
         public float gameSpeed = 1f;
         //[Slider("Day/night cycle speed 10x mult", 0, 4, DefaultValue = 1, Step = 1, Format = "{0:F0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
         //public int gameSpeedMult = 1;
@@ -50,13 +50,13 @@ namespace Tweaks_Fixes
         public bool exosuitMoveTweaks = false;
         [Toggle("Seatruck movement tweaks", Tooltip = "Seatruck's vertical, sideways and backward speed is halved. Afterburner is active for as long as you hold the 'sprint' key but consumes twice more power. Horsepower upgrade increases seatruck's speed by 10%. You can install more than 1 Horsepower upgrade.")]
         public bool seatruckMoveTweaks = false;
-        [Toggle("Always use best LOD models", Tooltip = "A lot of models in the game use different levels of detail depending on how close you are to them. Some of them look different and you can see those objects change as you approach them. With this on best LOD models will always be used. It will affect the game's performance, but with a modern GPU it should not be noticable. The game has to be reloaded after changing this.")]
+        [Toggle("Always use best LOD models", Tooltip = "A lot of models in the game use different levels of detail depending on how close you are to them. Some of them look different and you can see those objects change as you approach them. With this on best LOD models will always be used. It will affect the game's performance, but with a good GPU it should not be noticable. The game has to be reloaded after changing this.")]
         public bool alwaysBestLOD = false;
         [Choice("Unmanned vehicles can be attacked", Tooltip = "When 'Only_if_lights_on' is selected, you have to unpower your seatruck to prevent attacks on it.")]
         public EmptyVehicleCanBeAttacked emptyVehicleCanBeAttacked;
-        [Slider("Drop pod max power", 0, 100, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "If this is not 0 your drop pod's max power will be set to this. Drop pod's power will regenerate during the day. The game has to be reloaded after changing this.")]
+        [Slider("Drop pod max power", 0, 100, DefaultValue = 0, Step = 5, Format = "{0:F0}", Tooltip = "If this is not 0 your drop pod's max power will be set to this. Drop pod's power will regenerate during the day. The game has to be reloaded after changing this.")]
         public int dropPodMaxPower = 0;
-        [Slider("Fruit growth time", 0, 100, DefaultValue = 1, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a lantern tree fruit, a root pustule, a frost anemone heart, a creepvine seed cluster, a Preston's plant fruit to grow. You have to reload your game after changing this.")]
+        [Slider("Fruit growth time", 0, 50, DefaultValue = 1, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a lantern tree fruit, a frost anemone heart, a creepvine seed cluster, a Preston's plant fruit to grow. You have to reload your game after changing this.")]
         public int fruitGrowTime = 1;
         [Toggle("Do not spawn fragments for unlocked blueprints", Tooltip = "You have to reload your game after changing this.")]
         public bool dontSpawnKnownFragments = false;
@@ -235,6 +235,7 @@ namespace Tweaks_Fixes
         };
         public float medKitHPperSecond = 50f;
         public HashSet<TechType> predatorExclusion = new HashSet<TechType> { TechType.Crash};
+        public Dictionary<string, bool> iceFruitPickedState = new Dictionary<string, bool> ();
 
         static void UpdateGameSpeed()
         {

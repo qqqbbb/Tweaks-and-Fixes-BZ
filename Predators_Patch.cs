@@ -13,6 +13,115 @@ namespace Tweaks_Fixes
         //static HashSet<SubRoot> cyclops = new HashSet<SubRoot>();
         //static Dictionary<AttackCyclops, AggressiveWhenSeeTarget> attackCyclopsAWST = new Dictionary<AttackCyclops, AggressiveWhenSeeTarget>();
 
+        public static bool IsVehicle(GameObject go)
+        {
+            return go.GetComponent<Vehicle>() || go.GetComponent<SeaTruckSegment>() || go.GetComponent<Hoverbike>();
+        }
+
+        public static bool IsPlayerInsideVehicle(GameObject go)
+        {
+            Vehicle vehicle = go.GetComponent<Vehicle>();
+            if (vehicle && Player.main.currentMountedVehicle == vehicle)
+                return true;
+            if (Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment)
+                return true;
+            Hoverbike hb = go.GetComponent<Hoverbike>();
+            return hb && hb.playerInHoverbike;
+        }
+
+        public static bool IsVehiclePowered(GameObject go)
+        {
+            Vehicle vehicle = go.GetComponent<Vehicle>();
+            if (vehicle)
+            {
+                PowerRelay pr = vehicle.GetComponent<PowerRelay>();
+                return pr && pr.isPowered;
+            }
+            SeaTruckSegment sts = go.GetComponent<SeaTruckSegment>();
+            if (sts)
+            {
+                PowerRelay pr = sts.GetComponent<PowerRelay>();
+                return pr && pr.isPowered;
+            }
+            Hoverbike hb = go.GetComponent<Hoverbike>();
+            if (hb)
+            {
+                EnergyMixin em = hb.GetComponent<EnergyMixin>();
+                return em && em.charge > 0f;
+            }
+            return false;
+        }
+
+        public static bool IsLightOn(GameObject go)
+        {
+            Vehicle vehicle = go.GetComponent<Vehicle>();
+            if (vehicle)
+            {
+                Transform lightsT = vehicle.transform.Find("lights_parent");
+                return lightsT && lightsT.gameObject.activeSelf;
+            }
+            SeaTruckSegment sts = go.GetComponent<SeaTruckSegment>();
+            if (sts)
+            {
+                PowerRelay pr = sts.GetComponent<PowerRelay>();
+                return pr && pr.isPowered;
+            }
+            Hoverbike hb = go.GetComponent<Hoverbike>();
+            if (hb)
+            {
+                Transform lightT = hb.transform.Find("Deployed/Lights");
+                return lightT && lightT.gameObject.activeSelf;
+            }
+            return false;
+        }
+
+        public static bool IsVehicleMoving(GameObject go) 
+        {
+            Vehicle vehicle = go.GetComponent<Vehicle>();
+            SeaTruckSegment sts = go.GetComponent<SeaTruckSegment>();
+            if (!vehicle && !sts)
+                return false;
+
+            Vector3 vel = Vector3.zero;
+            if (vehicle)
+                vel = vehicle.useRigidbody.velocity;
+            else if (sts)
+                vel = sts.GetComponent<Rigidbody>().velocity;
+
+            return vel.x > 1f || vel.y > 1f || vel.z > 1f;
+        }
+
+        [HarmonyPatch(typeof(MeleeAttack))]
+        internal class MeleeAttack__Patch
+        {
+            [HarmonyPatch("IsValidVehicle")]
+            [HarmonyPrefix]
+            public static bool IsValidVehiclePrefix(MeleeAttack __instance, GameObject target, ref bool __result)
+            {
+                if (GameModeUtils.IsInvisible() || Main.config.aggrMult == 0f || !IsVehicle(target))
+                {
+                    __result = false;
+                    return false;
+                }
+                if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Only_if_lights_on)
+                {
+                    if (!IsPlayerInsideVehicle(target) && IsLightOn(target))
+                    {
+                        __result = true;
+                        return false;
+                    }
+                }
+                else if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.No)
+                {
+                    __result = IsPlayerInsideVehicle(target);
+                    return false;
+                }
+                __result = true;
+                return false;
+            }
+
+        }
+              
         [HarmonyPatch(typeof(CreatureAggressionManager), "OnMeleeAttack")]
         internal class CreatureAggressionManager_OnMeleeAttack_Patch
         {
@@ -43,7 +152,7 @@ namespace Tweaks_Fixes
                     __instance.aggressionToSharks.enabled = false;
                 __instance.aggressionToSharksPaused = true;
                 __instance.Invoke("EnableAggressionToSharks", __instance.sharksAttackInterval / Main.config.aggrMult);
-                AddDebug("CreatureAggressionManager EnableAggressionToSharks");
+                //AddDebug("CreatureAggressionManager EnableAggressionToSharks");
                 return false;
             }
         }
@@ -55,7 +164,7 @@ namespace Tweaks_Fixes
             {
                 if (Main.config.aggrMult > 0f && Time.time > __instance.timeLastPlayerAttack + __instance.playerAttackInterval / Main.config.aggrMult && __instance.IsTargetValid(Player.main.gameObject))
                 {
-                    AddDebug("AggressiveWhenSeePlayer " + __instance.name + " " + __instance.playerAttackInterval);
+                    //AddDebug("AggressiveWhenSeePlayer " + __instance.name + " " + __instance.playerAttackInterval);
                     __result = Player.main.gameObject;
                     return false;
                 }
@@ -119,48 +228,36 @@ namespace Tweaks_Fixes
                         //}
                     }
                 }
-                Vehicle vehicle = target.GetComponent<Vehicle>();
-                SeaTruckSegment sts = target.GetComponent<SeaTruckSegment>();
-                if (vehicle || sts)
+                //Vehicle vehicle = target.GetComponent<Vehicle>();
+                //SeaTruckSegment sts = target.GetComponent<SeaTruckSegment>();
+                if (IsVehicle(target))
                 {
                     if (Main.config.aggrMult == 0 || GameModeUtils.IsInvisible())
                     {
                         __result = false;
                         return false;
                     }
-                    bool playerInSeaTruck = Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment;
-                    if ((vehicle && !Player.main.inExosuit) || (sts && !playerInSeaTruck))
+                    if (!IsPlayerInsideVehicle(target))
                     {
-                        if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Only_if_lights_on)
+                        if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Only_if_lights_on && !IsLightOn(target))
                         {
-                            PowerRelay pr = null;
-                            if (vehicle)
-                                pr = vehicle.GetComponent<PowerRelay>();
-                            else if (sts) // seatruck has lights when unpowered
-                                pr = sts.GetComponent<PowerRelay>();
-
-                            __result = pr && pr.isPowered;
+                            __result = false;
                             return false;
                         }
-                        __result = Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Yes;
-                        return false;
+                        else if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.No)
+                        {
+                            __result = false;
+                            return false;
+                        }
+                        //if (CreatureData.GetBehaviourType(__instance.myTechType) == BehaviourType.Leviathan)
+                        //{ // prevent leviathan attack on land
+                        //    if (Ocean.main.GetDepthOf(target) < 5f)
+                        //    {
+                        //        __result = false;
+                        //        return false;
+                        //    }
+                        //}
                     }
-                    //if (CreatureData.GetBehaviourType(__instance.myTechType) == BehaviourType.Leviathan)
-                    //{ // prevent leviathan attack on land
-                    //    if (Ocean.main.GetDepthOf(target) < 5f)
-                    //    {
-                    //        __result = false;
-                    //        return false;
-                    //    }
-                    //}
-                    Vector3 vel = Vector3.zero;
-                    if (vehicle)
-                        vel = vehicle.useRigidbody.velocity;
-                    else if (sts)
-                        vel = sts.GetComponent<Rigidbody>().velocity;
-
-                    __result = vel.x > 1f || vel.y > 1f || vel.z > 1f;
-                    return false;
                 }
                 if (target == null || __instance.creature.IsFriendlyTo(target))
                 {
@@ -220,7 +317,7 @@ namespace Tweaks_Fixes
                 {
                     __instance.creature.Aggression.Add(__instance.aggressionPerSecond);
                     //__instance.lastScarePosition.lastScarePosition = Player.main.gameObject.transform.position;
-                    __instance.lastTarget.target = Player.main.gameObject;
+                    __instance.lastTarget.SetTarget(Player.main.gameObject, __instance.targetPriority);
                     if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Tweaks.silentCreatures.Contains(__instance.myTechType))
                         __instance.sightedSound.StartEvent();
 
@@ -376,7 +473,7 @@ namespace Tweaks_Fixes
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 if (__instance.targetType == EcoTargetType.Shark)
                 {
-                    AddDebug(tt + " aggr " + __instance.creature.Aggression.Value + " req aggr " + __instance.requiredAggression);
+                    //AddDebug(tt + " aggr " + __instance.creature.Aggression.Value + " req aggr " + __instance.requiredAggression);
                     float aggr = Main.config.aggrMult > 1f ? Main.config.aggrMult : 1f;
                     if (EcoRegionManager.main != null && (Mathf.Approximately(__instance.requiredAggression, 0f) || __instance.creature.Aggression.Value * aggr >= __instance.requiredAggression))
                     {
