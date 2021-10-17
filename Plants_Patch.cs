@@ -28,9 +28,6 @@ namespace Tweaks_Fixes
                 if (!pp.gameObject.activeSelf && !fp.inactiveFruits.Contains(pp))
                     fp.inactiveFruits.Add(pp);
             }
-            fp.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
-            if (fp.fruitSpawnInterval == 0f)
-                fp.fruitSpawnInterval = 1f;
         }
 
         public static void AttachFruitPlantToKelpRoot(GameObject go)
@@ -119,7 +116,7 @@ namespace Tweaks_Fixes
                         //AddDebug("make melons in Marg greenhouse pickupable " + x +" " + y +" " + z);
                     }
                 }
-                else if (tt == TechType.IceFruitPlant || tt == TechType.Creepvine || tt == TechType.HangingFruitTree || tt == TechType.SnowStalkerPlant)
+                else if (tt == TechType.IceFruitPlant || tt == TechType.Creepvine || tt == TechType.HangingFruitTree || tt == TechType.SnowStalkerPlant || tt == TechType.LeafyFruitPlant || tt == TechType.HeatFruitPlant)
                 {
                     //PickPrefab[] pickPrefabs = __instance.GetAllComponentsInChildren<PickPrefab>();
                     AttachFruitPlant(__instance.gameObject);
@@ -159,6 +156,7 @@ namespace Tweaks_Fixes
                         Renderer LOD0Renderer = null;
                         Renderer LOD1Renderer = null;
                         List<Renderer> loPolyRenderers = new List<Renderer>();
+
                         foreach (LOD lod in lods)
                         {
                             foreach (Renderer r in lod.renderers)
@@ -288,17 +286,27 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(FruitPlant), "Initialize")]
-        class FruitPlant_Initialize_Patch
+        [HarmonyPatch(typeof(FruitPlant))]
+        class FruitPlant_Patch
         {
-            public static bool Prefix(FruitPlant __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Awake")]
+            public static void AwakePostfix(FruitPlant __instance)
+            {
+                __instance.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
+                if (__instance.fruitSpawnInterval == 0f)
+                    __instance.fruitSpawnInterval = 1f;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch(nameof(FruitPlant.Initialize))]
+            public static bool InitializePrefix(FruitPlant __instance)
             {
                 if (__instance.initialized)
                     return false;
                 __instance.inactiveFruits.Clear();
                 if (__instance.fruits == null)
                 {
-                    AddDebug(__instance.name + " fruits null");
+                    //AddDebug(__instance.name + " fruits null");
                     return false;
                 }
                 for (int index = 0; index < __instance.fruits.Length; ++index)
@@ -310,6 +318,8 @@ namespace Tweaks_Fixes
                 __instance.initialized = true;
                 return false;
             }
+            [HarmonyPostfix]
+            [HarmonyPatch(nameof(FruitPlant.Initialize))]
             public static void Postfix(FruitPlant __instance)
             {
                 if (CraftData.GetTechType(__instance.gameObject) == TechType.Creepvine)
@@ -325,16 +335,67 @@ namespace Tweaks_Fixes
                     //AddDebug(__instance.name + " Initialize intensity " + light.intensity);
                 }
             }
-       
         }
            
-        [HarmonyPatch(typeof(GrowingPlant), "GetGrowthDuration")]
-        class GrowingPlant_GetGrowthDuration_Patch
+        [HarmonyPatch(typeof(GrowingPlant))]
+        class GrowingPlant_Patch
         {
-            public static bool Prefix(GrowingPlant __instance, ref float __result)
+            [HarmonyPrefix]
+            [HarmonyPatch("GetGrowthDuration")]
+            public static bool GetGrowthDurationPrefix(GrowingPlant __instance, ref float __result)
             {
                 __result = __instance.growthDuration * Main.config.plantGrowthTimeMult * (NoCostConsoleCommand.main.fastGrowCheat ? 0.01f : 1f);
                 return false;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("SetScale")]
+            static bool SetScalePrefix(GrowingPlant __instance, Transform tr, float progress)
+            {
+                if (__instance.plantTechType == TechType.SnowStalkerPlant)
+                {
+                    float num = __instance.isIndoor ? __instance.growthWidthIndoor.Evaluate(progress) : __instance.growthWidth.Evaluate(progress);
+                    float y = __instance.isIndoor ? __instance.growthHeightIndoor.Evaluate(progress) : __instance.growthHeight.Evaluate(progress);
+                    num *= 2f;
+                    tr.localScale = new Vector3(num, y * 2f, num);
+                    if (__instance.passYbounds != null)
+                        __instance.passYbounds.UpdateWavingScale(tr.localScale);
+                    else
+                    {
+                        if (__instance.wavingScaler != null)
+                            __instance.wavingScaler.UpdateWavingScale(tr.localScale);
+                    }
+                    //AddDebug("SnowStalkerPlant maxProgress " + __instance.maxProgress);
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(Eatable), "Awake")]
+        class Eatable_Awake_Patch
+        {
+            static void Postfix(Eatable __instance)
+            {
+                Plantable plantable = __instance.GetComponent<Plantable>();
+                if (plantable && plantable.plantTechType == TechType.SnowStalkerPlant)
+                {
+                    //AddDebug("Eatable Awake " + __instance.name);
+                    plantable.size = Plantable.PlantSize.Large;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(GrownPlant), "Awake")]
+        class GrownPlant_Awake_Patch
+        {
+            static void Prefix(GrownPlant __instance)
+            {
+                //if (__instance.bigSlots.Length == 1 && __instance.slots.Length == 4)
+                //{
+                //    __instance.initialized = false;
+                //    __instance.slots = new Transform[] { __instance.bigSlots[0] };
+                //    AddDebug(__instance.name + " bigSlots " + __instance.bigSlots.Length + " slots " + __instance.slots.Length);
+                //}
             }
         }
 
@@ -352,7 +413,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(FruitPlant), "OnFruitHarvest")]
+        //[HarmonyPatch(typeof(FruitPlant), "OnFruitHarvest")]
         class FruitPlant_OnFruitHarvest_Patch
         {
             public static void Postfix(FruitPlant __instance, PickPrefab fruit)

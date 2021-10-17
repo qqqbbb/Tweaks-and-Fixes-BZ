@@ -151,20 +151,6 @@ namespace Tweaks_Fixes
                     GameObject target = Main.guiHand.activeTarget;
                     //AddDebug("activeTarget parent " + target.transform.parent.name);
                     //AddDebug("activeTarget parent parent " + target.transform.parent.parent.name);
-
-                    if (target)
-                    {
-                        GameObject bike = target.transform.parent.parent.gameObject;
-                        if (bike && target.transform.parent.parent.GetComponent<Hoverbike>())
-                        {
-                            EnergyMixin em = bike.GetComponent<EnergyMixin>();
-                            if (em)
-                                AddDebug("charge " + em.charge);
-                            Transform lightT = bike.transform.Find("Deployed/Lights");
-                            if (lightT)
-                                AddDebug("light " + lightT.gameObject.activeSelf);
-                        }
-                    }
                     if (!target)
                     { 
                         Targeting.GetTarget(Player.main.gameObject, 5f, out target, out float targetDist);
