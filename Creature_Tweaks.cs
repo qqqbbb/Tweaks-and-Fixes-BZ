@@ -158,6 +158,20 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(SeaMonkeyBringGift), "Start")]
+        class SeaMonkeyBringGift_Start_patch
+        {
+            public static void Postfix(SeaMonkeyBringGift __instance)
+            {
+                Transform tr = __instance.transform.Find("heldToolHandTarget");
+                if (tr)
+                {
+                    VFXSurface sfxs = tr.gameObject.AddComponent<VFXSurface>();
+                    sfxs.surfaceType = VFXSurfaceTypes.organic;
+                }
+            }
+        }
+        
         //[HarmonyPatch(typeof(CreatureDeath), nameof(CreatureDeath.OnKill))]
         class CreatureDeath_OnKill_Patch
         {

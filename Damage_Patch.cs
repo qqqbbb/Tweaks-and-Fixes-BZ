@@ -10,7 +10,8 @@ namespace Tweaks_Fixes
     class Damage_Patch
     {
         static public Dictionary<TechType, float> damageMult = new Dictionary<TechType, float>();
-
+        static HashSet<DealDamageOnImpact> ddoiHB = new HashSet<DealDamageOnImpact>();
+        
         static void SetBloodColor(GameObject go)
         {   // GenericCreatureHit(Clone)
             // RGBA(0.784, 1.000, 0.157, 0.392)
@@ -93,13 +94,30 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(DealDamageOnImpact), "OnCollisionEnter")]
-        class DealDamageOnImpact_OnCollisionEnter_Patch
-        { // seatruck mirroredSelfDamageFraction .12
+        class DealDamageOnImpact_Patch
+        { // seatruck mirroredSelfDamageFraction .12 hoverbike mirroredSelfDamageFraction 1
             static Rigidbody prevColTarget;
-            static bool Prefix(DealDamageOnImpact __instance, Collision collision)
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            static void StartPostfix(DealDamageOnImpact __instance)
+            {
+                //TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //if (tt == TechType.SeaTruck)
+                //    __instance.mirroredSelfDamageFraction = 1f;
+                if (__instance.GetComponent<Hoverbike>())
+                    ddoiHB.Add(__instance);
+                    //__instance.mirroredSelfDamageFraction = .25f;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("OnCollisionEnter")]
+            static bool OnCollisionEnterPrefix(DealDamageOnImpact __instance, Collision collision)
             {
                 if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
                     return false;
+
+                if (ddoiHB.Contains(__instance))
+                    return true;
+
                 float damageMult = Mathf.Max(0f, Vector3.Dot(-collision.contacts[0].normal, __instance.prevVelocity));
                 float colMag = collision.relativeVelocity.magnitude;
                 if (colMag < __instance.speedMinimumForDamage)
@@ -168,11 +186,11 @@ namespace Tweaks_Fixes
                     return false;
                 //float num3 = targetDamage * __instance.mirroredSelfDamageFraction;
                 float myDamage = colMag * Mathf.Clamp((1f + (targetMass - myMass) * 0.001f), 0f, damageMult);
-                if (__instance.capMirrorDamage != -1.0)
+                if (__instance.capMirrorDamage != -1f)
                     myDamage = Mathf.Min(__instance.capMirrorDamage, myDamage);
                 myLM.TakeDamage(myDamage, position, DamageType.Collide, __instance.gameObject);
                 __instance.timeLastDamagedSelf = Time.time;
-                //AddDebug(__instance.name + " self damage " + myDamage);
+                //AddDebug(__instance.name + " speedMinimumForDamage " + __instance.speedMinimumForDamage + " self damage " + myDamage);
                 return false;
             }
         }

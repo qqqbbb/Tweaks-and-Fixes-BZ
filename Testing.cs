@@ -69,7 +69,6 @@ namespace Tweaks_Fixes
                 //    AddDebug("Effective Ambient Temp " + (int)effectiveAmbientTemperature);
                 //    AddDebug("isExposed " + bt.isExposed);
                 //}
-                //AddDebug("heldItem " + Inventory.main.quickSlots.heldItem.ToString());
                 //bool inTruck = Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment;
                 //AddDebug("inTruck " + inTruck);
                 //AddDebug("IsPilotingSeatruck " + Player.main.IsPilotingSeatruck());
@@ -180,6 +179,40 @@ namespace Tweaks_Fixes
                     {
                     }
                 }
+            }
+        }
+
+        //[HarmonyPatch(typeof(DamagePlayerInRadius), "DoDamage")]
+        class DamagePlayerInRadius_DoDamage_Patch
+        {
+            static bool Prefix(DamagePlayerInRadius __instance)
+            {
+                if (!__instance.enabled || !__instance.gameObject.activeInHierarchy || __instance.damageRadius <= 0f)
+                    return false;
+                float distanceToPlayer = __instance.tracker.distanceToPlayer;
+                if (distanceToPlayer <= __instance.damageRadius)
+                {
+                    //if (__instance.doDebug)
+                    //    Debug.Log((__instance.gameObject.name + ".DamagePlayerInRadius() - dist/damageRadius: " + distanceToPlayer + "/" + __instance.damageRadius + " => damageAmount: " + __instance.damageAmount));
+                    if (__instance.damageType == DamageType.Radiation && Player.main.radiationAmount == 0f)
+                        return false;
+                    //if (__instance.doDebug)
+                    //    Debug.Log(("TakeDamage: " + __instance.damageAmount + " " + __instance.damageType.ToString()));
+                    Player.main.GetComponent<LiveMixin>().TakeDamage(__instance.damageAmount, __instance.transform.position, __instance.damageType);
+                    if (Inventory.main.quickSlots.heldItem != null)
+                    {
+                        Pickupable pickupable = Inventory.main.quickSlots.heldItem.item;
+                        //KnownTech.Contains(techType)
+                        //Inventory.main.ConsumeResourcesForRecipe(techType)
+                    }
+                }
+                //else
+                //{
+                //    if (!__instance.doDebug)
+                //        return;
+                //    Debug.Log((__instance.gameObject.name + ".DamagePlayerInRadius() - dist/damageRadius: " + distanceToPlayer + "/" + __instance.damageRadius + " => no damage"));
+                //}
+                return false;
             }
         }
 

@@ -385,20 +385,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(GrownPlant), "Awake")]
-        class GrownPlant_Awake_Patch
-        {
-            static void Prefix(GrownPlant __instance)
-            {
-                //if (__instance.bigSlots.Length == 1 && __instance.slots.Length == 4)
-                //{
-                //    __instance.initialized = false;
-                //    __instance.slots = new Transform[] { __instance.bigSlots[0] };
-                //    AddDebug(__instance.name + " bigSlots " + __instance.bigSlots.Length + " slots " + __instance.slots.Length);
-                //}
-            }
-        }
-
         //[HarmonyPatch(typeof(Planter), "Start")]
         class Planter_Start_Patch
         {
