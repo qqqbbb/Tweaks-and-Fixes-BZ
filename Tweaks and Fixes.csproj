@@ -84,6 +84,7 @@
     <Compile Include="Drop_Pod_Patch.cs" />
     <Compile Include="Flare_Patch.cs" />
     <Compile Include="Fragment_Patch.cs" />
+    <Compile Include="Brinicle_Patch.cs" />
     <Compile Include="Plants_Patch.cs" />
     <Compile Include="Game_Speed_Patch.cs" />
     <Compile Include="Predators_Patch.cs" />

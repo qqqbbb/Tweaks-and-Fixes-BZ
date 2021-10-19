@@ -14,7 +14,7 @@ using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{
+{ // - 476 -123 -287  -487 -126 -290
     class Testing
     {
         //static HashSet<SeaTruckSegment> segments = new HashSet<SeaTruckSegment>();
@@ -165,6 +165,9 @@ namespace Tweaks_Fixes
                             int y = (int)pi.transform.position.y;
                             int z = (int)pi.transform.position.z;
                             AddDebug(x + " " + y + " " + z);
+                            Brinicle brinicle = pi.GetComponent<Brinicle>();
+                            if (brinicle)
+                                AddDebug("Brinicle " + brinicle.state );
                         }
                         else
                         {

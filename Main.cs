@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using static ErrorMessage;
-
+// ugly terrain -414 -101 -390
 namespace Tweaks_Fixes
 {
     [QModCore]
@@ -284,7 +284,11 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug(" WaitScreen Hide");
                     UWE.CoroutineHost.StartCoroutine(SelectEquippedItem());
-
+                    foreach (LargeWorldEntity lwe in Plants_Patch.tableCorals)
+                    {
+                        lwe.gameObject.transform.rotation = Quaternion.Euler(lwe.gameObject.transform.rotation.x, lwe.gameObject.transform.rotation.y, 0);
+                    
+                    }   
                     loadingDone = true;
                 }
 

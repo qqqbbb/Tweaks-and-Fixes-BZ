@@ -443,5 +443,78 @@ namespace Tweaks_Fixes
 
             }
         }
+
+        //[HarmonyPatch(typeof(FrozenMixin), "UpdateFrozenState")]
+        class FrozenMixin_UpdateFrozenState_Patch
+        {
+            static float frozenDamage = 10f;
+            static float frozenDamageTime = 0f;
+            static float frozenDamageInterval = 1f;
+            static void Postfix(FrozenMixin __instance, float time)
+            {
+                if (__instance.frozen)
+                {
+                    if (Time.time > frozenDamageTime)
+                    {
+                        frozenDamageTime = Time.time + frozenDamageInterval;
+                        if (__instance.GetComponent<Player>())
+                            AddDebug("Take Cold Damage " + frozenDamage);
+                        LiveMixin lm = __instance.GetComponent<LiveMixin>();
+                        if (lm != null && lm.IsAlive())
+                            lm.TakeDamage(frozenDamage, __instance.transform.position, DamageType.Cold);
+                    }
+
+                }
+            }
+        }
+               
+        //[HarmonyPatch(typeof(BrinewingBrine), "OnTriggerEnter")]
+        class BrinewingBrine_OnTriggerEnter_Patch
+        {
+            static bool Prefix(BrinewingBrine __instance, Collider collider)
+            {
+                if (collider.isTrigger && collider.gameObject.layer != LayerMask.NameToLayer("Useable"))
+                    return false;
+                GameObject gameObject = collider.attachedRigidbody == null ? collider.gameObject : collider.attachedRigidbody.gameObject;
+                if (gameObject == null)
+                    return false;
+                GameObject dealer = __instance.brinewing != null ? __instance.brinewing.gameObject : null;
+                if (gameObject == dealer)
+                    return false;
+                //bool isFrozen = false;
+                //FrozenMixin fm = gameObject.GetComponent<FrozenMixin>();
+                //if (fm != null && !fm.IsFrozenInsideIce())
+                //{
+                //    isFrozen = fm.IsFrozen();
+                //    fm.FreezeForTime(__instance.freezeCreatureTime);
+                //}
+                //if (!isFrozen)
+                //{
+                BodyTemperature bt = gameObject.GetComponent<BodyTemperature>();
+                if (bt)
+                {
+                    //AddDebug("coldMeterMaxValue " + bt.coldMeterMaxValue);
+                    //AddDebug("AddCold " + __instance.coldDamage * 100f);
+                    bt.AddCold(__instance.coldDamage * 100f);
+                }
+                else
+                {
+                    LiveMixin lm = gameObject.GetComponent<LiveMixin>();
+                    if (lm != null && lm.IsAlive())
+                    {
+                        lm.TakeDamage(__instance.coldDamage * 10, __instance.transform.position, DamageType.Cold, dealer);
+                        lm.NotifyCreatureDeathsOfCreatureAttack();
+                        //if (__instance.GetComponent<Player>())
+                        //    AddDebug("Take Cold Damage " + __instance.coldDamage * 100f);
+                    }
+                }
+                    //if (fm is PlayerFrozenMixin && __instance.brinewing != null)
+                    //    __instance.brinewing.OnFreezePlayer();
+                //}
+                __instance.Despawn();
+                return false;
+            }
+        }
+
     }
 }

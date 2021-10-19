@@ -11,6 +11,7 @@ namespace Tweaks_Fixes
     class Plants_Patch
     {// fruit test -583 -30 -212   -520 -85 -80     -573 -34 -110
         static float creepVineSeedLightInt = 1.2f;
+        public static List<LargeWorldEntity> tableCorals = new List<LargeWorldEntity>();
 
         public static void AttachFruitPlant(GameObject go)
         { // FruitPlant will be saved
@@ -103,7 +104,9 @@ namespace Tweaks_Fixes
                     Animator a = __instance.GetComponentInChildren<Animator>();
                     if (a)
                         a.enabled = false;
-                    __instance.gameObject.transform.rotation = Quaternion.Euler(__instance.gameObject.transform.rotation.x, __instance.gameObject.transform.rotation.y, 0);
+                    Vector3 rot = __instance.gameObject.transform.eulerAngles;
+                    //Main.Log("fix GenericJeweledDisk " + __instance.gameObject.transform.position.x + " " + __instance.gameObject.transform.position.y + " " + __instance.gameObject.transform.position.z + " rot " + rot.x + " " + rot.y + " " + rot.z);
+                    __instance.gameObject.transform.eulerAngles = new Vector3(rot.x, rot.y, 0f);
                 }
                 else if (tt == TechType.SmallMelon)
                 {
@@ -193,6 +196,20 @@ namespace Tweaks_Fixes
 
         }
 
+        //[HarmonyPatch(typeof(ResourceTracker))]
+        class ResourceTracker_Patch
+        {
+            [HarmonyPatch("Start")]
+            [HarmonyPostfix]
+            public static void StartPrefix(ResourceTracker __instance)
+            {
+                if (__instance.techType == TechType.GenericJeweledDisk)
+                {
+                    __instance.gameObject.transform.localRotation = Quaternion.Euler(__instance.gameObject.transform.localRotation.x, __instance.gameObject.transform.localRotation.y, 0f);
+                }
+            }
+        }
+                
         [HarmonyPatch(typeof(PickPrefab))]
         class PickPrefab_Patch
         {
