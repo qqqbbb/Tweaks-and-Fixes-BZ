@@ -21,7 +21,7 @@ namespace Tweaks_Fixes
                 }
                 else
                 {
-                    //AddDebug("EnergyMixin ConsumeEnergy");
+                    //AddDebug(__instance.name + " EnergyMixin ConsumeEnergy");
                     amount *= Main.config.toolEnergyConsMult;
                 }
             }
@@ -46,11 +46,11 @@ namespace Tweaks_Fixes
                 if (pr && pr.GetComponent<SeaTruckSegment>())
                 {
                     amount *= Main.config.vehicleEnergyConsMult;
-                    //AddDebug(" SeaTruck ConsumeEnergy ");
+                    //AddDebug(pr.name + " SeaTruck PowerRelay ConsumeEnergy ");
                 }
                 else
                 {
-                    //AddDebug(" base ConsumeEnergy ");
+                    //AddDebug(pr.name + " base PowerRelay ConsumeEnergy ");
                     amount *= Main.config.baseEnergyConsMult;
                 }
             }

@@ -91,37 +91,6 @@ namespace Tweaks_Fixes
             return vel.x > 1f || vel.y > 1f || vel.z > 1f;
         }
 
-        [HarmonyPatch(typeof(MeleeAttack))]
-        internal class MeleeAttack__Patch
-        {
-            [HarmonyPatch("IsValidVehicle")]
-            [HarmonyPrefix]
-            public static bool IsValidVehiclePrefix(MeleeAttack __instance, GameObject target, ref bool __result)
-            {
-                if (GameModeUtils.IsInvisible() || Main.config.aggrMult == 0f || !IsVehicle(target))
-                {
-                    __result = false;
-                    return false;
-                }
-                if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Only_if_lights_on)
-                {
-                    if (!IsPlayerInsideVehicle(target) && IsLightOn(target))
-                    {
-                        __result = true;
-                        return false;
-                    }
-                }
-                else if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.No)
-                {
-                    __result = IsPlayerInsideVehicle(target);
-                    return false;
-                }
-                __result = true;
-                return false;
-            }
-
-        }
-              
         [HarmonyPatch(typeof(CreatureAggressionManager), "OnMeleeAttack")]
         internal class CreatureAggressionManager_OnMeleeAttack_Patch
         {
@@ -554,6 +523,66 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(MeleeAttack))]
+        internal class MeleeAttack_Patch
+        {
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnEnable")]
+            public static void OnEnablePrefix(MeleeAttack __instance)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //AddDebug(tt + " canBitePlayer " + __instance.canBitePlayer + " canBiteVehicle " + __instance.canBiteVehicle + " canBiteCyclops " + __instance.canBiteCyclops);
+                //testMeleeAttack.Add(tt + " canBitePlayer " + __instance.canBitePlayer + " canBiteVehicle " + __instance.canBiteVehicle + " canBiteCyclops " + __instance.canBiteCyclops);
+            }
+
+            public static bool IsValidVehicle(GameObject target)
+            {
+                if (GameModeUtils.IsInvisible() || Main.config.aggrMult == 0f || !IsVehicle(target))
+                    return false;
+                
+                if (IsPlayerInsideVehicle(target))
+                    return true;
+                else if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Only_if_lights_on && IsLightOn(target))
+                    return true;
+                else
+                    return Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Yes;
+            }
+          
+            [HarmonyPrefix]
+            [HarmonyPatch("CanDealDamageTo")]
+            public static bool CanDealDamageToPrefix(MeleeAttack __instance, GameObject target, ref bool __result)
+            {
+                Player player = target.GetComponent<Player>();
+                if (player != null)
+                {
+                    //AddDebug(__instance.name + " CanDealDamageTo player CanBeAttacked " + player.CanBeAttacked() + " canBitePlayer " + __instance.canBitePlayer);
+                    __result = Main.config.aggrMult > 0f && __instance.canBitePlayer && player.CanBeAttacked();
+                    return false;
+                }
+                GameObject lastTarget = __instance.lastTarget.target;
+                if (__instance.biteOnlyCurrentTarget)
+                {
+                    __result = target == lastTarget;
+                    return false;
+                }
+                if (IsValidVehicle(target))
+                {
+                    __result = __instance.canBiteVehicle;
+                    return false;
+                }
+                __result = __instance.canBiteCreature && target.GetComponent<Creature>() != null;
+                return false;
+            }
+            //[HarmonyPostfix]
+            //[HarmonyPatch("CanBite")]
+            public static void CanBitePostfix(MeleeAttack __instance, GameObject target, bool __result)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                TechType tt1 = CraftData.GetTechType(target);
+                if (tt1 != TechType.None)
+                    AddDebug(tt + " MeleeAttack CanBite " + tt1 + " " + __result);
+            }
+        }
 
     }
 }

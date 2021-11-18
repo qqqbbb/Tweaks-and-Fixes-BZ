@@ -85,6 +85,7 @@
     <Compile Include="Flare_Patch.cs" />
     <Compile Include="Fragment_Patch.cs" />
     <Compile Include="Brinicle_Patch.cs" />
+    <Compile Include="LargeWorldEntity_Patch.cs" />
     <Compile Include="Plants_Patch.cs" />
     <Compile Include="Game_Speed_Patch.cs" />
     <Compile Include="Predators_Patch.cs" />
@@ -111,7 +112,7 @@
     <Compile Include="UI_Patches.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Base_Light.cs" />
+    <Compile Include="Base_Patch.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />

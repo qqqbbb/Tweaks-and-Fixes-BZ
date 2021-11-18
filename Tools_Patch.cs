@@ -8,7 +8,9 @@ namespace Tweaks_Fixes
 {
     class Tools_Patch
     {
-        //static float originalIntensity = -1f;
+        public static bool releasingGrabbedObject = false;
+        public static List<GameObject> repCannonGOs = new List<GameObject>();
+
         [HarmonyPatch(typeof(Knife), nameof(Knife.OnToolUseAnim))]
         class Knife_OnToolUseAnim_Postfix_Patch
         {
@@ -61,7 +63,6 @@ namespace Tweaks_Fixes
 
             }
         }
-
 
         //[HarmonyPatch(typeof(ScannerTool), "Update")]
         class ScannerTool_Update_Patch
@@ -116,16 +117,89 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(RepulsionCannon), "ShootObject")]
-        class RepulsionCannon_ShootObject_Patch
+        [HarmonyPatch(typeof(PropulsionCannon))]
+        class PropulsionCannon_Patch
         {
-            static void Prefix(RepulsionCannon __instance, Rigidbody rb, Vector3 velocity)
+            [HarmonyPatch("OnShoot")]
+            [HarmonyPrefix]
+            static void OnShootPrefix(PropulsionCannon __instance)
             {
-                rb.constraints = RigidbodyConstraints.None;
-                AddDebug("ShootObject " + rb.gameObject.name + " " + velocity);
-                //AddDebug("constraints " + rb.constraints);
+                if (__instance.grabbedObject == null)
+                    return;
+                //AddDebug("OnShoot " + __instance.grabbedObject.name);
+                releasingGrabbedObject = true;
+            }
+
+            [HarmonyPatch("ReleaseGrabbedObject")]
+            [HarmonyPrefix]
+            static void ReleaseGrabbedObjectPrefix(PropulsionCannon __instance)
+            {
+                if (__instance.grabbedObject == null)
+                    return;
+                //AddDebug("ReleaseGrabbedObject " + __instance.grabbedObject.name);
+                releasingGrabbedObject = true;
+            }
+
+        }
+
+
+
+        [HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
+        class RepulsionCannon_OnToolUseAnim_Patch
+        {
+            static bool Prefix(RepulsionCannon __instance, GUIHand guiHand)
+            {
+                //AddDebug("ShootObject " + rb.name);
+                if (__instance.energyMixin.charge <= 0f)
+                    return false;
+                float num1 = Mathf.Clamp01(__instance.energyMixin.charge / 4f);
+                Vector3 forward = MainCamera.camera.transform.forward;
+                Vector3 position = MainCamera.camera.transform.position;
+                int num2 = UWE.Utils.SpherecastIntoSharedBuffer(position, 1f, forward, 35f, ~(1 << LayerMask.NameToLayer("Player")));
+                float num3 = 0.0f;
+                for (int index1 = 0; index1 < num2; ++index1)
+                {
+                    RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
+                    Vector3 point = raycastHit.point;
+                    float num4 = 1f - Mathf.Clamp01(((position - point).magnitude - 1f) / 35f);
+                    GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
+                    if (go == null)
+                        go = raycastHit.collider.gameObject;
+                    Rigidbody component = go.GetComponent<Rigidbody>();
+                    if (component != null)
+                    {
+                        num3 += component.mass;
+                        bool flag = true;
+                        go.GetComponents<IPropulsionCannonAmmo>(__instance.iammo);
+                        for (int index2 = 0; index2 < __instance.iammo.Count; ++index2)
+                        {
+                            if (!__instance.iammo[index2].GetAllowedToShoot())
+                            {
+                                flag = false;
+                                break;
+                            }
+                        }
+                        __instance.iammo.Clear();
+                        if (flag && !(raycastHit.collider is MeshCollider) && (go.GetComponent<Pickupable>() != null || go.GetComponent<Living>() != null || component.mass <= 1300f && UWE.Utils.GetAABBVolume(go) <= 400f))
+                        {
+                            float num5 = (1f + component.mass * 0.005f);
+                            Vector3 velocity = forward * num4 * num1 * 70f / num5;
+                            repCannonGOs.Add(go);
+                            __instance.ShootObject(component, velocity);
+                        }
+                    }
+                }
+                __instance.energyMixin.ConsumeEnergy(4f);
+                __instance.fxControl.Play();
+                __instance.callBubblesFX = true;
+                Utils.PlayFMODAsset(__instance.shootSound, __instance.transform);
+                float num6 = Mathf.Clamp(num3 / 100f, 0f, 15f);
+                Player.main.GetComponent<Rigidbody>().AddForce(-forward * num6, ForceMode.VelocityChange);
+
+                return false;
             }
         }
+
 
     }
 }

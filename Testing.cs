@@ -14,21 +14,9 @@ using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{ // - 476 -123 -287  -487 -126 -290
+{ 
     class Testing
     {
-        //static HashSet<SeaTruckSegment> segments = new HashSet<SeaTruckSegment>();
-        private Vector3 ClipWithTerrain(GameObject go)
-        {
-            Vector3 origin = go.transform.position;
-            //origin.y = go.transform.position.y + 5f;
-            //RaycastHit hitInfo;
-            //if (!Physics.Raycast(new Ray(origin, Vector3.down), out hitInfo, 10f, Voxeland.GetTerrainLayerMask(), QueryTriggerInteraction.Ignore))
-            //    return;
-            //go.transform.position.y = Mathf.Max(go.transform.position.y, hitInfo.point.y + 0.3f);
-            return origin;
-        }
-
         //[HarmonyPatch(typeof(uGUI_QuickSlots), "OnSelect")]
         class uGUI_QuickSlots_OnSelect_Patch
         {
@@ -40,9 +28,7 @@ namespace Tweaks_Fixes
                 if (__instance.target == null || __instance.selector == null)
                     return false;
                 if (slotID < 0)
-                {
                     __instance.selector.enabled = false;
-                }
                 else
                 {
                     if (__instance.selector.rectTransform == null)
@@ -185,37 +171,29 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(DamagePlayerInRadius), "DoDamage")]
-        class DamagePlayerInRadius_DoDamage_Patch
+        //[HarmonyPatch(typeof(Plantable), "ValidateTechType")]
+        class Plantable_Play_Patch
         {
-            static bool Prefix(DamagePlayerInRadius __instance)
+            public static void Postfix(Plantable __instance)
             {
-                if (!__instance.enabled || !__instance.gameObject.activeInHierarchy || __instance.damageRadius <= 0f)
-                    return false;
-                float distanceToPlayer = __instance.tracker.distanceToPlayer;
-                if (distanceToPlayer <= __instance.damageRadius)
-                {
-                    //if (__instance.doDebug)
-                    //    Debug.Log((__instance.gameObject.name + ".DamagePlayerInRadius() - dist/damageRadius: " + distanceToPlayer + "/" + __instance.damageRadius + " => damageAmount: " + __instance.damageAmount));
-                    if (__instance.damageType == DamageType.Radiation && Player.main.radiationAmount == 0f)
-                        return false;
-                    //if (__instance.doDebug)
-                    //    Debug.Log(("TakeDamage: " + __instance.damageAmount + " " + __instance.damageType.ToString()));
-                    Player.main.GetComponent<LiveMixin>().TakeDamage(__instance.damageAmount, __instance.transform.position, __instance.damageType);
-                    if (Inventory.main.quickSlots.heldItem != null)
-                    {
-                        Pickupable pickupable = Inventory.main.quickSlots.heldItem.item;
-                        //KnownTech.Contains(techType)
-                        //Inventory.main.ConsumeResourcesForRecipe(techType)
-                    }
-                }
-                //else
-                //{
-                //    if (!__instance.doDebug)
-                //        return;
-                //    Debug.Log((__instance.gameObject.name + ".DamagePlayerInRadius() - dist/damageRadius: " + distanceToPlayer + "/" + __instance.damageRadius + " => no damage"));
-                //}
-                return false;
+                AddDebug("Plantable ValidateTechType " + __instance.plantTechType);
+                //if (!Main.loadingDone)
+                //    return false;
+
+                //return true;
+            }
+        }
+
+        //[HarmonyPatch(typeof(SoundQueue), "Play", new Type[6] { typeof(string), typeof(SoundHost), typeof(bool), typeof(string), typeof(int), typeof(int) })]
+        class SoundQueue_PlayQueued_Patch
+        {
+            public static bool Prefix(SoundQueue __instance, string sound)
+            {
+                AddDebug(" PlayQueued  " + sound);
+                //if (!Main.loadingDone)
+                //    return false;
+
+                return true;
             }
         }
 
@@ -305,5 +283,6 @@ namespace Tweaks_Fixes
                 //__instance.ApplySkybox();
             }
         }
+   
     }
 }

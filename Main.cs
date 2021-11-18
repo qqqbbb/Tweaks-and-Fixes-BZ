@@ -9,8 +9,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
+using SMLHelper.V2.Assets;
 using static ErrorMessage;
 // ugly terrain -414 -101 -390
+// pick up snow HoverBikeBase GlacialBasin_snow_bulb_01_b
 namespace Tweaks_Fixes
 {
     [QModCore]
@@ -29,25 +31,38 @@ namespace Tweaks_Fixes
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
-        public static T CopyComponent<T>(T original, GameObject destination) where T : Component
+        public static Component CopyComponent(Component original, GameObject destination)
         {
             System.Type type = original.GetType();
-            var dst = destination.GetComponent(type) as T;
-            if (!dst) dst = destination.AddComponent(type) as T;
-            var fields = type.GetFields();
-            foreach (var field in fields)
+            Component copy = destination.AddComponent(type);
+            // Copied fields can be restricted with BindingFlags
+            System.Reflection.FieldInfo[] fields = type.GetFields();
+            foreach (System.Reflection.FieldInfo field in fields)
             {
-                if (field.IsStatic) continue;
-                field.SetValue(dst, field.GetValue(original));
+                field.SetValue(copy, field.GetValue(original));
             }
-            var props = type.GetProperties();
-            foreach (var prop in props)
-            {
-                if (!prop.CanWrite || !prop.CanWrite || prop.Name == "name") continue;
-                prop.SetValue(dst, prop.GetValue(original, null), null);
-            }
-            return dst as T;
+            return copy;
         }
+
+        //public static T CopyComponent<T>(T original, GameObject destination) where T : Component
+        //{
+        //    System.Type type = original.GetType();
+        //    var dst = destination.GetComponent(type) as T;
+        //    if (!dst) dst = destination.AddComponent(type) as T;
+        //    var fields = type.GetFields();
+        //    foreach (var field in fields)
+        //    {
+        //        if (field.IsStatic) continue;
+        //        field.SetValue(dst, field.GetValue(original));
+        //    }
+        //    var props = type.GetProperties();
+        //    foreach (var prop in props)
+        //    {
+        //        if (!prop.CanWrite || !prop.CanWrite || prop.Name == "name") continue;
+        //        prop.SetValue(dst, prop.GetValue(original, null), null);
+        //    }
+        //    return dst as T;
+        //}
 
         public static T[] GetComponentsInDirectChildren<T>(Component parent, bool includeInactive = false) where T : Component
         {
@@ -180,10 +195,12 @@ namespace Tweaks_Fixes
             canBreathe = false;
             //AddDebug("CleanUp");
             QuickSlots_Patch.invChanged = true;
-            Base_Light.bcls = new HashSet<BaseCellLighting>();
+            //Base_Patch.bcls = new HashSet<BaseCellLighting>();
             Crush_Damage.extraCrushDepth = 0;
             crafterOpen = false;
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
+            CraftTree.fabricator = new CraftTree("Fabricator", CraftTree.FabricatorScheme());
+            Seatruck_Patch.installedUpgrades = new HashSet<TechType>();
             config.Load();
         }
 
@@ -275,6 +292,30 @@ namespace Tweaks_Fixes
             }
         }
 
+        //static public GameObject addedToInv = null;
+        static public IEnumerator AddToInventory(TechType techType)
+        {
+            GameObject gameObject = null;
+            //AddDebug("AddToInventory " + techType);
+            TaskResult<GameObject> result = new TaskResult<GameObject>();
+            yield return CraftData.InstantiateFromPrefabAsync(techType, (IOut<GameObject>)result);
+            gameObject = result.Get();
+            result = (TaskResult<GameObject>)null;
+            if (gameObject != null)
+            {
+                //addedToInv = gameObject;
+                Eatable eatable = gameObject.GetComponent<Eatable>();
+                //if (eatable != null)
+                //    eatable.SetDecomposes(true); gameObject.EnsureComponent<EcoTarget>().SetTargetType(EcoTargetType.DeadMeat);
+                Pickupable pickupable = gameObject.GetComponent<Pickupable>();
+                if (pickupable)
+                {
+                    Inventory.main.ForcePickup(pickupable);
+                    //AddDebug("ForcePickup " + pickupable.name);
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(WaitScreen), nameof(WaitScreen.Hide))]
         internal class WaitScreen_Hide_Patch
         { // fires after game loads
@@ -284,11 +325,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug(" WaitScreen Hide");
                     UWE.CoroutineHost.StartCoroutine(SelectEquippedItem());
-                    foreach (LargeWorldEntity lwe in Plants_Patch.tableCorals)
-                    {
-                        lwe.gameObject.transform.rotation = Quaternion.Euler(lwe.gameObject.transform.rotation.x, lwe.gameObject.transform.rotation.y, 0);
-                    
-                    }   
+
                     loadingDone = true;
                 }
 
@@ -365,10 +402,10 @@ namespace Tweaks_Fixes
             new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
             IngameMenuHandler.RegisterOnSaveEvent(SaveData);
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
-
             LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
+            CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
         }
-        //public static bool dayNightSpeedLoaded = false;
+
         [QModPostPatch]
         public static void PostPatch()
         {

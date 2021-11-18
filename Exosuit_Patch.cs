@@ -2,6 +2,7 @@
 using HarmonyLib;
 using UnityEngine;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using static ErrorMessage;
 
@@ -10,10 +11,70 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(Exosuit))]
     class Exosuit_Patch
     {
+        public static string exosuitName;
+        public static string leftArm;
+        public static string rightArm;
+        public static string leftButton;
+        public static string rightButton;
+        public static bool armNamesChanged = false;
+        public static bool exosuitStarted = false;
+
+        static string GetTorpedoName(Exosuit exosuit, int slot)
+        {
+            //AddDebug("GetTorpedoName " + slot);
+            ItemsContainer container = exosuit.GetStorageInSlot(slot, TechType.ExosuitTorpedoArmModule);
+            TorpedoType[] torpedoTypes = exosuit.torpedoTypes;
+            for (int index = 0; index < torpedoTypes.Length; ++index)
+            {
+                TechType torpedoType = torpedoTypes[index].techType;
+                if (container.Contains(torpedoType))
+                    return Language.main.Get(torpedoType) + " x" + container.GetCount(torpedoType);
+            }
+            string name = Language.main.Get(TechType.ExosuitTorpedoArmModule);
+            name = name.Replace(exosuitName, "");
+            name = name.TrimStart();
+            name = name[0].ToString().ToUpper() + name.Substring(1);
+            //AddDebug("GetTorpedoName " + name);
+            return name;
+        }
+
+        static public void GetArmNames(Exosuit exosuit)
+        {
+            //AddDebug("GetNames " + exosuit.name);
+            if (exosuit.currentLeftArmType == TechType.ExosuitTorpedoArmModule)
+                leftArm = GetTorpedoName(exosuit, 0);
+            else
+            {
+                //AddDebug("GetNames TooltipFactory.stringLeftHand " + uGUI.FormatButton(GameInput.Button.LeftHand));
+                leftArm = Language.main.Get(exosuit.currentLeftArmType);
+                leftArm = leftArm.Replace(exosuitName, "");
+                leftArm = leftArm.TrimStart();
+                leftArm = leftArm[0].ToString().ToUpper() + leftArm.Substring(1);
+                //AddDebug("GetArmNames leftArm " + leftArm);
+            }
+            //AddDebug("leftArm " + leftArm);
+            if (exosuit.currentRightArmType == TechType.ExosuitTorpedoArmModule)
+                rightArm = GetTorpedoName(exosuit, 1);
+            else
+            {
+                rightArm = Language.main.Get(exosuit.currentRightArmType);
+                rightArm = rightArm.Replace(exosuitName, "");
+                rightArm = rightArm.TrimStart();
+                rightArm = rightArm[0].ToString().ToUpper() + rightArm.Substring(1);
+                //AddDebug("GetArmNames rightArm " + rightArm);
+            }
+        }
+
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
         static void StartPostfix(Exosuit __instance)
         {
+            exosuitName = Language.main.Get("Exosuit");
+            rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
+            leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
+            GetArmNames(__instance);
+            armNamesChanged = true;
+
             CollisionSound collisionSound = __instance.gameObject.EnsureComponent<CollisionSound>();
             FMODAsset so = ScriptableObject.CreateInstance<FMODAsset>();
             so.path = "event:/sub/common/fishsplat";
@@ -31,7 +92,9 @@ namespace Tweaks_Fixes
             so.path = "event:/sub/seamoth/impact_solid_soft";
             so.id = "{15dc7344-7b0a-4ffd-9b5c-c40f923e4f4d}";
             collisionSound.hitSoundSlow = so;
+            exosuitStarted = true;
         }
+     
         [HarmonyPatch("ApplyJumpForce")]
         [HarmonyPrefix]
         static bool ApplyJumpForcePrefix(Exosuit __instance)
@@ -65,6 +128,7 @@ namespace Tweaks_Fixes
             __instance.onGround = false;
             return false;
         }
+      
         [HarmonyPatch("OnLand")]
         [HarmonyPrefix]
         static bool OnLandPrefix(Exosuit __instance)
@@ -93,6 +157,7 @@ namespace Tweaks_Fixes
             }
             return false;
         }
+       
         static void VehicleUpdate(Vehicle vehicle)
         {
             if (vehicle.CanPilot())
@@ -274,6 +339,7 @@ namespace Tweaks_Fixes
             __instance.UpdateExosuitArms();
             return false;
         }
+      
         [HarmonyPatch("Update")]
         [HarmonyPostfix]
         public static void UpdatePostfix(Exosuit __instance)
@@ -291,27 +357,101 @@ namespace Tweaks_Fixes
                 }
             }
         }
+     
         [HarmonyPatch("UpdateUIText")]
         [HarmonyPrefix]
         public static bool UpdateUITextPrefix(Exosuit __instance, bool hasPropCannon)
         {
-            if (!__instance.hasInitStrings || __instance.lastHasPropCannon != hasPropCannon)
+            if (armNamesChanged || !__instance.hasInitStrings || __instance.lastHasPropCannon != hasPropCannon)
             {
                 string buttonFormat1 = LanguageCache.GetButtonFormat("ExosuitBoost", GameInput.Button.Sprint);
                 string buttonFormat2 = LanguageCache.GetButtonFormat("ExosuitJump", GameInput.Button.MoveUp);
                 string buttonFormat3 = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit);
+                string lightsButton = LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.Deconstruct);
+                string buttons = leftArm + " " + leftButton + "  " + rightArm + " " + rightButton + "  " + lightsButton;
                 __instance.sb.Length = 0;
                 __instance.sb.AppendLine(Language.main.GetFormat<string, string, string>("ExosuitBoostJumpExitFormat", buttonFormat1, buttonFormat2, buttonFormat3));
-                __instance.sb.AppendLine(LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.Deconstruct));
+                __instance.sb.AppendLine(buttons);
                 if (hasPropCannon)
                     __instance.sb.AppendLine(LanguageCache.GetButtonFormat("PropulsionCannonToRelease", GameInput.Button.AltTool));
                 __instance.lastHasPropCannon = hasPropCannon;
                 __instance.uiStringPrimary = __instance.sb.ToString();
+                armNamesChanged = false;
             }
             HandReticle.main.SetTextRaw(HandReticle.TextType.Use, __instance.uiStringPrimary);
             HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, string.Empty);
             __instance.hasInitStrings = true;
             return false;
+        }
+
+        [HarmonyPatch("OnUpgradeModuleChange")]
+        [HarmonyPostfix]
+        public static void OnUpgradeModuleChangePostfix(Exosuit __instance, int slotID, TechType techType, bool added)
+        { // runs before Exosuit.Start
+            //AddDebug("OnUpgradeModuleChange " + techType + " " + added + " " + slotID);
+            if (!exosuitStarted)
+                return;
+
+            if (!added)
+            {
+                if (slotID == 0)
+                {
+                    leftArm = Language.main.Get(TechType.ExosuitClawArmModule);
+                    leftArm = leftArm.Replace(exosuitName, "");
+                    leftArm = leftArm.TrimStart();
+                    leftArm = leftArm[0].ToString().ToUpper() + leftArm.Substring(1);
+                }
+                else if (slotID == 1)
+                {
+                    rightArm = Language.main.Get(TechType.ExosuitClawArmModule);
+                    rightArm = rightArm.Replace(exosuitName, "");
+                    rightArm = rightArm.TrimStart();
+                    rightArm = rightArm[0].ToString().ToUpper() + rightArm.Substring(1);
+                }
+            }
+            else if (added)
+            {
+                if (slotID == 0)
+                {
+                    if (techType == TechType.ExosuitTorpedoArmModule)
+                        leftArm = GetTorpedoName(__instance, 0);
+                    else
+                    {
+                        leftArm = Language.main.Get(techType);
+                        leftArm = leftArm.Replace(exosuitName, "");
+                        leftArm = leftArm.TrimStart();
+                        leftArm = leftArm[0].ToString().ToUpper() + leftArm.Substring(1);
+                    }
+                }
+                else if (slotID == 1)
+                {
+                    if (techType == TechType.ExosuitTorpedoArmModule)
+                        rightArm = GetTorpedoName(__instance, 1);
+                    else
+                    {
+                        rightArm = Language.main.Get(techType);
+                        rightArm = rightArm.Replace(exosuitName, "");
+                        rightArm = rightArm.TrimStart();
+                        rightArm = rightArm[0].ToString().ToUpper() + rightArm.Substring(1);
+                    }
+                }
+            }
+            armNamesChanged = true;
+            //AddDebug("OnUpgradeModuleChange currentLeftArmType " + __instance.currentLeftArmType);
+            //AddDebug("OnUpgradeModuleChange currentRightArmType " + __instance.currentRightArmType);
+        }
+
+
+    }
+
+    [HarmonyPatch(typeof(ExosuitTorpedoArm), "Shoot")]
+    class ExosuitTorpedoArm_Shoot_Patch
+    {
+        static void Postfix(ExosuitTorpedoArm __instance, TorpedoType torpedoType, bool __result)
+        {
+            //AddDebug("ExosuitTorpedoArm Shoot " + torpedoType.techType + " " + __result);
+            Exosuit_Patch.GetArmNames(__instance.exosuit);
+            Exosuit_Patch.armNamesChanged = true;
         }
     }
 
@@ -403,71 +543,72 @@ namespace Tweaks_Fixes
         }
     }
 
-    //[HarmonyPatch(typeof(ExosuitDrillArm))]
-    //[HarmonyPatch("OnHit")]
-    class ExosuitDrillArm_OnHit_Patch
-    { // fix not showing particles when start drilling
-        public static bool Prefix(ExosuitDrillArm __instance)
-        {
-            //AddDebug("OnHit");
-            if (!__instance.exosuit.CanPilot() || !__instance.exosuit.GetPilotingMode())
-                return false;
-            Vector3 zero = Vector3.zero;
-            GameObject closestObj = null;
-            __instance.drillTarget = null;
-            UWE.Utils.TraceFPSTargetPosition(__instance.exosuit.gameObject, 5f, ref closestObj, ref zero);
-            if (closestObj == null)
+    [HarmonyPatch(typeof(ExosuitDrillArm))]
+    class ExosuitDrillArm_Patch
+    {
+        [HarmonyPatch("StopEffects")]
+        [HarmonyPrefix]
+        static bool StopEffectsPrefix(ExosuitDrillArm __instance)
+        { // dont stop drilling sound when not hitting anything
+            //AddDebug("StopEffects ");
+            if (__instance.drillFXinstance != null)
             {
-                InteractionVolumeUser component = Player.main.gameObject.GetComponent<InteractionVolumeUser>();
-                if (component != null && component.GetMostRecent() != null)
-                    closestObj = component.GetMostRecent().gameObject;
+                __instance.drillFXinstance.GetComponent<VFXLateTimeParticles>().Stop();
+                UnityEngine.Object.Destroy(__instance.drillFXinstance.gameObject, 1.6f);
+                __instance.drillFXinstance = null;
             }
-            if (closestObj && __instance.drilling)
-            {
-                Drillable ancestor1 = closestObj.FindAncestor<Drillable>();
-                __instance.loopHit.Play();
-                if (ancestor1)
-                {
-                    GameObject hitObject;
-                    ancestor1.OnDrill(__instance.fxSpawnPoint.position, __instance.exosuit, out hitObject);
-                    __instance.drillTarget = hitObject;
-                    //if (__instance.fxControl.emitters[0].fxPS == null || __instance.fxControl.emitters[0].fxPS.emission.enabled) 
-                    //AddDebug("emission.enabled " + __instance.fxControl.emitters[0].fxPS.emission.enabled);
-                    //AddDebug("IsAlive " + __instance.fxControl.emitters[0].fxPS.IsAlive());
-                    if (__instance.fxControl.emitters[0].fxPS != null && (!__instance.fxControl.emitters[0].fxPS.IsAlive() || !__instance.fxControl.emitters[0].fxPS.emission.enabled))
-                    {
-                        __instance.fxControl.Play(0);
-                    }
-
-                }
-                else
-                {
-                    LiveMixin ancestor2 = closestObj.FindAncestor<LiveMixin>();
-                    if (ancestor2)
-                    {
-                        ancestor2.IsAlive();
-                        ancestor2.TakeDamage(4f, zero, DamageType.Drill);
-                        __instance.drillTarget = closestObj;
-                    }
-                    VFXSurface component = closestObj.GetComponent<VFXSurface>();
-                    if (__instance.drillFXinstance == null)
-                        __instance.drillFXinstance = VFXSurfaceTypeManager.main.Play(component, __instance.vfxEventType, __instance.fxSpawnPoint.position, __instance.fxSpawnPoint.rotation, __instance.fxSpawnPoint);
-                    else if (component != null && __instance.prevSurfaceType != component.surfaceType)
-                    {
-                        __instance.drillFXinstance.GetComponent<VFXLateTimeParticles>().Stop();
-                        UnityEngine.Object.Destroy(__instance.drillFXinstance.gameObject, 1.6f);
-                        __instance.drillFXinstance = VFXSurfaceTypeManager.main.Play(component, __instance.vfxEventType, __instance.fxSpawnPoint.position, __instance.fxSpawnPoint.rotation, __instance.fxSpawnPoint);
-                        __instance.prevSurfaceType = component.surfaceType;
-                    }
-                    closestObj.SendMessage("BashHit", __instance, SendMessageOptions.DontRequireReceiver);
-                }
-            }
-            else
-                __instance.StopEffects();   
-
+            if (__instance.fxControl.emitters[0].fxPS != null && __instance.fxControl.emitters[0].fxPS.emission.enabled)
+                __instance.fxControl.Stop(0);
+            //__instance.loop.Stop();
+            __instance.loopHit.Stop();
             return false;
         }
 
+        [HarmonyPatch("IExosuitArm.OnUseUp")]
+        [HarmonyPostfix]
+        static void OnUseUpPostfix(ExosuitDrillArm __instance)
+        {
+            //AddDebug("OnUseUp ");
+            __instance.loop.Stop();
+        }
     }
+
+    [HarmonyPatch(typeof(SeamothStorageContainer), "OnCraftEnd")]
+    class SeamothStorageContainer_OnCraftEnd_Patch
+    {
+       static private IEnumerator OnTorpedoCraftEnd(SeamothStorageContainer smsc)
+        {
+            TaskResult<GameObject> taskResult = new TaskResult<GameObject>();
+            TaskResult<Pickupable> pickupableResult = new TaskResult<Pickupable>();
+            for (int index = 0; index < Main.config.freeTorpedos; ++index)
+            {
+                yield return CraftData.InstantiateFromPrefabAsync(TechType.WhirlpoolTorpedo, (IOut<GameObject>)taskResult);
+                GameObject gameObject = taskResult.Get();
+                if (gameObject != null)
+                {
+                    Pickupable p = gameObject.GetComponent<Pickupable>();
+                    if (p != null)
+                    {
+                        pickupableResult.Set((Pickupable)null);
+                        p.Pickup(false);
+                        if (smsc.container.AddItem(p) == null)
+                            UnityEngine.Object.Destroy(p.gameObject);
+                    }
+                }
+            }
+        }
+
+        public static bool Prefix(SeamothStorageContainer __instance, TechType techType)
+        {
+            __instance.Init();
+            //AddDebug("SeamothStorageContainer OnCraftEnd " + techType);
+            if (techType == TechType.ExosuitTorpedoArmModule)
+                UWE.CoroutineHost.StartCoroutine(OnTorpedoCraftEnd(__instance));
+
+            return false;
+        }
+    }
+
+
 }
 

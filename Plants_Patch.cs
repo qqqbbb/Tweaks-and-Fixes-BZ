@@ -11,7 +11,6 @@ namespace Tweaks_Fixes
     class Plants_Patch
     {// fruit test -583 -30 -212   -520 -85 -80     -573 -34 -110
         static float creepVineSeedLightInt = 1.2f;
-        public static List<LargeWorldEntity> tableCorals = new List<LargeWorldEntity>();
 
         public static void AttachFruitPlant(GameObject go)
         { // FruitPlant will be saved
@@ -77,123 +76,12 @@ namespace Tweaks_Fixes
             techTag.type = TechType.KelpRoot;
             //foreach (PickPrefab pp in pickPrefabs)
             //{
-                //if (!pp.enabled && !fp.inactiveFruits.Contains(pp))
-                //    fp.inactiveFruits.Add(pp);
+            //if (!pp.enabled && !fp.inactiveFruits.Contains(pp))
+            //    fp.inactiveFruits.Add(pp);
             //}
             fp.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
             if (fp.fruitSpawnInterval == 0f)
                 fp.fruitSpawnInterval = 1f;
-        }
-
-        [HarmonyPatch(typeof(LargeWorldEntity), "Start")]
-        class LargeWorldEntity_Start_Patch
-        {
-            public static void Prefix(LargeWorldEntity __instance)
-            {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //if (tt == TechType.None && __instance.name.StartsWith("kelpcave_root"))
-                {
-                    //AttachFruitPlantToKelpRoot(__instance.gameObject);
-                    //PrefabPlaceholder[] pphs = __instance.GetComponentsInChildren<PrefabPlaceholder>();
-                    //Pickupable[] ps = __instance.GetComponentsInChildren<Pickupable>();
-                    //AddDebug(__instance.name + " LargeWorldEntity Start PrefabPlaceholder " + pphs.Length + " Pickupable " + ps.Length);
-                    //Main.Log(__instance.name +" LargeWorldEntity Start PrefabPlaceholder " + pphs.Length + " Pickupable " + ps.Length);
-                }
-                if (tt == TechType.GenericJeweledDisk)
-                {
-                    Animator a = __instance.GetComponentInChildren<Animator>();
-                    if (a)
-                        a.enabled = false;
-                    Vector3 rot = __instance.gameObject.transform.eulerAngles;
-                    //Main.Log("fix GenericJeweledDisk " + __instance.gameObject.transform.position.x + " " + __instance.gameObject.transform.position.y + " " + __instance.gameObject.transform.position.z + " rot " + rot.x + " " + rot.y + " " + rot.z);
-                    __instance.gameObject.transform.eulerAngles = new Vector3(rot.x, rot.y, 0f);
-                }
-                else if (tt == TechType.SmallMelon)
-                {
-                    int x = (int)__instance.transform.position.x;
-                    int y = (int)__instance.transform.position.y;
-                    int z = (int)__instance.transform.position.z;
-                    if ((x == 989 && y == 30 && z == -897) || (x == 989 && y == 29 && z == -896) || (x == 986 && y == 29 && z == -895))
-                    { // make melons in Marg greenhouse pickupable
-                        __instance.GetComponent<SphereCollider>().radius = .4f;
-                        //AddDebug("make melons in Marg greenhouse pickupable " + x +" " + y +" " + z);
-                    }
-                }
-                else if (tt == TechType.IceFruitPlant || tt == TechType.Creepvine || tt == TechType.HangingFruitTree || tt == TechType.SnowStalkerPlant || tt == TechType.LeafyFruitPlant || tt == TechType.HeatFruitPlant)
-                {
-                    //PickPrefab[] pickPrefabs = __instance.GetAllComponentsInChildren<PickPrefab>();
-                    AttachFruitPlant(__instance.gameObject);
-                }
-                //else if (tt == TechType.KelpRootPustule) // KelpRoot tt is none
-                //{ //  at awake parent may be null
-                //GameObject parent = __instance.transform.parent.gameObject;
-                //if (parent && parent.GetComponent<LargeWorldEntity>())
-                //{
-                //PrefabPlaceholder[] pphs = parent.GetComponentsInChildren<PrefabPlaceholder>();
-                //Pickupable[] ps = parent.GetComponentsInChildren<Pickupable>();
-                //if (pphs.Length > 0 && pphs.Length == ps.Length)
-                //    AttachFruitPlantToKelpRoot(parent);
-                //AddDebug("KelpRootPustule LargeWorldEntity Start PrefabPlaceholder " + pphs.Length + " Pickupable " + ps.Length);
-                //Main.Log("KelpRootPustule LargeWorldEntity Start PrefabPlaceholder " + pphs.Length + " Pickupable " + ps.Length);
-                //}
-                //}
-                else if (tt == TechType.HeatFruitPlant)
-                { // sometimes floating HeatFruitPlant spawns near Marg greenhouse
-                    int x = (int)__instance.transform.position.x;
-                    int y = (int)__instance.transform.position.y;
-                    int z = (int)__instance.transform.position.z;
-                    if (x == 987 && y == 29 && z == -877)
-                        __instance.transform.position = new Vector3(__instance.transform.position.x, 28f, __instance.transform.position.z);
-                }
-            }
-            public static void Postfix(LargeWorldEntity __instance)
-            {
-                if (Main.config.alwaysBestLOD)
-                {
-                    LODGroup[] lodGroups = __instance.GetComponentsInChildren<LODGroup>();
-                    foreach (LODGroup lodGroup in lodGroups)
-                    {
-                        if (lodGroup.lodCount == 1)
-                            continue;
-                        LOD[] lods = lodGroup.GetLODs();
-                        Renderer LOD0Renderer = null;
-                        Renderer LOD1Renderer = null;
-                        List<Renderer> loPolyRenderers = new List<Renderer>();
-
-                        foreach (LOD lod in lods)
-                        {
-                            foreach (Renderer r in lod.renderers)
-                            {
-                                if (r.name.EndsWith("_LOD0"))
-                                    LOD0Renderer = r;
-                                else if (r.name.EndsWith("_LOD1"))
-                                { // creepVine dont have _LOD0 renderer
-                                    LOD1Renderer = r;
-                                    loPolyRenderers.Add(r);
-                                }
-                                else
-                                    loPolyRenderers.Add(r);
-                            }
-                        }
-                        if (LOD0Renderer)
-                        {
-                            lodGroup.enabled = false;
-                            foreach (Renderer r in loPolyRenderers)
-                                r.enabled = false;
-                        }
-                        else if (LOD1Renderer)
-                        {
-                            lodGroup.enabled = false;
-                            foreach (Renderer r in loPolyRenderers)
-                            {
-                                if (!r.name.EndsWith("_LOD1"))
-                                    r.enabled = false;
-                            }
-                        }
-                    }
-                }
-            }
-
         }
 
         //[HarmonyPatch(typeof(ResourceTracker))]
@@ -209,7 +97,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-                
+
         [HarmonyPatch(typeof(PickPrefab))]
         class PickPrefab_Patch
         {
@@ -224,7 +112,7 @@ namespace Tweaks_Fixes
                     {
                         //AddDebug("IceFruit PickPrefab Start ");
                         bool active = Main.config.iceFruitPickedState[pos];
-                        if(active)
+                        if (active)
                             __instance.SetPickedState(active);
                     }
                 }
@@ -237,13 +125,13 @@ namespace Tweaks_Fixes
                 //ResourceTracker rt = __instance.GetComponent<ResourceTracker>();
                 //if (rt && rt.techType == TechType.KelpRootPustule)
                 //{
-                    //FruitPlant fp_ = __instance.transform.parent.gameObject.GetComponent<FruitPlant>();
-                    //if (fp_)
-                    //{
-                    //    fp_.OnFruitHarvest(__instance);
-                    //    rt.Unregister();
-                    //    return;
-                    //}
+                //FruitPlant fp_ = __instance.transform.parent.gameObject.GetComponent<FruitPlant>();
+                //if (fp_)
+                //{
+                //    fp_.OnFruitHarvest(__instance);
+                //    rt.Unregister();
+                //    return;
+                //}
                 //}
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 if (tt != TechType.CreepvineSeedCluster)
@@ -335,6 +223,7 @@ namespace Tweaks_Fixes
                 __instance.initialized = true;
                 return false;
             }
+
             [HarmonyPostfix]
             [HarmonyPatch(nameof(FruitPlant.Initialize))]
             public static void Postfix(FruitPlant __instance)
@@ -353,7 +242,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-           
+
         [HarmonyPatch(typeof(GrowingPlant))]
         class GrowingPlant_Patch
         {
@@ -364,16 +253,21 @@ namespace Tweaks_Fixes
                 __result = __instance.growthDuration * Main.config.plantGrowthTimeMult * (NoCostConsoleCommand.main.fastGrowCheat ? 0.01f : 1f);
                 return false;
             }
+         
             [HarmonyPrefix]
             [HarmonyPatch("SetScale")]
             static bool SetScalePrefix(GrowingPlant __instance, Transform tr, float progress)
             {
-                if (__instance.plantTechType == TechType.SnowStalkerPlant)
+                TechType tt = __instance.plantTechType;
+                if (tt == TechType.SnowStalkerPlant || tt == TechType.MelonPlant)
                 {
+                    float mult = 1.7f;
+                    if (tt == TechType.MelonPlant)
+                        mult = 1.2f;
                     float num = __instance.isIndoor ? __instance.growthWidthIndoor.Evaluate(progress) : __instance.growthWidth.Evaluate(progress);
                     float y = __instance.isIndoor ? __instance.growthHeightIndoor.Evaluate(progress) : __instance.growthHeight.Evaluate(progress);
-                    num *= 2f;
-                    tr.localScale = new Vector3(num, y * 2f, num);
+                    num *= mult;
+                    tr.localScale = new Vector3(num, y * mult, num);
                     if (__instance.passYbounds != null)
                         __instance.passYbounds.UpdateWavingScale(tr.localScale);
                     else
@@ -388,30 +282,33 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Eatable), "Awake")]
+        [HarmonyPatch(typeof(Planter), "AddItem", new Type[1] { typeof(InventoryItem) })]
+        class Planter_AddItem_Patch
+        {
+            static void Prefix(Planter __instance, InventoryItem item)
+            {
+                Plantable p = item.item.GetComponent<Plantable>();
+                if (p.plantTechType == TechType.SnowStalkerPlant || p.plantTechType == TechType.MelonPlant)
+                {
+                    //AddDebug("Planter AddItem fix " + p.plantTechType);
+                    p.size = Plantable.PlantSize.Large;
+                }
+            }
+        }
+
+        //[HarmonyPatch(typeof(Eatable), "Awake")]
         class Eatable_Awake_Patch
         {
             static void Postfix(Eatable __instance)
             {
                 Plantable plantable = __instance.GetComponent<Plantable>();
-                if (plantable && plantable.plantTechType == TechType.SnowStalkerPlant)
+                if (plantable)
                 {
-                    //AddDebug("Eatable Awake " + __instance.name);
-                    plantable.size = Plantable.PlantSize.Large;
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(Planter), "Start")]
-        class Planter_Start_Patch
-        {
-            static void Prefix(Planter __instance)
-            {
-                if (__instance.bigSlots.Length == 1 && __instance.slots.Length == 4)
-                {
-                    __instance.initialized = false;
-                    __instance.slots = new Transform[] { __instance.bigSlots[0] };
-                    AddDebug(__instance.name + " bigSlots " + __instance.bigSlots.Length + " slots " + __instance.slots.Length);
+                    if (plantable.plantTechType == TechType.SnowStalkerPlant)
+                    {
+                        AddDebug("Eatable Awake SnowStalkerPlant " + __instance.name);
+                        plantable.size = Plantable.PlantSize.Large;
+                    }
                 }
             }
         }

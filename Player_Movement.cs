@@ -182,9 +182,9 @@ namespace Tweaks_Fixes
                     __result = false;
                     return false;
                 }
-                Seaglide seaglide = Inventory.main.GetHeldTool() as Seaglide;
-                bool seagliding = seaglide && seaglide.activeState;
-                __result = Player.main.GetMode() == Player.Mode.Normal && __instance.swimCameraAnimation > 0f && !UWEXR.XRSettings.enabled && MiscSettings.cameraBobbing && !seagliding;
+                // Seaglide seaglide = Inventory.main.GetHeldTool() as Seaglide;
+                // bool seagliding = seaglide && seaglide.activeState;
+                __result = Player.main.GetMode() == Player.Mode.Normal && __instance.swimCameraAnimation > 0f && !UWEXR.XRSettings.enabled && MiscSettings.cameraBobbing;
                 //AddDebug(" seagliding " + seagliding);
                 //AddDebug(" GetCameraBob " + __result);
                 return false;

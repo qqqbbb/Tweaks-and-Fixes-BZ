@@ -65,9 +65,9 @@ namespace Tweaks_Fixes
         public int crushDepth = 200;
         [Slider("Crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "When it's not 0 every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.")]
         public float crushDamageMult = 0f;
-        [Slider("Vehicle crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "When it's not 0 every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.")]
+        [Slider("Vehicle crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "When it's not 0, every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.")]
         public float vehicleCrushDamageMult = 0f;
-        [Slider("Hunger update interval", 1, 100, DefaultValue = 10, Step = 1, Format = "{0:F0}", Tooltip = "Time interval in game seconds after which your hunger and thirst update.")]
+        [Slider("Hunger update interval", 1, 100, DefaultValue = 10, Step = 1, Format = "{0:F0}", Tooltip = "Time interval in game seconds after which your hunger and thirst update. This is affected by day/night cycle speed.")]
         public int hungerUpdateInterval = 10;
         [Toggle("New hunger system", Tooltip = "You don't regenerate health when you are full. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it's 190 you lose 90%.")]
         public bool newHungerSystem = false;
@@ -122,21 +122,27 @@ namespace Tweaks_Fixes
         //[Slider("Life pod power cell max charge", 10, 100, DefaultValue = 25, Step = 1, Format = "{0:F0}", Tooltip = "Max charge for each of its 3 power cells. Game has to be reloaded after changing this.")]
         //public int escapePodMaxPower = 25;
         //[Toggle("Life pod power tweaks", Tooltip = "When your life pod is damaged its max power is reduced to 50%. When you crashland your life pod's power cells are 30% charged. Game has to be reloaded after changing this.")]
-        //public bool escapePodPowerTweak = false;
+        //public bool escapePodPowerTweak = false; 
         [Slider("Tool power consumption multiplier", 0f, 4f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of power consumed by your tools will be multiplied by this.")]
         public float toolEnergyConsMult = 1f;
         [Slider("Vehicle power consumption multiplier", 0f, 4f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of power consumed by your vehicles will be multiplied by this.")]
         public float vehicleEnergyConsMult = 1f;
-        [Slider("Base power consumption multiplier", 0f, 4f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of power consumed by things in your base will be multiplied by this.")]
+        [Slider("Base power consumption multiplier", 0f, 4f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of power consumed by things in your base will be multiplied by this. Leave this at 1 if using EasyCraft mod.")]
         public float baseEnergyConsMult = 1f;
         [Slider("Crafted battery charge percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Charge percent of batteries and power cells you craft will be set to this.")]
         public int craftedBatteryCharge = 100;
 
+        [Slider("Free torpedos", 0, 36, DefaultValue = 2, Step = 1, Format = "{0:F0}", Tooltip = "Number of torpedos you get when installing Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo Arm.")]
+        public int freeTorpedos = 2;
+        [Toggle("Only Vehicle upgrade console can craft vehicle upgrades", Tooltip = "Fabricator will not be able to craft vehicle upgrades. Game has to be reloaded after changing this.")]
+        public bool craftVehicleUpgradesOnlyInMoonpool = false;
         [Choice("Losing items when you die", Tooltip = "When set to 'All' you will drop every item in your inventory when you die.")]
         public LoseItemsOnDeath loseItemsOnDeath;
 
         [Toggle("No particles when creature dies", Tooltip = "No particles (yellow cloud) will spawn when a creature dies. Game has to be reloaded after changing this.")]
         public bool noKillParticles = false;
+        [Toggle("Always show health and food values in UI", Tooltip = "Health and food values will be always shown not only when PDA is open.")]
+        public bool alwaysShowHealthNunbers = false;
         //[Toggle("No easy shale outcrops from sea treaders", Tooltip = "Sea treaders unearth shale outcrops only when stomping the ground.")]
         //public bool seaTreaderChunks = false;
         //[Toggle("Disable reaper's roar", Tooltip = "Game has to be reloaded after changing this.")]
@@ -145,8 +151,8 @@ namespace Tweaks_Fixes
         //public bool fixFootstepSound = false;
         [Toggle("Camera bobbing", Tooltip = "Camera bobbing when swimming.")]
         public bool cameraBobbing = true;
-        [Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
-        public bool baseLightOff = false;
+        //[Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
+        //public bool baseLightOff = false;
         [Keybind("Quickslot cycle key", Tooltip = "Press 'Cycle next' or 'Cycle previous' key while holding down this key to cycle tools in your current quickslot.")]
         public KeyCode quickslotKey = KeyCode.LeftAlt;
 
@@ -162,6 +168,7 @@ namespace Tweaks_Fixes
         public string throwFlare = "Throw";
         public string lightAndThrowFlare = "Light and throw";
         public string lightFlare = "Light";
+        public Dictionary<string, Dictionary<string, bool>> baseLights = new Dictionary<string, Dictionary<string, bool>>();
         public Dictionary<string, int> startingLoot = new Dictionary<string, int>
         {
              { "FilteredWater", 0 },
@@ -245,10 +252,10 @@ namespace Tweaks_Fixes
 
         static void UpdateBaseLight()
         {
-            if (Main.loadingDone)
-            {
-                Base_Light.UpdateBaseLights();
-            }
+            //if (Main.loadingDone)
+            //{
+            //    Base_Light.UpdateBaseLights();
+            //}
         }
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
         public enum LoseItemsOnDeath { Vanilla, All, None }

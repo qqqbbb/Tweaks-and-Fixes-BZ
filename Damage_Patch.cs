@@ -424,11 +424,28 @@ namespace Tweaks_Fixes
                             }
                         }
                     }
-                    else if (target.GetComponent<Vehicle>() || target.GetComponent<SeaTruckSegment>() || target.GetComponent<Hoverbike>())
+                    SeaTruckSegment sts = target.GetComponent<SeaTruckSegment>();
+                    if (sts || target.GetComponent<Vehicle>() || target.GetComponent<Hoverbike>())
                     {
                         //AddDebug("Vehicle takes damage"); 
                         __result *= Main.config.vehicleDamageMult;
+                        if (__result > 0 && sts && type == DamageType.Normal)
+                        { // play sfx when predators attack truck
+                            SeaTruckSegment cabin = SeaTruckSegment.GetHead(sts);
+                            if (cabin && cabin.isMainCab)
+                            {
+                                DealDamageOnImpact ddoi = cabin.GetComponent<DealDamageOnImpact>();
+                                if (ddoi.impactSound && ddoi.timeLastImpactSound + .5f < Time.time)
+                                {
+                                    //AddDebug("DealDamageOnImpact sound");
+                                    ddoi.impactSound.SetParameterValue(ddoi.velocityParamIndex, __result);
+                                    ddoi.impactSound.Play();
+                                    ddoi.timeLastImpactSound = Time.time;
+                                }
+                            }
+                        }
                     }
+
                     //else if (target.GetComponent<BaseCell>())
                     //{
                     //    AddDebug("base takes damage");
@@ -441,6 +458,81 @@ namespace Tweaks_Fixes
                     }
                 }
 
+            }
+        }
+
+        [HarmonyPatch(typeof(DamagePlayerInRadius), "DoDamage")]
+        class DamagePlayerInRadius_DoDamage_Patch
+        {
+            static int damageTicksToCook = 2;
+            static int damageTicks = 0;
+            static GameObject fishToCook = null;
+
+            static void CookFish(GameObject go)
+            {
+                //int currentSlot = Inventory.main.quickSlots.desiredSlot;
+                //AddDebug("currentSlot " + currentSlot);
+                fishToCook = null;
+                Inventory.main.quickSlots.DeselectImmediate();
+                //Inventory.main._container.DestroyItem(tt);
+                //Inventory.main.ConsumeResourcesForRecipe(tt);
+                TechType processed = TechData.GetProcessed(CraftData.GetTechType(go));
+                if (processed != TechType.None)
+                { // cooked fish cant be in quickslot
+                    //AddDebug("CookFish " + processed);
+                    //UWE.CoroutineHost.StartCoroutine(Main.AddToInventory(processed));
+                    CraftData.AddToInventory(processed);
+                    UnityEngine.Object.Destroy(go);
+                }
+            }
+
+            static bool Prefix(DamagePlayerInRadius __instance)
+            {
+                if (!__instance.enabled || !__instance.gameObject.activeInHierarchy || __instance.damageRadius <= 0f)
+                    return false;
+
+                float distanceToPlayer = __instance.tracker.distanceToPlayer;
+                if (distanceToPlayer <= __instance.damageRadius)
+                {
+                    //if (__instance.doDebug)
+                    //    Debug.Log((__instance.gameObject.name + ".DamagePlayerInRadius() - dist/damageRadius: " + distanceToPlayer + "/" + __instance.damageRadius + " => damageAmount: " + __instance.damageAmount));
+                    if (__instance.damageType == DamageType.Radiation && Player.main.radiationAmount == 0f)
+                        return false;
+                    //if (__instance.doDebug)
+                    //    Debug.Log(("TakeDamage: " + __instance.damageAmount + " " + __instance.damageType.ToString()));
+                    //AddDebug("TakeDamage: " + __instance.damageAmount);
+                    Player.main.GetComponent<LiveMixin>().TakeDamage(__instance.damageAmount, __instance.transform.position, __instance.damageType);
+
+                    if (Inventory.main.quickSlots.heldItem == null)
+                        fishToCook = null;
+                    else
+                    {
+                        GameObject fish = Inventory.main.quickSlots.heldItem.item.gameObject;
+                        //TechType tt = CraftData.GetTechType(fish);
+                        if (Main.IsEatableFish(fish))
+                        {
+                            if (fishToCook == fish)
+                            {
+                                if (damageTicks == damageTicksToCook)
+                                    CookFish(fish);
+                                else
+                                    damageTicks++;
+                            }
+                            else
+                            {
+                                fishToCook = fish;
+                                damageTicks = 1;
+                            }
+                        }
+                    }
+                }
+                //else
+                //{
+                //    if (!__instance.doDebug)
+                //        return;
+                //    Debug.Log((__instance.gameObject.name + ".DamagePlayerInRadius() - dist/damageRadius: " + distanceToPlayer + "/" + __instance.damageRadius + " => no damage"));
+                //}
+                return false;
             }
         }
 
