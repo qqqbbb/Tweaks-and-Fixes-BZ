@@ -73,7 +73,7 @@ namespace Tweaks_Fixes
                 //if (Player.main.inExosuit)
                 //    AddDebug("inExosuit ");
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
-                if (Input.GetKey(KeyCode.B))
+                if (Input.GetKeyDown(KeyCode.B))
                 {
                     //AddDebug("currentSlot " + Main.config.escapePodSmokeOut[SaveLoadManager.main.currentSlot]);
                     //if (Player.main.IsInBase())
@@ -93,7 +93,7 @@ namespace Tweaks_Fixes
                     //HandReticle.main.SetInteractText(nameof(startingFood) + " " + dict[i]);
                 }
 
-                if (Input.GetKey(KeyCode.C))
+                if (Input.GetKeyDown(KeyCode.C))
                 {
                     //TechType tt = TechType.IceBubble;
                     //string classid = CraftData.GetClassIdForTechType(tt);
@@ -120,7 +120,7 @@ namespace Tweaks_Fixes
                     //    survival.food++;
                 }
 
-                if (Input.GetKey(KeyCode.X))
+                if (Input.GetKeyDown(KeyCode.X))
                 {
                     //Survival survival = Player.main.GetComponent<Survival>();
                     //if (Input.GetKey(KeyCode.LeftShift))
@@ -129,7 +129,7 @@ namespace Tweaks_Fixes
                     //    __instance.liveMixin.health++;
                 }
 
-                if (Input.GetKey(KeyCode.Z))
+                if (Input.GetKeyDown(KeyCode.Z))
                 {
                     //AddDebug(" Base_Light.bases " +);
                     //Inventory.main.quickSlots.SelectImmediate(Main.config.activeSlot);

@@ -138,36 +138,6 @@ namespace Tweaks_Fixes
             return fl;
         }
 
-        public static int NormalizeToRange(int value, int oldMin, int oldMax, int newMin, int newMax)
-        {
-            int oldRange = oldMax - oldMin;
-            int newValue;
-
-            if (oldRange == 0)
-                newValue = newMin;
-            else
-            {
-                int newRange = newMax - newMin;
-                newValue = ((value - oldMin) * newRange) / oldRange + newMin;
-            }
-            return newValue;
-        }
-
-        public static float NormalizeToRange(float value, float oldMin, float oldMax, float newMin, float newMax)
-        {
-            float oldRange = oldMax - oldMin;
-            float newValue;
-
-            if (oldRange == 0)
-                newValue = newMin;
-            else
-            {
-                float newRange = newMax - newMin;
-                newValue = ((value - oldMin) * newRange) / oldRange + newMin;
-            }
-            return newValue;
-        }
-
         public static bool IsEatableFishAlive(GameObject go)
         {
             Creature creature = go.GetComponent<Creature>();
@@ -201,6 +171,7 @@ namespace Tweaks_Fixes
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
             CraftTree.fabricator = new CraftTree("Fabricator", CraftTree.FabricatorScheme());
             Seatruck_Patch.installedUpgrades = new HashSet<TechType>();
+            LargeWorldEntity_Patch.rock_01_d_disabled = false;
             config.Load();
         }
 
@@ -404,6 +375,7 @@ namespace Tweaks_Fixes
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
             LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
             CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
+            CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-208f, -376f, -1332f), new Vector3(4f, 114.77f, 0f)));
         }
 
         [QModPostPatch]

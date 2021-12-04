@@ -12,11 +12,12 @@ namespace Tweaks_Fixes
     [Menu("Tweaks and Fixes")]
     public class Config : ConfigFile
     {
-        [Slider("Day/night cycle speed", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
-        public float gameSpeed = 1f;
+        //[Slider("Day/night cycle speed", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
+        //public float gameSpeed = 1f;
         //[Slider("Day/night cycle speed 10x mult", 0, 4, DefaultValue = 1, Step = 1, Format = "{0:F0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
         //public int gameSpeedMult = 1;
-
+        [Slider("Player speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your swimming, walking and running speed will be multiplied by this.")]
+        public float playerSpeedMult = 1f;
         [Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
         public float playerDamageMult = 1f;
         [Slider("Vehicle damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage your vehicles take will be multiplied by this.")]
@@ -69,7 +70,7 @@ namespace Tweaks_Fixes
         public float vehicleCrushDamageMult = 0f;
         [Slider("Hunger update interval", 1, 100, DefaultValue = 10, Step = 1, Format = "{0:F0}", Tooltip = "Time interval in game seconds after which your hunger and thirst update. This is affected by day/night cycle speed.")]
         public int hungerUpdateInterval = 10;
-        [Toggle("New hunger system", Tooltip = "You don't regenerate health when you are full. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it's 190 you lose 90%.")]
+        [Toggle("New hunger system", Tooltip = "You don't regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it's 190 you lose 90%.")]
         public bool newHungerSystem = false;
 
         [Choice("Eating raw fish", Tooltip = "When it's not vanilla, amount of food you get by eating raw fish changes. Harmless: it's a random number between 0 and fish's food value. Risky: it's a random number between fish's food negative value and fish's food value. Harmful: it's a random number between fish's food negative value and 0.")]
@@ -86,18 +87,18 @@ namespace Tweaks_Fixes
         public float fishSpeedMult = 1f;
         [Slider("Other creatures speed multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of creatures that you can't catch will be multiplied by this.")]
         public float creatureSpeedMult = 1f;
-        [Slider("Egg hatching period multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Time it takes a creature egg to hatch in AC will be multiplied by this.")]
-        public float eggHatchTimeMult = 1f;
-        [Slider("Plant growth time multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Time it takes a plant to grow will be multiplied by this.")]
-        public float plantGrowthTimeMult = 1f;
-        [Slider("Knife attack range multiplier", 1f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
+        //[Slider("Egg hatching period multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Time it takes a creature egg to hatch in AC will be multiplied by this.")]
+        //public float eggHatchTimeMult = 1f;
+        //[Slider("Plant growth time multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Time it takes a plant to grow will be multiplied by this.")]
+        //public float plantGrowthTimeMult = 1f;
+        [Slider("Knife attack range multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
         public float knifeRangeMult = 1f;
         [Slider("Knife damage multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
         public float knifeDamageMult = 1f;
 
         [Toggle("Can't catch fish with bare hands", Tooltip = "To catch fish you will have to use propulsion cannon or grav trap. Does not apply if you are inside alien containment.")]
         public bool noFishCatching = false;
-        [Toggle("Can't break outcrop with bare hands", Tooltip = "You will have to use a knife to break outcrops or collect resources attached to rock or seabed.")]
+        [Toggle("Can't break outcrop with bare hands", Tooltip = "You will have to use a knife to break outcrops or collect resources attached to rock or seabed. A piece of scrap metal will spawn next to your crashed ship, so you can craft knife.")]
         public bool noBreakingWithHand = false;
         [Toggle("Disable tutorial messages", Tooltip = "Disable messages that tell you how controls work.")]
         public bool disableHints = false;
@@ -244,11 +245,11 @@ namespace Tweaks_Fixes
         public HashSet<TechType> predatorExclusion = new HashSet<TechType> { TechType.Crash};
         public Dictionary<string, bool> iceFruitPickedState = new Dictionary<string, bool> ();
 
-        static void UpdateGameSpeed()
-        {
-            if (DayNightCycle.main)
-                DayNightCycle.main._dayNightSpeed = Main.config.gameSpeed;
-        }
+        //static void UpdateGameSpeed()
+        //{
+        //    if (DayNightCycle.main)
+        //        DayNightCycle.main._dayNightSpeed = Main.config.gameSpeed;
+        //}
 
         static void UpdateBaseLight()
         {

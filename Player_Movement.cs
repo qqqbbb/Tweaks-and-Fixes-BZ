@@ -11,7 +11,8 @@ namespace Tweaks_Fixes
     internal class Player_Movement
     {
         //static float swimMaxAllowedY = .6f; // .6
-
+        public static float timeSprintStart = 0f;
+        public static float timeSprinted = 0f;
         // AlterMaxSpeed AdjustGroundSpeed
         public static float GetInvMult()
         {
@@ -117,6 +118,7 @@ namespace Tweaks_Fixes
 
             public static void Postfix(float inMaxSpeed, ref float __result)
             {
+                __result *= Main.config.playerSpeedMult;
                 if (Main.config.newHungerSystem)
                 {
                     Seaglide seaglide = Inventory.main.GetHeldTool() as Seaglide;
@@ -312,6 +314,12 @@ namespace Tweaks_Fixes
                 //__result.Normalize();
                 return false;
             }
+
+            public static void Postfix(UnderwaterMotor __instance, ref Vector3 __result)
+            {
+                if (Main.config.playerSpeedMult != 1f)
+                    __instance.rb.drag /= Main.config.playerSpeedMult;
+            }
         }
 
         private static float AdjustGroundSpeed(float maxSpeed)
@@ -371,7 +379,7 @@ namespace Tweaks_Fixes
                 }
                 else
                 {
-                    float mult = 1f;
+                    float mult = Main.config.playerSpeedMult;
                     if (Main.config.playerMoveTweaks)
                         mult = AdjustGroundSpeed(mult);
 
@@ -386,6 +394,9 @@ namespace Tweaks_Fixes
                         else if (!Main.config.playerMoveTweaks && z == 0f)
                             mult *= __instance.strafeSprintModifier;
                         __instance.sprinting = true;
+                        if (timeSprintStart == 0f)
+                            timeSprintStart = DayNightCycle.main.timePassedAsFloat;
+                        timeSprinted = DayNightCycle.main.timePassedAsFloat - timeSprintStart;
                     }
                     hVelocity = input * __instance.forwardMaxSpeed * mult * inputMagn;
                 }

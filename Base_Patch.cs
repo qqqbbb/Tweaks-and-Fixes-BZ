@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using static ErrorMessage;
+using System.Text;
 
 namespace Tweaks_Fixes
 {
@@ -81,7 +82,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(SubRoot), "Awake")]
+        [HarmonyPatch(typeof(SubRoot), "Awake")]
         public static class SubRoot_Awake_Patch
         {
             static void Postfix(SubRoot __instance)
@@ -89,8 +90,8 @@ namespace Tweaks_Fixes
                 //Light[] lights = __instance.GetComponentsInChildren<Light>();
                 if (__instance.isBase)
                 {
-                    bool canToggle = __instance.powerRelay && __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Normal;
-                    AddDebug("SubRoot Awake canToggle " + canToggle);
+                    //bool canToggle = __instance.powerRelay && __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Normal;
+                    //AddDebug("SubRoot Awake canToggle " + canToggle);
                     //if (!canToggle)
                     //    return;
 
@@ -104,7 +105,8 @@ namespace Tweaks_Fixes
                         lightOn = Main.config.baseLights[currentSlot][key];
                         BaseCellLighting[] bcls = __instance.GetComponentsInChildren<BaseCellLighting>();
                         //togglingLight = true;
-                        AddDebug("SubRoot Awake BaseCellLighting " + bcls.Length);
+                        //AddDebug("saved Lights " + lightOn);
+                        //AddDebug("saved BaseCellLighting " + bcls.Length);
                         foreach (BaseCellLighting bcl in bcls)
                         {
                             //AddDebug("currentIntensity " + bcl.currentIntensity);
@@ -112,7 +114,7 @@ namespace Tweaks_Fixes
                             //AddDebug("appliedIntensity " + bcl.appliedIntensity);
                             if (bcl.GetPowerLossValue() == 0f)
                             {
-                                //bcl.ApplyCurrentIntensity();
+                                bcl.ApplyCurrentIntensity();
                                 //ApplyIntensity(bcl, lightOn);
                             }
                         }
@@ -124,21 +126,42 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(BaseCellLighting), "Start")]
-        public class BaseCellLighting_Start_Patch : MonoBehaviour
+        [HarmonyPatch(typeof(BaseUpgradeConsoleGeometry), "GetDockedInfo")]
+        public class BaseUpgradeConsoleGeometry_GetDockedInfo_Patch
         {
-            static void Postfix(BaseCellLighting __instance)
+            static bool Prefix(BaseUpgradeConsoleGeometry __instance, Dockable dockable, ref string __result)
             {
-                Vector3 pos = __instance.transform.parent.position;
-                int x = (int)pos.x;
-                int y = (int)pos.y;
-                int z = (int)pos.z;
-                string key = x + "_" + y + "_" + z;
-                string currentSlot = SaveLoadManager.main.currentSlot;
-                if (Main.config.baseLights.ContainsKey(currentSlot) && Main.config.baseLights[currentSlot].ContainsKey(key))
-                    lightOn = Main.config.baseLights[currentSlot][key];
-
-                //ApplyIntensity(__instance, lightOn);
+                if (dockable == null)
+                {
+                    __result = "";
+                    return false;
+                }
+                StringBuilder stringBuilder = new StringBuilder();
+                NamePlate namePlate = dockable.GetComponent<NamePlate>();
+                string str = namePlate ? namePlate._name : string.Empty;
+                stringBuilder.Append(str);
+                stringBuilder.Append(' ');
+                stringBuilder.Append(Language.main.Get("SubmersibleDocked"));
+                if (dockable.UsesEnergy())
+                {
+                    float energyScalar = dockable.GetEnergyScalar();
+                    stringBuilder.Append('\n');
+                    stringBuilder.Append("<size=30>");
+                    if (energyScalar == 1f)
+                    {
+                        stringBuilder.Append(Language.main.Get("SubmersibleFullyCharged"));
+                    }
+                    else
+                    {
+                        stringBuilder.Append(Language.main.Get("SubmersibleCharging"));
+                        stringBuilder.Append(' ');
+                        stringBuilder.Append(Mathf.RoundToInt(energyScalar * 100f).ToString());
+                        stringBuilder.Append('%');
+                    }
+                    stringBuilder.Append("</size>");
+                }
+                __result = stringBuilder.ToString();
+                return false;
             }
         }
 
@@ -188,6 +211,22 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
+
+        [HarmonyPatch(typeof(SolarPanel), "OnHandHover")]
+        public static class SolarPanel_OnHandHover_Patch
+        {
+            static bool Prefix(SolarPanel __instance, GUIHand hand)
+            {
+                Constructable c = __instance.gameObject.GetComponent<Constructable>();
+                if (!c || !c.constructed)
+                    return false;
+                HandReticle.main.SetText(HandReticle.TextType.Hand, Language.main.GetFormat<int, int, int>("SolarPanelStatus", Mathf.RoundToInt(__instance.GetRechargeScalar() * 100f), Mathf.RoundToInt(__instance.powerSource.GetPower()), Mathf.RoundToInt(__instance.powerSource.GetMaxPower())), false);
+                HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
+                //HandReticle.main.SetIcon(HandReticle.IconType.Hand);
+                return false;
+            }
+        }
+
 
     }
 }

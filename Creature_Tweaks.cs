@@ -35,12 +35,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(CreatureEgg), "GetHatchDuration")]
+        //[HarmonyPatch(typeof(CreatureEgg), "GetHatchDuration")]
         class CreatureEgg_GetHatchDuration_Patch
         {
             public static bool Prefix(CreatureEgg __instance, ref float __result)
             {
-                __result = 1200f * Main.config.eggHatchTimeMult * __instance.daysBeforeHatching * (NoCostConsoleCommand.main.fastHatchCheat ? 0.01f : 1f);
+                //__result = 1200f * Main.config.eggHatchTimeMult * __instance.daysBeforeHatching * (NoCostConsoleCommand.main.fastHatchCheat ? 0.01f : 1f);
                 //AddDebug("GetHatchDuration " + __instance.creatureType + " " + __result);
                 return false;
             }

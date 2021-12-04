@@ -7,9 +7,9 @@ using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{
+{/*
     class Game_Speed_Patch
-    {
+    { 
         [HarmonyPatch(typeof(DayNightCycle), "Awake")]
         class DayNightCycle_Awake_Patch
         {
@@ -169,5 +169,5 @@ namespace Tweaks_Fixes
                 //AddDebug(__instance.weatherSet.name + " GetEventDuration " + __result);
             }
         }
-    }
+} */
 }

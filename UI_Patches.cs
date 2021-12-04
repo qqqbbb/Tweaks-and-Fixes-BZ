@@ -355,6 +355,7 @@ namespace Tweaks_Fixes
                 PlayerTool tool = __instance.GetTool();
                 if (tool)
                 {
+
                     Flare flare = tool as Flare;
                     if (flare)
                     {

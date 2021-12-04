@@ -22,21 +22,31 @@ namespace Tweaks_Fixes
             //AddDebug("UpdateStats  " + updateHungerInterval);
             float oldFood = __instance.food;
             float oldWater = __instance.water;
-
             __instance.food -= foodCons;
             __instance.water -= waterCons;
+            if (Player_Movement.timeSprinted > 0f)
+            {
+                float sprintFoodCons = foodCons * Player_Movement.timeSprinted * updateHungerInterval * .01f;
+                //AddDebug("UpdateStats timeSprinted " + Player_Movement.timeSprinted);
+                //AddDebug("UpdateStats sprintFoodCons " + sprintFoodCons);
+                __instance.food -= sprintFoodCons;
+                __instance.water -= sprintFoodCons;
+                Player_Movement.timeSprintStart = 0f;
+                Player_Movement.timeSprinted = 0f;
+            }
+            float foodDamage = 0f;
             if (__instance.food < -100f)
             {
-                float damage = Mathf.Abs(__instance.food + 100f);
+                foodDamage = Mathf.Abs(__instance.food + 100f);
                 __instance.food = -100f;
-                Player.main.liveMixin.TakeDamage(damage, Player.main.gameObject.transform.position, DamageType.Starve);
             }
             if (__instance.water < -100f)
             {
-                float damage = Mathf.Abs(__instance.water + 100f);
+                foodDamage += Mathf.Abs(__instance.water + 100f);
                 __instance.water = -100f;
-                Player.main.liveMixin.TakeDamage(damage, Player.main.gameObject.transform.position, DamageType.Starve);
             }
+            if (foodDamage > 0)
+                Player.main.liveMixin.TakeDamage(foodDamage, Player.main.gameObject.transform.position, DamageType.Starve);
             float threshold1 = Main.config.newHungerSystem ? 0f : 20f;
             float threshold2 = Main.config.newHungerSystem ? -50f : 10f;
             __instance.UpdateWarningSounds(__instance.foodWarningSounds, __instance.food, oldFood, threshold1, threshold2);

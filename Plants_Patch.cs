@@ -246,11 +246,11 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(GrowingPlant))]
         class GrowingPlant_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("GetGrowthDuration")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("GetGrowthDuration")]
             public static bool GetGrowthDurationPrefix(GrowingPlant __instance, ref float __result)
             {
-                __result = __instance.growthDuration * Main.config.plantGrowthTimeMult * (NoCostConsoleCommand.main.fastGrowCheat ? 0.01f : 1f);
+                //__result = __instance.growthDuration * Main.config.plantGrowthTimeMult * (NoCostConsoleCommand.main.fastGrowCheat ? 0.01f : 1f);
                 return false;
             }
          
@@ -293,6 +293,18 @@ namespace Tweaks_Fixes
                     //AddDebug("Planter AddItem fix " + p.plantTechType);
                     p.size = Plantable.PlantSize.Large;
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(Plantable), "Spawn")]
+        internal class Plantable_Spawn_Patch
+        {
+            public static void Postfix(ref GameObject __result)
+            {
+                //AddDebug("Plantable Spawn " + __result.name);
+                Vector3 rot = __result.transform.eulerAngles;
+                float y = UnityEngine.Random.Range(0, 360);
+                __result.transform.eulerAngles = new Vector3(rot.x, y, rot.z);
             }
         }
 
