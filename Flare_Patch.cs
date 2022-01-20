@@ -329,11 +329,11 @@ namespace Tweaks_Fixes
             //    __instance.pickupable.isPickupable = true;
             //    __instance.throwDuration = .1f;
             //}
-            if (__instance.flareActivateTime == 0 && Inventory.main.GetHeldTool() == __instance && GameInput.GetButtonDown(GameInput.Button.AltTool))
-            {
-                LightFlare(__instance);
-                return false;
-            }
+            //if (__instance.flareActivateTime == 0 && Inventory.main.GetHeldTool() == __instance && GameInput.GetButtonDown(GameInput.Button.AltTool))
+            //{
+            //    LightFlare(__instance);
+            //    return false;
+            //}
             if (__instance.flareActiveState)
             {
                 //AddDebug("UpdateLight " + __instance.energyLeft);

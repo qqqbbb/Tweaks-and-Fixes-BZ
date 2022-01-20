@@ -28,12 +28,12 @@ namespace Tweaks_Fixes
         public float aggrMult = 1f;
         [Slider("Oxygen per breath", 0f, 6f, DefaultValue = 3f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Amount of oxygen you consume every breath.")]
         public float oxygenPerBreath = 3f;
-        [Slider("Cold multiplier", 0f, 4f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Amount of warmth you lose will be multiplied by this.")]
+        [Slider("Getting cold rate multiplier", 0f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "The rate at which you get cold when outside and get warm when inside will be multiplied by this")]
         public float coldMult = 1f;
         [Slider("First aid kit HP", 10, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "HP restored by using first aid kit.")]
         public int medKitHP = 50;
         //[Slider("First aid kit HP per second", 1, 100, DefaultValue = 50, Step = 1, Format = "{0:F0}", Tooltip = "HP restored every second after using first aid kit.")]
-        [Toggle("Can't use first aid kit underwater", Tooltip = "You won't be able to use first aid kit when swimming underwater.")]
+        [Toggle("Can't use first aid kit underwater", Tooltip = "")]
         public bool cantUseMedkitUnderwater = false;
         [Slider("Crafting time multiplier", 0.1f, 4f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Crafting time will be multiplied by this when crafting things with fabricator or modification station.")]
         public float craftTimeMult = 1f;
@@ -41,6 +41,8 @@ namespace Tweaks_Fixes
         public float buildTimeMult = 1f;
         [Toggle("Player movement tweaks", Tooltip = "Player vertical, backward, sideways movement speed is halved. Any diving suit reduces your speed by 10% on land and in water. Fins reduce your speed by 10% on land. Lightweight high capacity tank reduces your speed by 5%. Every other tank reduces your speed by 10% on both land and water. Camera now does not bob up and down when swimming. You can sprint only if moving forward. Seaglide works only if moving forward. When swimming while your PDA is open your movement speed is halved. When swimming while holding a tool in your hand your movement speed is reduced to 70%.")]
         public bool playerMoveTweaks = false;
+        [Toggle("Only ambient tempterature makes player warm", Tooltip = "In vanilla game when you are underwater you get warm if moving and get cold if still. When out of water some areas (caves, your unpowered base) make you warm regardless of ambient tempterature. With this on you get warm only if ambient temperature is above 15°C.")]
+        public bool useRealTempForColdMeter = false;
         [Slider("Inventory weight multiplier in water", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
         public float invMultWater = 0f;
         [Slider("Inventory weight multiplier on land", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
@@ -68,7 +70,9 @@ namespace Tweaks_Fixes
         public float crushDamageMult = 0f;
         [Slider("Vehicle crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "When it's not 0, every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.")]
         public float vehicleCrushDamageMult = 0f;
-        [Slider("Hunger update interval", 1, 100, DefaultValue = 10, Step = 1, Format = "{0:F0}", Tooltip = "Time interval in game seconds after which your hunger and thirst update. This is affected by day/night cycle speed.")]
+        //[Toggle("Instantly open PDA", Tooltip = "Your PDA will open and close instantly. Direction you are looking at will not change when you open it. Game has to be reloaded after changing this.")]
+        public bool instantPDA = false;
+        [Slider("Hunger update interval", 1, 100, DefaultValue = 10, Step = 1, Format = "{0:F0}", Tooltip = "Time interval in seconds after which your hunger and thirst update.")]
         public int hungerUpdateInterval = 10;
         [Toggle("New hunger system", Tooltip = "You don't regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it's 190 you lose 90%.")]
         public bool newHungerSystem = false;
@@ -77,12 +81,13 @@ namespace Tweaks_Fixes
         public EatingRawFish eatRawFish;
         [Toggle("Food tweaks", Tooltip = "Raw fish water value is half of its food value. Cooked rotten fish has no food value. Eating outside decreases your warmth. Game has to be reloaded after changing this.")]
         public bool foodTweaks = false;
-        [Toggle("Can't eat underwater", Tooltip = "You can't eat or drink when swimming underwater.")]
+        [Toggle("Can't eat underwater", Tooltip = "You won't be able to eat or drink underwater.")]
         public bool cantEatUnderwater = false;
-        //[Toggle("Eat fish on release", Tooltip = "Eat the fish you are holding in your hand when you press the 'right hand' button.")]
-        //public bool eatFishOnRelease = false;
+
         [Slider("Food decay rate multiplier", 0.1f, 2f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "Food decay rate will be multiplied by this.")]
         public float foodDecayRateMult = 1f;
+        [Slider("Snowball water value", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "When you eat a snowball, you will get this amount of water and lose this amount of warmth. The game has to be reloaded after changing this.")]
+        public int snowballWater = 0;
         [Slider("Catchable fish speed multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of fish that you can catch will be multiplied by this.")]
         public float fishSpeedMult = 1f;
         [Slider("Other creatures speed multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of creatures that you can't catch will be multiplied by this.")]
@@ -154,11 +159,16 @@ namespace Tweaks_Fixes
         public bool cameraBobbing = true;
         //[Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
         //public bool baseLightOff = false;
+        [Toggle("PDA clock", Tooltip = " After changing this you have to reload the game.")]
+        public bool pdaClock = true;
         [Keybind("Quickslot cycle key", Tooltip = "Press 'Cycle next' or 'Cycle previous' key while holding down this key to cycle tools in your current quickslot.")]
         public KeyCode quickslotKey = KeyCode.LeftAlt;
+        [Keybind("Move all items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items.")]
+        public KeyCode transferAllItemsKey = KeyCode.LeftControl;
+        [Keybind("Move the same items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items of the same type.")]
+        public KeyCode transferSameItemsKey = KeyCode.LeftShift;
 
-        //public int subThrottleIndex = -1;
-        //public float knifeRangeDefault = 0f;
+
         public float playerCamRot = -1f;
         public int activeSlot = -1;
         //public Dictionary<string, bool> escapePodSmokeOut = new Dictionary<string, bool>();
@@ -170,6 +180,7 @@ namespace Tweaks_Fixes
         public string lightAndThrowFlare = "Light and throw";
         public string lightFlare = "Light";
         public Dictionary<string, Dictionary<string, bool>> baseLights = new Dictionary<string, Dictionary<string, bool>>();
+        public Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>> lockerNames = new Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>>();
         public Dictionary<string, int> startingLoot = new Dictionary<string, int>
         {
              { "FilteredWater", 0 },
@@ -265,6 +276,10 @@ namespace Tweaks_Fixes
         //{
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 
         //}
+        public List<string> translatableStrings = new List<string>
+        {"Burnt out ",
+         "Lit "};
+
 
     }
 }

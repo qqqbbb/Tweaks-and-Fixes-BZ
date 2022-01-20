@@ -11,23 +11,6 @@ namespace Tweaks_Fixes
     {
         public static bool boosting = false;
 
-        [HarmonyPatch(typeof(BodyTemperature))]
-        [HarmonyPatch("isExposed", MethodType.Getter)]
-        class BodyTemperature_isExposed_Patch
-        {
-            public static void Postfix(BodyTemperature __instance, ref bool __result)
-            {
-                //FileLog.Log("get_mapScale called!");
-                //AddDebug("isExposed " + __result);
-                //__result = __instance.hologramRadius / QMultiModSettings.Instance.ScannerBlipRange;
-                //return true;
-                if (Main.config.hoverbikeMoveTweaks && __instance.player.currentInterior == null && __instance.player.GetCurrentHeatVolume() == null && HeatSource.GetHeatImpactAtPosition(__instance.transform.position) <= 0f && __instance.player.inHovercraft && !__instance.player.IsUnderwaterForSwimming())
-                {
-                    __result = true;
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(Hoverbike), "HoverEngines")]
         class HoverboardMotor_HoverEngines_Patch
         { // increase hover heigt above water, can jump and boost on water

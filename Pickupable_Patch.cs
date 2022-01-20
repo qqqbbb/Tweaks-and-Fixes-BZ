@@ -12,10 +12,37 @@ namespace Tweaks_Fixes
         static float healTime = 0f;
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
 
-        [HarmonyPatch(typeof(Pickupable), "Awake")]
-        class Pickupable_Awake_Patch
+        [HarmonyPatch(typeof(BeaconLabel))]
+        class BeaconLabel_Patch
         {
-            static void Postfix(Pickupable __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            static void StartPostfix(BeaconLabel __instance)
+            {
+                Collider collider = __instance.GetComponent<Collider>();
+                if (collider)
+                    UnityEngine.Object.Destroy(collider);
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("OnPickedUp")]
+            static bool OnPickedUpPrefix(BeaconLabel __instance)
+            {
+                return false;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("OnDropped")]
+            static bool OnDroppedPrefix(BeaconLabel __instance)
+            {
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(Pickupable))]
+        class Pickupable_Patch_
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Pickupable), "Awake")]
+            static void AwakePostfix(Pickupable __instance)
             {
                 TechType tt = __instance.GetTechType();
                 if (itemMass.ContainsKey(tt))
@@ -24,6 +51,72 @@ namespace Tweaks_Fixes
                     if (rb)
                         rb.mass = itemMass[tt];
                 }
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("OnHandHover")]
+            static bool OnHandHoverPrefix(Pickupable __instance, GUIHand hand)
+            {
+                HandReticle main = HandReticle.main;
+                if (!hand.IsFreeToInteract())
+                    return false;
+                TechType techType = __instance.GetTechType();
+                if (__instance.AllowedToPickUp())
+                {
+                    string text1 = string.Empty;
+                    string text2 = string.Empty;
+                    Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
+                    bool canPickUp = exosuit == null || exosuit.HasClaw();
+                    if (canPickUp)
+                    {
+                        ISecondaryTooltip component = __instance.gameObject.GetComponent<ISecondaryTooltip>();
+                        if (component != null)
+                            text2 = component.GetSecondaryTooltip();
+                        text1 = __instance.usePackUpIcon ? LanguageCache.GetPackUpText(techType) : LanguageCache.GetPickupText(techType);
+                        main.SetIcon(__instance.usePackUpIcon ? HandReticle.IconType.PackUp : HandReticle.IconType.Hand);
+                    }
+                    if (exosuit)
+                    {
+                        GameInput.Button button = canPickUp ? GameInput.Button.LeftHand : GameInput.Button.None;
+                        if (exosuit.leftArmType != TechType.ExosuitClawArmModule)
+                            button = GameInput.Button.RightHand;
+                        HandReticle.main.SetText(HandReticle.TextType.Hand, text1, false, button);
+                        HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
+                    }
+                    else
+                    {
+                        if (techType == TechType.Beacon)
+                        {
+                            BeaconLabel beaconLabel = __instance.GetComponentInChildren<BeaconLabel>();
+                            if (beaconLabel)
+                            {
+                                if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                                    uGUI.main.userInput.RequestString(beaconLabel.stringBeaconLabel, beaconLabel.stringBeaconSubmit, beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beaconLabel.SetLabel));
+                                text2 = beaconLabel.labelName;
+                            }
+                            StringBuilder stringBuilder = new StringBuilder(text1);
+                            stringBuilder.Append(UI_Patches.beaconPickString);
+                            HandReticle.main.SetText(HandReticle.TextType.Hand, stringBuilder.ToString(), false, GameInput.Button.LeftHand);
+                            HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
+                        }
+                        else
+                        {
+                            HandReticle.main.SetText(HandReticle.TextType.Hand, text1, false, GameInput.Button.LeftHand);
+                            HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
+                        }
+                    }
+                }
+                else if (__instance.isPickupable && !Player.main.HasInventoryRoom(__instance))
+                {
+                    main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
+                    main.SetText(HandReticle.TextType.HandSubscript, "InventoryFull", true);
+                }
+                else
+                {
+                    main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
+                    main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
+                }
+                return false;
             }
         }
 

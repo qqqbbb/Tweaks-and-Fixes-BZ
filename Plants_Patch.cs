@@ -288,18 +288,33 @@ namespace Tweaks_Fixes
             static void Prefix(Planter __instance, InventoryItem item)
             {
                 Plantable p = item.item.GetComponent<Plantable>();
+                //AddDebug("Planter AddItem " + p.plantTechType);
                 if (p.plantTechType == TechType.SnowStalkerPlant || p.plantTechType == TechType.MelonPlant)
                 {
-                    //AddDebug("Planter AddItem fix " + p.plantTechType);
+                    //AddDebug("Planter AddItem  " + p.plantTechType);
                     p.size = Plantable.PlantSize.Large;
                 }
             }
         }
 
-        [HarmonyPatch(typeof(Plantable), "Spawn")]
-        internal class Plantable_Spawn_Patch
+        [HarmonyPatch(typeof(Plantable))]
+        class Plantable_Patch
         {
-            public static void Postfix(ref GameObject __result)
+            [HarmonyPostfix]
+            [HarmonyPatch("OnProtoDeserialize")]
+            static void OnProtoDeserializePostfix(Plantable __instance)
+            {
+                if (__instance.plantTechType == TechType.SnowStalkerPlant || __instance.plantTechType == TechType.MelonPlant)
+                {
+                    //AddDebug("Plantable OnProtoDeserialize " + __instance.plantTechType);
+                    //AddDebug("Planter AddItem fix " + p.plantTechType);
+                    __instance.size = Plantable.PlantSize.Large;
+                }
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("Spawn")]
+            public static void SpawnPostfix(ref GameObject __result)
             {
                 //AddDebug("Plantable Spawn " + __result.name);
                 Vector3 rot = __result.transform.eulerAngles;

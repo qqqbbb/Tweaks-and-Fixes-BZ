@@ -9,7 +9,9 @@ namespace Tweaks_Fixes
 {
     class Craft_Patch
     {
+        static bool crafting = false;
         static float hoverBikeBuildTime = 0f;
+        static float timeDecayStart = 0f;
 
         [HarmonyPatch(typeof(Crafter), "Craft")]
         class Crafter_Craft_Patch
@@ -192,6 +194,60 @@ namespace Tweaks_Fixes
                     return false;
                 }
                 return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(CrafterLogic), "NotifyCraftEnd")]
+        class CrafterLogic_NotifyCraftEnd_Patch
+        {
+            static void Postfix(CrafterLogic __instance, GameObject target, TechType techType)
+            {
+                //AddDebug("CrafterLogic NotifyCraftEnd timeDecayStart " + timeDecayStart);
+                if (Main.config.foodTweaks && timeDecayStart > 0)
+                {
+                    //AddDebug("CrafterLogic NotifyCraftEnd timeDecayStart" + timeDecayStart);
+                    Eatable eatable = target.GetComponent<Eatable>();
+                    if (eatable)
+                        eatable.timeDecayStart = timeDecayStart;
+                }
+                Battery battery = target.GetComponent<Battery>();
+                if (battery)
+                {
+                    //AddDebug("crafterOpen");
+                    float mult = Main.config.craftedBatteryCharge * .01f;
+                    battery._charge = battery._capacity * mult;
+                }
+                timeDecayStart = 0f;
+                crafting = false;
+            }
+        }
+
+        [HarmonyPatch(typeof(Inventory))]
+        class Inventory_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("ConsumeResourcesForRecipe")]
+            static void Prefix(Inventory __instance, TechType techType, uGUI_IconNotifier.AnimationDone endFunc = null)
+            {
+                crafting = true;
+                //AddDebug("ConsumeResourcesForRecipe");
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("OnRemoveItem")]
+            static void OnRemoveItemPostfix(Inventory __instance, InventoryItem item)
+            {
+                //AddDebug("OnRemoveItem " + item.item.GetTechName());
+                if (crafting)
+                {
+                    if (Main.config.foodTweaks && Main.IsEatableFish(item.item.gameObject))
+                    {
+                        Eatable eatable = item.item.GetComponent<Eatable>();
+                        timeDecayStart = eatable.timeDecayStart;
+                    }
+                    //else
+                    //    timeDecayStart = 0f;
+                }
             }
         }
 

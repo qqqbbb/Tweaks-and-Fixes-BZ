@@ -21,37 +21,45 @@ namespace Tweaks_Fixes
         //public static float exitWaterOffset = 0.8f; // 0.8f
         public static float crushPeriod = 3f;
 
-        //[HarmonyPatch(typeof(Survival), nameof(Survival.Reset))]
-        internal class Survival_Reset_Patch
-        {
-            [HarmonyPostfix]
-            public static void Postfix(Survival __instance)
-            {
-                //survival = Player.main.GetComponent<Survival>();
-                //liveMixin = Player.main.GetComponent<LiveMixin>();
-                //Main.Log("1.40129846432482E-45  " + (int)1.40129846432482E-45);
-                //Main.Message("Survival_Reset_Patch "); 
-                //__instance.food = 11f;
-                //__instance.water = 11f;
-                //Player.main.liveMixin.health -= 40f;
+        [HarmonyPatch(typeof(BodyTemperature))]
+        class BodyTemperature_Patch
+        { // test player.transform.parent when riding creature
+            [HarmonyPrefix]
+            [HarmonyPatch("isExposed", MethodType.Getter)]
+            public static bool isExposedPrefix(BodyTemperature __instance, ref bool __result)
+            {// fix : player gets cold when ambient temp is high
+                if (__instance.player.frozenMixin.IsFrozen())
+                {
+                    __result = true;
+                    return false;
+                }
+                bool underwater = __instance.player.transform.position.y < Ocean.GetOceanLevel() || __instance.player.IsUnderwaterForSwimming();
+                bool movinUnderwater = !Main.config.useRealTempForColdMeter && underwater && (__instance.player.movementSpeed > Mathf.Epsilon || __instance.player.IsRidingCreature());
+                //float temp = Main.bodyTemperature.CalculateEffectiveAmbientTemperature();
+                bool heat = !Main.config.useRealTempForColdMeter && (HeatSource.GetHeatImpactAtPosition(__instance.transform.position) > 0f || __instance.player.GetCurrentHeatVolume());
+                bool immune = movinUnderwater || heat || __instance.player.cinematicModeActive || Main.bodyTemperature.CalculateEffectiveAmbientTemperature() > 15f;
+                bool piloting = __instance.player.IsPiloting();
+                if (Main.config.hoverbikeMoveTweaks && __instance.player.inHovercraft)
+                    piloting = false;
+                bool interior = !Main.config.useRealTempForColdMeter && __instance.player.currentInterior != null;
+                __result = !immune && !piloting && !interior;
+                //AddDebug("GetHeatImpactAtPosition " + HeatSource.GetHeatImpactAtPosition(__instance.transform.position));
+                //AddDebug("GetCurrentHeatVolume " + __instance.player.GetCurrentHeatVolume());
+                //AddDebug("isExposed " + __result + " " + (int)temp);
+                return false;
             }
-        }
 
-        [HarmonyPatch(typeof(BodyTemperature), "AddCold")]
-        class BodyTemperature_UpdateColdMeter_Patch
-        {
-            static bool Prefix(BodyTemperature __instance, float cold)
+            [HarmonyPrefix]
+            [HarmonyPatch("AddCold")]
+            static bool AddColdPrefix(BodyTemperature __instance, float cold)
             {
-                if (cold > 0f)
-                    __instance.currentColdMeterValue = Mathf.Clamp(__instance.currentColdMeterValue + cold * Main.config.coldMult, 0f, __instance.coldMeterMaxValue);
-                else
-                    __instance.currentColdMeterValue = Mathf.Clamp(__instance.currentColdMeterValue + cold, 0f, __instance.coldMeterMaxValue);
+                __instance.currentColdMeterValue = Mathf.Clamp(__instance.currentColdMeterValue + cold * Main.config.coldMult, 0f, __instance.coldMeterMaxValue);
 
                 return false;
             }
         }
 
-        [HarmonyPatch(typeof(Player), "Start")]
+        //[HarmonyPatch(typeof(Player), "Start")]
         class Player_Start_Patch
         {
             static IEnumerator Test()

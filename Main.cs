@@ -21,13 +21,16 @@ namespace Tweaks_Fixes
         public static GUIHand guiHand;
         public static PDA pda;
         public static Survival survival;
+        public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
         public static Equipment equipment;
-        public static bool crafterOpen = false;
+        //public static bool crafterOpen = false;
         public static bool canBreathe = false;
         public static bool loadingDone = false;
         public static bool english = false;
+        //public static bool cooking = false;
         public static System.Random rndm = new System.Random();
+        public static List<ItemsContainer> fridges = new List<ItemsContainer>();
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
@@ -138,6 +141,21 @@ namespace Tweaks_Fixes
             return fl;
         }
 
+        public static float NormalizeToRange(float value, float oldMin, float oldMax, float newMin, float newMax)
+        {
+            float oldRange = oldMax - oldMin;
+            float newValue;
+
+            if (oldRange == 0)
+                newValue = newMin;
+            else
+            {
+                float newRange = newMax - newMin;
+                newValue = ((value - oldMin) * newRange) / oldRange + newMin;
+            }
+            return newValue;
+        }
+
         public static bool IsEatableFishAlive(GameObject go)
         {
             Creature creature = go.GetComponent<Creature>();
@@ -159,6 +177,27 @@ namespace Tweaks_Fixes
             return creature && eatable;
         }
 
+        public static void CookFish(GameObject go)
+        {
+            //int currentSlot = Inventory.main.quickSlots.desiredSlot;
+            //AddDebug("currentSlot " + currentSlot);
+    
+            Inventory.main.quickSlots.DeselectImmediate();
+            //Inventory.main._container.DestroyItem(tt);
+            //Inventory.main.ConsumeResourcesForRecipe(tt);
+            TechType processed = TechData.GetProcessed(CraftData.GetTechType(go));
+            if (processed != TechType.None)
+            { // cooked fish cant be in quickslot
+              //AddDebug("CookFish " + processed);
+              //UWE.CoroutineHost.StartCoroutine(Main.AddToInventory(processed));
+                CraftData.AddToInventory(processed);
+                //Inventory.main.quickSlots.desiredSlot
+                UnityEngine.Object.Destroy(go);
+                //Inventory.main.quickSlots.SelectInternal(int slotID);
+            }
+
+        }
+
         public static void CleanUp()
         {
             loadingDone = false;
@@ -167,11 +206,13 @@ namespace Tweaks_Fixes
             QuickSlots_Patch.invChanged = true;
             //Base_Patch.bcls = new HashSet<BaseCellLighting>();
             Crush_Damage.extraCrushDepth = 0;
-            crafterOpen = false;
+            //crafterOpen = false;
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
             CraftTree.fabricator = new CraftTree("Fabricator", CraftTree.FabricatorScheme());
             Seatruck_Patch.installedUpgrades = new HashSet<TechType>();
             LargeWorldEntity_Patch.rock_01_d_disabled = false;
+            fridges = new List<ItemsContainer>();
+            UI_Patches.recyclotrons = new Dictionary<ItemsContainer, Recyclotron>();
             config.Load();
         }
 
@@ -228,6 +269,7 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
                 survival = __instance.GetComponent<Survival>();
+                bodyTemperature = __instance.GetComponent<BodyTemperature>();
                 //IngameMenuHandler.RegisterOnSaveEvent(config.Save);
                 guiHand = __instance.GetComponent<GUIHand>();
                 pda = __instance.GetPDA();
@@ -296,10 +338,9 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug(" WaitScreen Hide");
                     UWE.CoroutineHost.StartCoroutine(SelectEquippedItem());
-
+                    KnownTech.Add(TechType.SnowBall);
                     loadingDone = true;
                 }
-
             }
         }
 
@@ -328,18 +369,9 @@ namespace Tweaks_Fixes
             public static void Postfix(SaveLoadManager __instance, string slotName)
             {
                 //AddDebug("ClearSlotAsync " + slotName);
-                config.podPower.Remove(SaveLoadManager.main.currentSlot);
+                config.podPower.Remove(slotName);
+                config.lockerNames.Remove(slotName);
                 config.Save();
-            }
-        }
-
-        [HarmonyPatch(typeof(GhostCrafter), "OnOpenedChanged")]
-        class GhostCrafter_OnOpenedChanged_patch
-        {
-            public static void Postfix(GhostCrafter __instance, bool opened)
-            {
-                //AddDebug(" GhostCrafter OnOpenedChanged " + opened);
-                crafterOpen = opened;
             }
         }
 
@@ -374,8 +406,9 @@ namespace Tweaks_Fixes
             IngameMenuHandler.RegisterOnSaveEvent(SaveData);
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
             LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
+            LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, "Low-power conduction unit. Can be used to cook fish.");
             CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
-            CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-208f, -376f, -1332f), new Vector3(4f, 114.77f, 0f)));
+            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-208f, -376f, -1332f), new Vector3(4f, 114.77f, 0f)));
         }
 
         [QModPostPatch]

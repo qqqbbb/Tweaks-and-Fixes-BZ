@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -14,8 +15,7 @@ namespace Tweaks_Fixes
         public static string exosuitName;
         public static string leftArm;
         public static string rightArm;
-        public static string leftButton;
-        public static string rightButton;
+
         public static bool armNamesChanged = false;
         public static bool exosuitStarted = false;
 
@@ -70,8 +70,8 @@ namespace Tweaks_Fixes
         static void StartPostfix(Exosuit __instance)
         {
             exosuitName = Language.main.Get("Exosuit");
-            rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
-            leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
+            //rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
+            //leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
             GetArmNames(__instance);
             armNamesChanged = true;
 
@@ -368,18 +368,26 @@ namespace Tweaks_Fixes
                 string buttonFormat2 = LanguageCache.GetButtonFormat("ExosuitJump", GameInput.Button.MoveUp);
                 string buttonFormat3 = LanguageCache.GetButtonFormat("PressToExit", GameInput.Button.Exit);
                 string lightsButton = LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.Deconstruct);
-                string buttons = leftArm + " " + leftButton + "  " + rightArm + " " + rightButton + "  " + lightsButton;
                 __instance.sb.Length = 0;
                 __instance.sb.AppendLine(Language.main.GetFormat<string, string, string>("ExosuitBoostJumpExitFormat", buttonFormat1, buttonFormat2, buttonFormat3));
-                __instance.sb.AppendLine(buttons);
+                __instance.sb.Append(leftArm);
+                __instance.sb.Append(" ");
+                __instance.sb.Append(UI_Patches.leftHandButton);
+                __instance.sb.Append("  ");
+                __instance.sb.Append(rightArm);
+                __instance.sb.Append(" ");
+                __instance.sb.Append(UI_Patches.rightHandButton);
+                __instance.sb.Append("  ");
+                __instance.sb.Append(lightsButton);
                 if (hasPropCannon)
                     __instance.sb.AppendLine(LanguageCache.GetButtonFormat("PropulsionCannonToRelease", GameInput.Button.AltTool));
                 __instance.lastHasPropCannon = hasPropCannon;
                 __instance.uiStringPrimary = __instance.sb.ToString();
                 armNamesChanged = false;
             }
-            HandReticle.main.SetTextRaw(HandReticle.TextType.Use, __instance.uiStringPrimary);
-            HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, string.Empty);
+            //HandReticle.main.SetTextRaw(HandReticle.TextType.Use, __instance.uiStringPrimary);
+            //HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, string.Empty);
+            HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, __instance.uiStringPrimary);
             __instance.hasInitStrings = true;
             return false;
         }

@@ -142,8 +142,6 @@ namespace Tweaks_Fixes
 
         }
 
-
-
         [HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
         class RepulsionCannon_OnToolUseAnim_Patch
         {

@@ -16,29 +16,15 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 { 
     class Testing
-    {
-        //[HarmonyPatch(typeof(uGUI_QuickSlots), "OnSelect")]
-        class uGUI_QuickSlots_OnSelect_Patch
+    {// -29 -79 -861
+        //[HarmonyPatch(typeof(uGUI_PDA), "OnOpenPDA")]
+        class uGUI_PDA_Patch
         {
-            static bool Prefix(uGUI_QuickSlots __instance, int slotID)
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Update")]
+            static bool Prefix(uGUI_PDA __instance)
             {
-                //AddDebug("uGUI_QuickSlots OnSelect");
-                if (__instance.selector == null)
-                    AddDebug("selector == null");
-                if (__instance.target == null || __instance.selector == null)
-                    return false;
-                if (slotID < 0)
-                    __instance.selector.enabled = false;
-                else
-                {
-                    if (__instance.selector.rectTransform == null)
-                    {
-                        AddDebug("selector.rectTransform == null");
-                        return false;
-                    }
-                    __instance.selector.rectTransform.anchoredPosition = __instance.GetPosition(slotID);
-                    __instance.selector.enabled = true;
-                }
+                AddDebug("uGUI_PDA OnOpenPDA");
                 return false;
             }
         }
@@ -48,13 +34,16 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                //BodyTemperature bt = __instance.GetComponent<BodyTemperature>();
-                //if (bt)
-                //{
-                //    float effectiveAmbientTemperature = bt.CalculateEffectiveAmbientTemperature();
-                //    AddDebug("Effective Ambient Temp " + (int)effectiveAmbientTemperature);
-                //    AddDebug("isExposed " + bt.isExposed);
-                //}
+                //AddDebug("forward " + Camera.main.transform.forward);
+                BodyTemperature bt = __instance.GetComponent<BodyTemperature>();
+                if (bt)
+                {
+                    //AddDebug("isExposed " + bt.isExposed);
+                    //int temp = (int)bt.CalculateEffectiveAmbientTemperature();
+                    //if (temp < 0f)
+                    //    AddDebug("CalculateEffectiveAmbientTemperature " + temp);
+                    //AddDebug("GetWaterTemperature " + (int)Main.bodyTemperature.GetWaterTemperature());
+                }
                 //bool inTruck = Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment;
                 //AddDebug("inTruck " + inTruck);
                 //AddDebug("IsPilotingSeatruck " + Player.main.IsPilotingSeatruck());
@@ -93,17 +82,19 @@ namespace Tweaks_Fixes
                     //HandReticle.main.SetInteractText(nameof(startingFood) + " " + dict[i]);
                 }
 
-                if (Input.GetKeyDown(KeyCode.C))
+                else if (Input.GetKeyDown(KeyCode.C))
                 {
+                    //VFXSurfaceTypes vfxSurfaceTypes = VFXSurfaceTypes.none;
+                    //int layerMask = 1 << LayerID.TerrainCollider | 1 << LayerID.Default;
+                    //RaycastHit hitInfo;
+                    //if (Physics.Raycast(MainCamera.camera.transform.position, MainCamera.camera.transform.forward, out hitInfo, 3f, layerMask) && hitInfo.collider.gameObject.layer == LayerID.TerrainCollider)
+                    //    vfxSurfaceTypes = Utils.GetTerrainSurfaceType(hitInfo.point, hitInfo.normal);
+                    //AddDebug("vfxSurfaceTypes " + vfxSurfaceTypes);
+
                     //TechType tt = TechType.IceBubble;
                     //string classid = CraftData.GetClassIdForTechType(tt);
                     //CoroutineTask<GameObject> result = AddressablesUtility.InstantiateAsync("PrefabInstance/Bubble", position: Player.main.transform.position);
                     //GameObject bubble = result.GetResult();
-                    //if (bubble)
-                    //{
-                    //    AddDebug("BUBBLE");
-                    //}
-
                     //if (UWE.PrefabDatabase.TryGetPrefabFilename(classid, out string filename))
                     {
                         //AddDebug("spawn IceBubble");
@@ -120,7 +111,7 @@ namespace Tweaks_Fixes
                     //    survival.food++;
                 }
 
-                if (Input.GetKeyDown(KeyCode.X))
+                else if (Input.GetKeyDown(KeyCode.X))
                 {
                     //Survival survival = Player.main.GetComponent<Survival>();
                     //if (Input.GetKey(KeyCode.LeftShift))
@@ -129,7 +120,7 @@ namespace Tweaks_Fixes
                     //    __instance.liveMixin.health++;
                 }
 
-                if (Input.GetKeyDown(KeyCode.Z))
+                else if (Input.GetKeyDown(KeyCode.Z))
                 {
                     //AddDebug(" Base_Light.bases " +);
                     //Inventory.main.quickSlots.SelectImmediate(Main.config.activeSlot);
@@ -168,6 +159,32 @@ namespace Tweaks_Fixes
                     {
                     }
                 }
+            }
+        }
+
+        //[HarmonyPatch(typeof(uGUI_QuickSlots), "OnSelect")]
+        class uGUI_QuickSlots_OnSelect_Patch
+        {
+            static bool Prefix(uGUI_QuickSlots __instance, int slotID)
+            {
+                //AddDebug("uGUI_QuickSlots OnSelect");
+                if (__instance.selector == null)
+                    AddDebug("selector == null");
+                if (__instance.target == null || __instance.selector == null)
+                    return false;
+                if (slotID < 0)
+                    __instance.selector.enabled = false;
+                else
+                {
+                    if (__instance.selector.rectTransform == null)
+                    {
+                        AddDebug("selector.rectTransform == null");
+                        return false;
+                    }
+                    __instance.selector.rectTransform.anchoredPosition = __instance.GetPosition(slotID);
+                    __instance.selector.enabled = true;
+                }
+                return false;
             }
         }
 

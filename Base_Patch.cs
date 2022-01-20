@@ -136,10 +136,9 @@ namespace Tweaks_Fixes
                     __result = "";
                     return false;
                 }
-                StringBuilder stringBuilder = new StringBuilder();
                 NamePlate namePlate = dockable.GetComponent<NamePlate>();
                 string str = namePlate ? namePlate._name : string.Empty;
-                stringBuilder.Append(str);
+                StringBuilder stringBuilder = new StringBuilder(str);
                 stringBuilder.Append(' ');
                 stringBuilder.Append(Language.main.Get("SubmersibleDocked"));
                 if (dockable.UsesEnergy())

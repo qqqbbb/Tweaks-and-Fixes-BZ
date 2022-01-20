@@ -100,12 +100,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Battery), "OnAfterDeserialize")]
+        //[HarmonyPatch(typeof(Battery), "OnAfterDeserialize")]
         class Battery_OnAfterDeserialize_Patch
         {
             static void Postfix(Battery __instance)
             {
-                if (Main.crafterOpen)
+                //if (Main.crafterOpen)
                 {
                     //AddDebug("crafterOpen");
                     float mult = Main.config.craftedBatteryCharge * .01f;

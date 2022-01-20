@@ -468,23 +468,6 @@ namespace Tweaks_Fixes
             static int damageTicks = 0;
             static GameObject fishToCook = null;
 
-            static void CookFish(GameObject go)
-            {
-                //int currentSlot = Inventory.main.quickSlots.desiredSlot;
-                //AddDebug("currentSlot " + currentSlot);
-                fishToCook = null;
-                Inventory.main.quickSlots.DeselectImmediate();
-                //Inventory.main._container.DestroyItem(tt);
-                //Inventory.main.ConsumeResourcesForRecipe(tt);
-                TechType processed = TechData.GetProcessed(CraftData.GetTechType(go));
-                if (processed != TechType.None)
-                { // cooked fish cant be in quickslot
-                    //AddDebug("CookFish " + processed);
-                    //UWE.CoroutineHost.StartCoroutine(Main.AddToInventory(processed));
-                    CraftData.AddToInventory(processed);
-                    UnityEngine.Object.Destroy(go);
-                }
-            }
 
             static bool Prefix(DamagePlayerInRadius __instance)
             {
@@ -514,7 +497,10 @@ namespace Tweaks_Fixes
                             if (fishToCook == fish)
                             {
                                 if (damageTicks == damageTicksToCook)
-                                    CookFish(fish);
+                                { 
+                                    fishToCook = null;
+                                    Main.CookFish(fish);
+                                }
                                 else
                                     damageTicks++;
                             }
