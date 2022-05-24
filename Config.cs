@@ -41,7 +41,7 @@ namespace Tweaks_Fixes
         public float buildTimeMult = 1f;
         [Toggle("Player movement tweaks", Tooltip = "Player vertical, backward, sideways movement speed is halved. Any diving suit reduces your speed by 10% on land and in water. Fins reduce your speed by 10% on land. Lightweight high capacity tank reduces your speed by 5%. Every other tank reduces your speed by 10% on both land and water. Camera now does not bob up and down when swimming. You can sprint only if moving forward. Seaglide works only if moving forward. When swimming while your PDA is open your movement speed is halved. When swimming while holding a tool in your hand your movement speed is reduced to 70%.")]
         public bool playerMoveTweaks = false;
-        [Toggle("Only ambient tempterature makes player warm", Tooltip = "In vanilla game when you are underwater you get warm if moving and get cold if still. When out of water some areas (caves, your unpowered base) make you warm regardless of ambient tempterature. With this on you get warm only if ambient temperature is above 15°C.")]
+        [Toggle("Only ambient tempterature makes player warm", Tooltip = "In vanilla game when you are underwater you get warm if moving and get cold if not. When out of water some areas (caves, your unpowered base) make you warm regardless of ambient tempterature. With this on you get warm only if ambient temperature is above 15°C.")]
         public bool useRealTempForColdMeter = false;
         [Slider("Inventory weight multiplier in water", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
         public float invMultWater = 0f;
@@ -81,6 +81,8 @@ namespace Tweaks_Fixes
         public EatingRawFish eatRawFish;
         [Toggle("Food tweaks", Tooltip = "Raw fish water value is half of its food value. Cooked rotten fish has no food value. Eating outside decreases your warmth. Game has to be reloaded after changing this.")]
         public bool foodTweaks = false;
+        [Toggle("Thermoblade cooks fish on kill", Tooltip = "")]
+        public bool heatBladeCooks = true;
         [Toggle("Can't eat underwater", Tooltip = "You won't be able to eat or drink underwater.")]
         public bool cantEatUnderwater = false;
 
@@ -115,9 +117,17 @@ namespace Tweaks_Fixes
 
         //[Toggle("Predators less likely to flee", Tooltip = "Predators don't flee when their health is above 50%. When it's not, chance to flee is proportional to their health. The more health they have the less likely they are to flee.")]
         //public bool predatorsDontFlee = false;
-        [Toggle("Every creature respawns", Tooltip = "By default big creatures never respawn if killed by player.")]
-        public bool creaturesRespawn = false;
-
+        //[Toggle("Every creature respawns", Tooltip = "By default big creatures never respawn if killed by player.")]
+        //public bool creaturesRespawn = false;
+        [Choice("Creatures respawn if killed by player", Tooltip = "By default big creatures and leviathans never respawn if killed by player.")]
+        public CreatureRespawn creatureRespawn;
+        //public bool creaturesRespawn = false;
+        [Slider("Fish respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes small fish to respawn after it was killed or caught. If it's 0, default (6 hours) value will be used. Game has to be reloaded after changing this.")]
+        public int fishRespawnTime = 0;
+        [Slider("Big creatures respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a creature that you can't catch to respawn after it was killed. If it's 0, default (12 hours) value will be used. Game has to be reloaded after changing this.")]
+        public int creatureRespawnTime = 0;
+        [Slider("Leviathan respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a leviathan to respawn after it was killed. If it's 0, default (1 day) value will be used. Game has to be reloaded after changing this.")]
+        public int leviathanRespawnTime = 0;
         //[Slider("flare light intensity", 0.1f, 1f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "You have to reequip your flare after changing this.")]
         //public float flareIntensity = 1f;
         //[Toggle("Unlock prawn suit only by scanning prawn suit", Tooltip = "In vanilla game prawn suit can be unlocked by scanning 20 prawn suit arms. Game has to be reloaded after changing this.")]
@@ -176,9 +186,7 @@ namespace Tweaks_Fixes
         {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}  };
         //public Dictionary<string, Dictionary<int, bool>> openedWreckDoors = new Dictionary<string, Dictionary<int, bool>>();
         public float medKitHPtoHeal = 0f;
-        public string throwFlare = "Throw";
-        public string lightAndThrowFlare = "Light and throw";
-        public string lightFlare = "Light";
+
         public Dictionary<string, Dictionary<string, bool>> baseLights = new Dictionary<string, Dictionary<string, bool>>();
         public Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>> lockerNames = new Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>>();
         public Dictionary<string, int> startingLoot = new Dictionary<string, int>
@@ -272,14 +280,33 @@ namespace Tweaks_Fixes
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
         public enum LoseItemsOnDeath { Vanilla, All, None }
         public enum EmptyVehicleCanBeAttacked { Yes, No, Only_if_lights_on }
+        public enum CreatureRespawn { Vanilla, Big_creatures_only, Leviathans_only, Big_creatures_and_leviathans }
+        public bool silentReactor = false;
+        public bool randomPlantRotation = true;
+        public bool fixMelons = true;
+        
         //private void EatRawFishChangedEvent(ChoiceChangedEventArgs e)
         //{
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 
         //}
         public List<string> translatableStrings = new List<string>
-        {"Burnt out ",
-         "Lit "};
-
+        {"Burnt out ", // used for flare
+         "Lit ",// 1 used for flare
+         "Increases the Seatruck engine's horsepower and energy consumption by 10%. More than 1 can be used simultaneously.", // 2 SeaTruckUpgradeHorsePower desc
+        " frozen", // 3 frozen water
+        "Increases your safe diving depth by ", // 4 crushDepthEquipment
+        " meters.", // 5 crushDepthEquipment
+        "mass ",     // 6 invMultLand invMultWater
+        "Throw",    // 7 flare
+        "Light and throw",  // 8 flare
+        "Light",    // 9 flare   
+        ": min ",     // 10    eatRawFish tooltip 
+        ", max ",     // 11    eatRawFish tooltip 
+        "Need a knife to break it",  // 12  breaking outcrop
+        "Need a knife to break it free",  // 13  picking up attached resource
+        };
+       
 
     }
+
 }

@@ -20,6 +20,7 @@ namespace Tweaks_Fixes
         //public static GUIHand gUIHand;
         //public static float exitWaterOffset = 0.8f; // 0.8f
         public static float crushPeriod = 3f;
+        public static float ambientTemperature;
 
         [HarmonyPatch(typeof(BodyTemperature))]
         class BodyTemperature_Patch
@@ -54,6 +55,19 @@ namespace Tweaks_Fixes
             static bool AddColdPrefix(BodyTemperature __instance, float cold)
             {
                 __instance.currentColdMeterValue = Mathf.Clamp(__instance.currentColdMeterValue + cold * Main.config.coldMult, 0f, __instance.coldMeterMaxValue);
+
+                return false;
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("UpdateEffectiveAmbientTemperature")]
+            static bool UpdateEffectiveAmbientTemperaturePrefix(BodyTemperature __instance, float dt)
+            {
+                ambientTemperature = __instance.CalculateEffectiveAmbientTemperature();
+                if (ambientTemperature < __instance.effectiveAmbientTemperature)
+                    __instance.effectiveAmbientTemperature = Mathf.Max(__instance.effectiveAmbientTemperature + __instance.freezeInterpDegreesPerSecond * -1f * dt, ambientTemperature);
+                else
+                    __instance.effectiveAmbientTemperature = Mathf.Min(__instance.effectiveAmbientTemperature + __instance.warmUpInterpDegreesPerSecond * dt, ambientTemperature);
 
                 return false;
             }

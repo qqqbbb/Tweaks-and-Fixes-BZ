@@ -49,7 +49,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(CraftTree), "FabricatorScheme")]
+        //[HarmonyPatch(typeof(CraftTree), "FabricatorScheme")]
         class CraftTree_FabricatorScheme_Patch
         {
             public static bool Prefix(CraftTree __instance, ref CraftNode __result)
@@ -58,7 +58,7 @@ namespace Tweaks_Fixes
                 if (Main.config.craftVehicleUpgradesOnlyInMoonpool)
                 {
                     __result = new CraftNode("Root").AddNode(new CraftNode[4]
-                        {
+                    {
                     new CraftNode("Resources", TreeAction.Expand).AddNode(new CraftNode[3]
                     {
                       new CraftNode("BasicMaterials", TreeAction.Expand).AddNode(new CraftNode[8]
@@ -197,6 +197,31 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(TreeNode), "AddNode", new Type[] { typeof(TreeNode) })]
+        class TreeNode_Addnode_Prefix_Patch
+        {
+            public static bool Prefix(TreeNode __instance, TreeNode node)
+            {
+                //Main.Log("AddNode " + node.id);
+                //AddDebug("AddNode " + node.id);
+                if (Main.config.craftVehicleUpgradesOnlyInMoonpool)
+                {
+                    if (node.id == "Upgrades")
+                    {
+                        //Main.Log("AddNode Upgrades !!! " + node.id + " parent " + __instance.id);
+                        //AddDebug("AddNode Upgrades !!!");
+                        return false;
+                    }
+                    else if (__instance.id == "Root")
+                    { // upgrades form senna mods will be added to root if Upgrades node removed from fabricator
+                        if ( node.id == "SeaTruckSpeedMK1" || node.id == "SeaTruckSpeedMK2" || node.id == "SeaTruckSpeedMK3" || node.id == "SeaTruckArmorMK1" || node.id == "SeaTruckArmorMK2" || node.id == "SeaTruckArmorMK3" || node.id == "SeaTruckDepthMK4" || node.id == "SeaTruckDepthMK5" || node.id == "SeaTruckDepthMK6")
+                            return false;
+                    }
+                }
+                return true;
+            }
+        }
+        
         [HarmonyPatch(typeof(CrafterLogic), "NotifyCraftEnd")]
         class CrafterLogic_NotifyCraftEnd_Patch
         {

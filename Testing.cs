@@ -17,6 +17,7 @@ namespace Tweaks_Fixes
 { 
     class Testing
     {// -29 -79 -861
+
         //[HarmonyPatch(typeof(uGUI_PDA), "OnOpenPDA")]
         class uGUI_PDA_Patch
         {
@@ -34,7 +35,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("forward " + Camera.main.transform.forward);
+                //AddDebug("_dayNightSpeed " + DayNightCycle.main._dayNightSpeed);
                 BodyTemperature bt = __instance.GetComponent<BodyTemperature>();
                 if (bt)
                 {
@@ -300,6 +301,16 @@ namespace Tweaks_Fixes
                 //__instance.ApplySkybox();
             }
         }
-   
+
+        //[HarmonyPatch(typeof(Targeting), "GetTarget", new Type[] { typeof(float), typeof(GameObject), typeof(float), typeof(Targeting.FilterRaycast) }, new[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out, ArgumentType.Normal })]
+        class Targeting_GetTarget_PostfixPatch
+        {
+            public static void Postfix(ref GameObject result)
+            {
+                //AddDebug(" Targeting GetTarget  " + result.name);
+            }
+        }
+
+
     }
 }

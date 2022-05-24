@@ -128,6 +128,7 @@ namespace Tweaks_Fixes
                 UnityEngine.Object.Destroy(cb);
                 PrefabIdentifier pi = go.GetComponent<PrefabIdentifier>();
                 UnityEngine.Object.Destroy(pi);
+
                 uGUI_SignInput si = go.GetComponentInChildren<uGUI_SignInput>(true);
                 if (si)
                 {
@@ -286,6 +287,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             static void AwakePostfix(DeployableStorage __instance)
             {
+                LiveMixin lm = __instance.GetComponent<LiveMixin>();
+                if (lm)
+                    UnityEngine.Object.Destroy(lm);
                 PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>();
                 if (ps)
                 {
@@ -299,29 +303,6 @@ namespace Tweaks_Fixes
                     Collider collider = cl.GetComponent<Collider>();
                     if (collider)
                         UnityEngine.Object.Destroy(collider);
-                }
-                //Pickupable p = __instance.GetComponent<Pickupable>();
-                //if (p && p.inventoryItem == null)
-                { // fix: when game loads 1st_person_model used instead of 3rd_person_model
-                    // should use FPModel.SetState
-                    //Transform tpm = __instance.transform.Find("3rd_person_model");
-                    //Transform fpm = __instance.transform.Find("1st_person_model");
-                    //if (tpm && fpm)
-                    //{
-                    //    fpm.gameObject.SetActive(false);
-                    //    tpm.gameObject.SetActive(true);
-                    //}
-                }
-                Transform label = __instance.transform.Find("LidLabel");
-                if (label)
-                {
-                    FollowTransform ft = label.GetComponent<FollowTransform>();
-                    if (ft)
-                    {
-                        //ft.enabled = false;
-                        UnityEngine.Object.Destroy(ft);
-                    }
-                    //label.localPosition = new Vector3(0f, .031f, 0f);
                 }
             }
 
@@ -348,7 +329,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("StorageContainer Awake " + techTag.type);
                     if (techTag.type == TechType.SmallLocker)
-                    {
+                    { // fix
                         ColoredLabel cl = __instance.GetComponentInChildren<ColoredLabel>();
                         if (cl)
                         {
@@ -359,6 +340,9 @@ namespace Tweaks_Fixes
                     }
                     else if (techTag.type == TechType.Locker)
                     {
+                        LiveMixin lm = __instance.GetComponent<LiveMixin>();
+                        if (lm)
+                            UnityEngine.Object.Destroy(lm);
                         Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
                         if (doorRight)
                         { // parent is null
@@ -498,7 +482,7 @@ namespace Tweaks_Fixes
                 if (parent.name == "SeaTruckStorageModule(Clone)")
                     label = GetSeaTruckLabel(parent, __instance);
                 else
-                {
+                {// fix
                     label = parent.GetComponentInChildren<ColoredLabel>();
                     ps = parent.GetComponentInChildren<PickupableStorage>();
                     sign = parent.GetComponentInChildren<Sign>();

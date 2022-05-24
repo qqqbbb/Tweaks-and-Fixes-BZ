@@ -60,7 +60,7 @@ namespace Tweaks_Fixes
                 //}
             }
             else
-                HandReticle.main.SetText(HandReticle.TextType.Hand, "Need a knife to break it", true, GameInput.Button.LeftHand);
+                HandReticle.main.SetText(HandReticle.TextType.Hand, Main.config.translatableStrings[12], true, GameInput.Button.LeftHand);
 
             return false;
         }
@@ -91,7 +91,7 @@ namespace Tweaks_Fixes
                     {
                         return true;
                     }
-                    HandReticle.main.SetText(HandReticle.TextType.Hand, "Need a knife to break it free", false);
+                    HandReticle.main.SetText(HandReticle.TextType.Hand, Main.config.translatableStrings[13], false);
 
                     return false;
                 }

@@ -10,93 +10,12 @@ namespace Tweaks_Fixes
 {
     public class Snowball_Patch
     {
-        static float decayRate = 0.05f;
 
-        static void CheckSnowball(Eatable eatable)
-        {
-            InventoryItem inventoryItem = eatable.GetComponent<Pickupable>().inventoryItem;
-            ItemsContainer container = null;
-            if (inventoryItem != null)
-            {
-                container = inventoryItem.container as ItemsContainer;
-                if (Main.fridges.Contains(container))
-                    //if (container != null && container.tr.parent && container.tr.parent.GetComponent<Fridge>())
-                {
-                    //AddDebug("snowball in fridge " );
-                    return;
-                }
-            }
-            else
-            {
-                float dist = Vector3.Distance(Player.main.transform.position, eatable.transform.position);
-                //AddDebug( " dist " + dist);
-                if (dist > 33f)
-                {
-                    eatable.CancelInvoke();
-                    UnityEngine.Object.Destroy(eatable.gameObject);
-                    return;
-                }
-            }
-            if (eatable.GetWaterValue() <= 0f)
-            {
-                if (container != null)
-                    container.RemoveItem(inventoryItem.item);
-                //AddDebug("Destroy snowball ");
-                eatable.CancelInvoke();
-                UnityEngine.Object.Destroy(eatable.gameObject);
-                return;
-            }
-            float temp = Main.bodyTemperature.CalculateEffectiveAmbientTemperature();
-            if (temp > 0)
-            {
-                //eatable.kDecayRate = decayRate * temp ;
-                eatable.UnpauseDecay();
-            }
-            else if (temp < 0)
-                eatable.PauseDecay();
-            //AddDebug(" GetWaterValue " + eatable.GetWaterValue());
-            //AddDebug("timePassedAsFloat " + DayNightCycle.main.timePassedAsFloat);
-            //AddDebug("timeDecayStart " + eatable.timeDecayStart);
-            //AddDebug("DecayValue " + eatable.GetDecayValue());
-            //AddDebug("snowball GetDecayValue " + eatable.GetDecayValue());
-        }
-
-        [HarmonyPatch(typeof(SnowBall), "Awake")]
-        class SnowBall_Awake_Patch
-        {
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
-            static void AwakePostfix(SnowBall __instance)
-            {
-                if (Main.config.snowballWater > 0)
-                {
-                    Eatable eatable = __instance.gameObject.EnsureComponent<Eatable>();
-                    eatable.kDecayRate = decayRate;
-                    eatable.decomposes = true;
-                    eatable.waterValue = Main.config.snowballWater;
-                    eatable.coldMeterValue = Main.config.snowballWater;
-                    //AddDebug("SnowBall Awake waterValue " + eatable.waterValue);
-                    __instance.GetComponent<WorldForces>().underwaterGravity = .5f;
-                }
-                //SnowBallChecker snowBallChecker = __instance.gameObject.EnsureComponent<SnowBallChecker>();
-                //snowBallChecker.InvokeRepeating("CheckSnowball", 1f, checkInterval);
-            }
-
-            [HarmonyPrefix]
-            [HarmonyPatch("Update")]
-            static bool UpdatePrefix(SnowBall __instance)
-            {
-                if (__instance.throwing)
-                    __instance.sequence.Update();
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Eatable))]
+        //[HarmonyPatch(typeof(Eatable))]
         class Eatable_Patch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch("Awake")]
+        { // Food_Patch
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Awake")]
             static void AwakePrefix(Eatable __instance)
             {
                 if (__instance.GetComponent<SnowBall>())
@@ -114,14 +33,14 @@ namespace Tweaks_Fixes
                     //AddDebug( " SetDecomposes " + value);
                 }
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("IterateDespawn")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("IterateDespawn")]
             static bool IterateDespawnPrefix(Eatable __instance)
             {
                 if (__instance.GetComponent<SnowBall>())
                 {
                     //AddDebug(" IterateDespawn ");
-                    CheckSnowball(__instance);
+                    //CheckSnowball(__instance);
                     return false;
                 }
                 return true;

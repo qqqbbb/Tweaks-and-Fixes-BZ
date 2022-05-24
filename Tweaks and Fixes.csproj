@@ -86,6 +86,7 @@
     <Compile Include="Fragment_Patch.cs" />
     <Compile Include="Brinicle_Patch.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
+    <Compile Include="Weather_Patch.cs" />
     <Compile Include="PDA_Patch.cs" />
     <Compile Include="Storage_Patch.cs" />
     <Compile Include="Snowball_Patch.cs" />

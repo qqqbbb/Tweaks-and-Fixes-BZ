@@ -35,15 +35,20 @@ namespace Tweaks_Fixes
         static void GetStrings()
         {
             //AddDebug("GetStrings");
-            //if (!Main.english)
+            if (Main.config.translatableStrings.Count < 14)
+            {
+                Main.config.translatableStrings = new List<string>
+        {"Burnt out ", "Lit ", "Increases the Seatruck engine's horsepower and energy consumption by 10%. More than 1 can be used simultaneously.", " frozen", "Increases your safe diving depth by ", " meters.", "mass ", "Throw", "Light and throw", "Light", ": min ", ", max ", "Need a knife to break it", "Need a knife to break it free"};
+                Main.config.Save();
+            }
             altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
             rightHandButton = uGUI.FormatButton(GameInput.Button.RightHand);
             leftHandButton = uGUI.FormatButton(GameInput.Button.LeftHand);
             fishDropString = TooltipFactory.stringDrop + " (" + rightHandButton + ")";
             fishEatString = TooltipFactory.stringEat + " (" + altToolButton + ")";
-            lightFlareString = Main.config.lightFlare + " (" + altToolButton + ")";
-            throwFlareString = Main.config.throwFlare + " (" + rightHandButton + ")";
-            lightAndThrowFlareString = Main.config.lightAndThrowFlare + " (" + rightHandButton + ")";
+            lightFlareString = Main.config.translatableStrings[9] + " (" + altToolButton + ")";
+            throwFlareString = Main.config.translatableStrings[7] + " (" + rightHandButton + ")";
+            lightAndThrowFlareString = Main.config.translatableStrings[8] + " (" + rightHandButton + ")";
             beaconToolString = TooltipFactory.stringDrop + " (" + rightHandButton + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
             beaconPickString = "(" + rightHandButton + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
             toggleBaseLightString = LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.Deconstruct);
@@ -437,7 +442,7 @@ namespace Tweaks_Fixes
                     return;
 
                 Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
-                if (flareTarget && Main.english && flareTarget.energyLeft == 0f)
+                if (flareTarget && Main.languageCheck && flareTarget.energyLeft == 0f)
                 {
                     //AddDebug("activeTarget Flare");
                     StringBuilder sb = new StringBuilder(Main.config.translatableStrings[0]);
@@ -557,13 +562,16 @@ namespace Tweaks_Fixes
                 if (string.IsNullOrEmpty(altToolButton))
                     GetStrings();
             }
+         
             [HarmonyPostfix]
             [HarmonyPatch("OnLanguageChanged")]
             static void OnLanguageChangedPostfix()
             {
                 //AddDebug("TooltipFactory OnLanguageChanged ");
+                Main.languageCheck = Language.main.GetCurrentLanguage() == "English" || Main.config.translatableStrings[0] != "Burnt out ";
                 GetStrings();
             }
+       
             [HarmonyPostfix]
             [HarmonyPatch("OnBindingsChanged")]
             static void OnBindingsChangedPostfix()
@@ -571,11 +579,12 @@ namespace Tweaks_Fixes
                 //AddDebug("TooltipFactory OnBindingsChanged ");
                 GetStrings();
             }
+       
             [HarmonyPrefix]
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPrefix(StringBuilder sb, TechType techType, GameObject obj)
             {
-                if (Main.english || Main.config.translatableStrings[0] != "Burnt out ")
+                if (Main.languageCheck)
                 { 
                     Flare flare = obj.GetComponent<Flare>();
                     if (flare)
@@ -589,42 +598,70 @@ namespace Tweaks_Fixes
                     fishTooltip = Main.IsEatableFish(obj);
                 }
             }
+
             [HarmonyPostfix]
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPostfix(ref StringBuilder sb, TechType techType, GameObject obj)
             {
-                if (Main.english && Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
+                if (Main.languageCheck)
                 {
-                    StringBuilder sb_ = new StringBuilder("Increases your safe diving depth by ");
-                    sb_.Append(Crush_Damage.crushDepthEquipment[techType].ToString());
-                    sb_.Append(" meters.");
-                    TooltipFactory.WriteDescription(sb, sb_.ToString());
+                    if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
+                    { // IInventoryDescription
+                        StringBuilder sb_ = new StringBuilder(Main.config.translatableStrings[4]);
+                        sb_.Append(Crush_Damage.crushDepthEquipment[techType].ToString());
+                        sb_.Append(Main.config.translatableStrings[5]);
+                        TooltipFactory.WriteDescription(sb, sb_.ToString());
+                    }
+                    if (techType == TechType.FirstAidKit)
+                    {
+                        sb.Clear();
+                        string name = Language.main.Get(techType);
+                        TooltipFactory.WriteTitle(sb, name);
+                        TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
+                        TooltipFactory.WriteDescription(sb, Language.main.GetFormat<float>("HealthFormat", Main.config.medKitHP));
+                        //TooltipFactory.WriteDescription(sb, "Restores " + Main.config.medKitHP + " health.");
+                        //AddDebug("ItemCommons " + sb.ToString());
+                    }
+                    else if (techType == TechType.SeaTruckUpgradeHorsePower && Main.config.seatruckMoveTweaks)
+                    {
+                        sb.Clear();
+                        TooltipFactory.WriteTitle(sb, Language.main.Get(techType));
+                        TooltipFactory.WriteDescription(sb, Main.config.translatableStrings[2]);
+                    }
+                    Eatable eatable = obj.GetComponent<Eatable>();
+                    if (eatable && Food_Patch.IsWater(eatable) && eatable.timeDecayStart > 0f)
+                    {
+                        sb.Clear();
+                        StringBuilder sb_ = new StringBuilder(Language.main.Get(techType));
+                        float frozenPercent = Main.NormalizeToRange(eatable.timeDecayStart, 0f, eatable.waterValue, 0f, 100f);
+                        sb_.Append(" ");
+                        Mathf.Clamp(frozenPercent, frozenPercent, 100f);
+                        sb_.Append(Mathf.RoundToInt(frozenPercent));
+                        sb_.Append("%");
+                        sb_.Append(Main.config.translatableStrings[3]);
+                        TooltipFactory.WriteTitle(sb, sb_.ToString());
+                        //int healthValue = (int)eatable.GetHealthValue();
+                        //if (healthValue != 0f)
+                        //    TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("HealthFormat", healthValue));
+                        int cold = Mathf.CeilToInt(eatable.GetColdMeterValue());
+                        if (cold != 0)
+                            TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("HeatImpactFormat", -cold));
+                        int foodValue = Mathf.CeilToInt(eatable.GetFoodValue());
+                        int waterValue = Mathf.CeilToInt(eatable.GetWaterValue());
+                        if (foodValue != 0)
+                            TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("FoodFormat", foodValue));
+                        if (waterValue != 0)
+                            TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("WaterFormat", waterValue));
+                        TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
+                    }
                 }
-                if (techType == TechType.FirstAidKit)
-                {
-                    sb.Clear();
-                    string name = Language.main.Get(techType);
-                    TooltipFactory.WriteTitle(sb, name);
-                    TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
-                    TooltipFactory.WriteDescription(sb, Language.main.GetFormat<float>("HealthFormat", Main.config.medKitHP));
-                    //TooltipFactory.WriteDescription(sb, "Restores " + Main.config.medKitHP + " health.");
-                    //AddDebug("ItemCommons " + sb.ToString());
-                }
-                else if (techType == TechType.SeaTruckUpgradeHorsePower && Main.english && Main.config.seatruckMoveTweaks)
-                {
-                    sb.Clear();
-                    string name = Language.main.Get(techType);
-                    TooltipFactory.WriteTitle(sb, name);
-                    TooltipFactory.WriteDescription(sb, "Increases the Seatruck engine's horsepower and energy consumption by 10%. More than 1 can be used simultaneously.");
-                    //AddDebug("GetCurrentLanguage " + Language.main.GetCurrentLanguage());
-                    //Main.Log("GetCurrentLanguage " + Language.main.GetCurrentLanguage());
-                }
+
                 if (Main.config.invMultLand > 0f || Main.config.invMultWater > 0f)
                 {
                     Rigidbody rb = obj.GetComponent<Rigidbody>();
                     if (rb)
                     {
-                        StringBuilder sb_ = new StringBuilder("mass ");
+                        StringBuilder sb_ = new StringBuilder(Main.config.translatableStrings[6]);
                         sb_.Append(rb.mass);
                         TooltipFactory.WriteDescription(sb, sb_.ToString());
                     }
@@ -640,37 +677,41 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("FormatString " + format + " " + args.Length);
                 //AddDebug("FormatString " + __result);
-                if (!fishTooltip || Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(int))
+                if (!Main.languageCheck || !fishTooltip || Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(int))
                     return;
                 //AddDebug("FormatString GetType " + args[0].GetType());
                 int value = (int)args[0];
                 if (value > 0f && format.Contains("FOOD:") || format.Contains("H₂O:"))
                 {
                     string[] tokens = __result.Split(':');
+                    string min = Main.config.translatableStrings[10];
+                    string max = Main.config.translatableStrings[11];
+                    StringBuilder sb_ = new StringBuilder(tokens[0]);
+                    sb_.Append(min);
                     if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
                     {
-                        StringBuilder sb = new StringBuilder(tokens[0]);
-                        sb.Append(": min 0, max ");
-                        sb.Append(value);
-                        __result = sb.ToString();
+                        //__result = tokens[0] + min + "0" + max + value;
+                        sb_.Append("0");
+                        sb_.Append(max);
+                        sb_.Append(value);
                     }
                     else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
                     {
-                        StringBuilder sb = new StringBuilder(tokens[0]);
-                        sb.Append(": min -");
-                        sb.Append(value);
-                        sb.Append(", max ");
-                        sb.Append(value);
-                        __result = sb.ToString();
+                        //__result = tokens[0] + min + "-" + value + max + value;
+                        sb_.Append("-");
+                        sb_.Append(value);
+                        sb_.Append(max);
+                        sb_.Append(value);
                     }
                     else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
                     {
-                        StringBuilder sb = new StringBuilder(tokens[0]);
-                        sb.Append(": min -");
-                        sb.Append(value);
-                        sb.Append(", max 0");
-                        __result = sb.ToString();
+                        //__result = tokens[0] + min + "-" + value + max + "0";
+                        sb_.Append("-");
+                        sb_.Append(value);
+                        sb_.Append(max);
+                        sb_.Append("0");
                     }
+                    __result = sb_.ToString();
                 }
             }
         }

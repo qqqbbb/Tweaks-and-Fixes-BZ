@@ -198,15 +198,20 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("GetItemAction button " + button + " " + item.item.name + " " + __result);
                 Pickupable pickupable = item.item;
-                TechType tt = pickupable.GetTechType();
-                if (__result == ItemAction.Eat && Main.config.cantEatUnderwater && pickupable.gameObject.GetComponent<Eatable>() && Player.main.IsUnderwater())
+                //TechType tt = pickupable.GetTechType();
+                if (__result == ItemAction.Eat)
+                {
+                    Eatable eatable = pickupable.gameObject.GetComponent<Eatable>();
+                    if (Main.config.cantEatUnderwater && Player.main.IsUnderwater())
+                        __result = ItemAction.None;
+                    else if(Food_Patch.IsWater(eatable) && eatable.GetWaterValue() < 0.5f)
+                        __result = ItemAction.None;
+                }
+                else if (__result == ItemAction.Use && Main.config.cantUseMedkitUnderwater && Player.main.IsUnderwater() && pickupable.GetTechType() == TechType.FirstAidKit)
                 {
                     __result = ItemAction.None;
                 }
-                else if (__result == ItemAction.Use && Main.config.cantUseMedkitUnderwater && tt == TechType.FirstAidKit && Player.main.IsUnderwater())
-                {
-                    __result = ItemAction.None;
-                }
+
             }
         }
 

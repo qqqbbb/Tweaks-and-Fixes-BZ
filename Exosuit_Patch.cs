@@ -344,15 +344,16 @@ namespace Tweaks_Fixes
         [HarmonyPostfix]
         public static void UpdatePostfix(Exosuit __instance)
         {
-            if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+            if (!IngameMenu.main.isActiveAndEnabled && !Main.pda.isInUse && Player.main.currentMountedVehicle == __instance && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
             {
                 Transform lightsT = __instance.transform.Find("lights_parent");
                 if (lightsT)
                 {
-                    if (!lightsT.gameObject.activeSelf && __instance.energyInterface.hasCharge)
-                        lightsT.gameObject.SetActive(true);
-                    else if (lightsT.gameObject.activeSelf)
-                        lightsT.gameObject.SetActive(false);
+                    //AddDebug("IngameMenu isActiveAndEnabled " + IngameMenu.main.isActiveAndEnabled);
+                        if (!lightsT.gameObject.activeSelf && __instance.energyInterface.hasCharge)
+                            lightsT.gameObject.SetActive(true);
+                        else if (lightsT.gameObject.activeSelf)
+                            lightsT.gameObject.SetActive(false);
                     //AddDebug("lights " + lightsT.gameObject.activeSelf);
                 }
             }

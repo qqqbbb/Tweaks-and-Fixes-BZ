@@ -58,7 +58,7 @@ namespace Tweaks_Fixes
         {
             string lightToggle = LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.RightHand);
             string defenseName = Language.main.Get(TechType.SeaTruckUpgradePerimeterDefense);
-            if (Main.english)
+            if (Main.languageCheck)
                 defenseName = defenseName.Replace(" Upgrade", "");
             string exitButton = " Stop piloting (" + uGUI.FormatButton(GameInput.Button.Exit) + ")";
             uiTextSub = string.Empty;
@@ -129,39 +129,56 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(SeaTruckLights), "Start")]
+        [HarmonyPatch(typeof(SeaTruckLights), "Start")]
         class SeaTruckLights_Start_Patch
         {
             public static void Prefix(SeaTruckLights __instance)
             {
-                //if (__instance.name == "SeaTruckStorageModule(Clone)")
+                //if (__instance.name == "SeaTruck(Clone)")
                 //{
-                    __instance.lightingController = __instance.GetComponent<LightingController>();
+                //    Transform transform = __instance.transform.Find("model/seatruck_anim/Seatruck_Interior_geo/");
+                //    SkinnedMeshRenderer smr = transform.GetComponent<SkinnedMeshRenderer>();
+                //    AddDebug("SeaTruck material name " + smr.materials[2].name);
+                //    foreach (Material m in smr.materials)
+                //    {
+                        //m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                        //m.shaderKeywords = new string[] { "MARMO_SPECMAP", "UWE_3COLOR", "_NORMALMAP", "_ZWRITE_ON" };
+                        //Main.Log("SeaTruck shaderKeywords " + item);
+                    //}
+                    //smr.materials[2].globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                    //smr.materials[2].shaderKeywords = new string[0];
+
+                //}
+                //if (__instance.name == "SeaTruckStorageModule(Clone)")
+                // fix storage module lights 
+                __instance.lightingController = __instance.GetComponent<LightingController>();
                 //AddDebug(__instance.name + "SeaTruckStorageModule fix lights " );
                 //}
-                Light[] lights = Main.GetComponentsInDirectChildren<Light>(__instance, true);
-                foreach (Light light in lights)
-                {
-                    light.enabled = false;
+                //Light[] lights = Main.GetComponentsInDirectChildren<Light>(__instance, true);
+                //foreach (Light light in lights)
+                //{
+                    //light.enabled = false;
                     //Main.Log(light.name + " turnofflights " + Main.GetParent(__instance.gameObject));
                     //AddDebug(light.name + " turnofflights " + Main.GetParent(__instance.gameObject));
-                }
+                //}
             }
         }
 
-        //[HarmonyPatch(typeof(LightingController), "LerpToState", new Type[] { typeof(int), typeof(float) })]
+        [HarmonyPatch(typeof(LightingController), "LerpToState", new Type[] { typeof(int), typeof(float) })]
         class LightingController_LerpToState_Patch
         { // turn off light in teleporter and docking module
             static int prevState = -1;
             public static void Prefix(LightingController __instance, int targetState)
             {
                 prevState = (int)__instance.state;
+                //AddDebug(__instance.name + " lights " + (LightingController.LightingState)targetState);
             }
             public static void Postfix(LightingController __instance, int targetState)
             {
                 if (prevState == targetState || !__instance.GetComponent<SeaTruckLights>())
                     return;
 
+                //AddDebug(__instance.name + " lights " + (LightingController.LightingState)targetState);
                 Light[] lights = Main.GetComponentsInDirectChildren<Light>(__instance, true);
                 if ((LightingController.LightingState)targetState == LightingController.LightingState.Damaged)
                 {
@@ -175,6 +192,29 @@ namespace Tweaks_Fixes
                         light.enabled = true;
                     //AddDebug(__instance.name + " turn on lights ");
                 }
+            }
+        }
+
+        //[HarmonyPatch(typeof(LightingController), "Update")]
+        class LightingController_Update_Patch
+        { 
+            public static bool Prefix(LightingController __instance)
+            {
+       
+                float deltaTime = Time.deltaTime;
+                if (deltaTime <= 0F)
+                    return false;
+                AddDebug(__instance.name + " Update lights " + __instance.fadeDuration);
+                __instance.timer.Update(deltaTime);
+                int state = (int)__instance.state;
+                if (__instance.prevState != state)
+                {
+                    AddDebug(__instance.name + " Update lights ");
+                    __instance.LerpToState(state);
+                    __instance.prevState = state;
+                }
+                __instance.UpdateIntensities();
+                return false;
             }
         }
 

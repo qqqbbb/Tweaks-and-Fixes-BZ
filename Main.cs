@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         //public static bool crafterOpen = false;
         public static bool canBreathe = false;
         public static bool loadingDone = false;
-        public static bool english = false;
+        public static bool languageCheck = false;
         //public static bool cooking = false;
         public static System.Random rndm = new System.Random();
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
@@ -113,6 +113,20 @@ namespace Tweaks_Fixes
                 t = t.parent.transform;
             }
             return null;
+        }
+
+        public static float GetTemperature(GameObject go)
+        {
+            //AddDebug("name " + go.name);
+            if (go.GetComponentInParent<Player>())
+                return Player_Patches.ambientTemperature;
+            IInteriorSpace currentInterior = go.GetComponentInParent<IInteriorSpace>();
+            if (currentInterior != null)
+                return currentInterior.GetInsideTemperature();
+            if (go.transform.position.y < Ocean.GetOceanLevel())
+                return WaterTemperatureSimulation.main.GetTemperature(go.transform.position);
+            else
+                return WeatherManager.main.GetFeelsLikeTemperature();
         }
 
         public static float NormalizeTo01range(int value, int min, int max)
@@ -339,6 +353,7 @@ namespace Tweaks_Fixes
                     //AddDebug(" WaitScreen Hide");
                     UWE.CoroutineHost.StartCoroutine(SelectEquippedItem());
                     KnownTech.Add(TechType.SnowBall);
+
                     loadingDone = true;
                 }
             }
@@ -405,8 +420,6 @@ namespace Tweaks_Fixes
             new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
             IngameMenuHandler.RegisterOnSaveEvent(SaveData);
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
-            LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
-            LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, "Low-power conduction unit. Can be used to cook fish.");
             CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-208f, -376f, -1332f), new Vector3(4f, 114.77f, 0f)));
         }
@@ -415,11 +428,16 @@ namespace Tweaks_Fixes
         public static void PostPatch()
         {
             //Log("PostPatch GetCurrentLanguage " + Language.main.GetCurrentLanguage());
-            english = Language.main.GetCurrentLanguage() == "English";
+            languageCheck = Language.main.GetCurrentLanguage() == "English" || config.translatableStrings[0] != "Burnt out ";
             //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
             //dayNightSpeedLoaded = iqMod != null;
-            LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, "Increases the Seatruck's speed when hauling two or more modules.");
-            LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeEnergyEfficiency, "Reduces vehicle energy consumption by 20% percent.");
+            if (languageCheck)
+            {
+                LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
+                LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, "Low-power conduction unit. Can be used to cook fish.");
+                LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, "Increases the Seatruck's speed when hauling two or more modules.");
+                LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeEnergyEfficiency, "Reduces vehicle energy consumption by 20% percent.");
+            }
             foreach (var item in config.crushDepthEquipment)
             {
                 TechTypeExtensions.FromString(item.Key, out TechType tt, true);

@@ -259,6 +259,9 @@ namespace Tweaks_Fixes
             static bool SetScalePrefix(GrowingPlant __instance, Transform tr, float progress)
             {
                 TechType tt = __instance.plantTechType;
+                if (!Main.config.fixMelons && tt == TechType.MelonPlant)
+                    return true;
+
                 if (tt == TechType.SnowStalkerPlant || tt == TechType.MelonPlant)
                 {
                     float mult = 1.7f;
@@ -288,8 +291,12 @@ namespace Tweaks_Fixes
             static void Prefix(Planter __instance, InventoryItem item)
             {
                 Plantable p = item.item.GetComponent<Plantable>();
+                TechType tt = p.plantTechType;
                 //AddDebug("Planter AddItem " + p.plantTechType);
-                if (p.plantTechType == TechType.SnowStalkerPlant || p.plantTechType == TechType.MelonPlant)
+                if (!Main.config.fixMelons && tt == TechType.MelonPlant)
+                    return;
+
+                if (tt == TechType.SnowStalkerPlant || tt== TechType.MelonPlant)
                 {
                     //AddDebug("Planter AddItem  " + p.plantTechType);
                     p.size = Plantable.PlantSize.Large;
@@ -304,7 +311,11 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnProtoDeserialize")]
             static void OnProtoDeserializePostfix(Plantable __instance)
             {
-                if (__instance.plantTechType == TechType.SnowStalkerPlant || __instance.plantTechType == TechType.MelonPlant)
+                TechType tt = __instance.plantTechType;
+                if (!Main.config.fixMelons && tt == TechType.MelonPlant)
+                    return;
+
+                if (tt == TechType.SnowStalkerPlant || tt == TechType.MelonPlant)
                 {
                     //AddDebug("Plantable OnProtoDeserialize " + __instance.plantTechType);
                     //AddDebug("Planter AddItem fix " + p.plantTechType);
@@ -314,12 +325,15 @@ namespace Tweaks_Fixes
 
             [HarmonyPostfix]
             [HarmonyPatch("Spawn")]
-            public static void SpawnPostfix(ref GameObject __result)
+            public static void SpawnPostfix(ref GameObject __result, Plantable __instance)
             {
-                //AddDebug("Plantable Spawn " + __result.name);
-                Vector3 rot = __result.transform.eulerAngles;
-                float y = UnityEngine.Random.Range(0, 360);
-                __result.transform.eulerAngles = new Vector3(rot.x, y, rot.z);
+                if (Main.config.randomPlantRotation && __instance.plantTechType != TechType.HeatFruitPlant)
+                {
+                    //AddDebug("Plantable Spawn " + __result.name);
+                    Vector3 rot = __result.transform.eulerAngles;
+                    float y = UnityEngine.Random.Range(0, 360);
+                    __result.transform.eulerAngles = new Vector3(rot.x, y, rot.z);
+                }
             }
         }
 
