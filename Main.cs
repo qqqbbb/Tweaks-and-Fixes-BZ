@@ -13,24 +13,23 @@ using SMLHelper.V2.Assets;
 using static ErrorMessage;
 // ugly terrain -414 -101 -390
 // pick up snow HoverBikeBase GlacialBasin_snow_bulb_01_b
+//GameModeManager.GetOption<bool>(GameOption.Hunger)
+// test LOD 208 -20 -540
+// TEST base light
 namespace Tweaks_Fixes
 {
     [QModCore]
     public class Main
     {
-        public static GUIHand guiHand;
-        public static PDA pda;
         public static Survival survival;
         public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
-        public static Equipment equipment;
-        //public static bool crafterOpen = false;
         public static bool canBreathe = false;
         public static bool loadingDone = false;
-        public static bool languageCheck = false;
-        //public static bool cooking = false;
+        //public static bool languageCheck = false;
         public static System.Random rndm = new System.Random();
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
+        public static bool baseLightSwitchLoaded = false;
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
@@ -47,25 +46,25 @@ namespace Tweaks_Fixes
             return copy;
         }
 
-        //public static T CopyComponent<T>(T original, GameObject destination) where T : Component
-        //{
-        //    System.Type type = original.GetType();
-        //    var dst = destination.GetComponent(type) as T;
-        //    if (!dst) dst = destination.AddComponent(type) as T;
-        //    var fields = type.GetFields();
-        //    foreach (var field in fields)
-        //    {
-        //        if (field.IsStatic) continue;
-        //        field.SetValue(dst, field.GetValue(original));
-        //    }
-        //    var props = type.GetProperties();
-        //    foreach (var prop in props)
-        //    {
-        //        if (!prop.CanWrite || !prop.CanWrite || prop.Name == "name") continue;
-        //        prop.SetValue(dst, prop.GetValue(original, null), null);
-        //    }
-        //    return dst as T;
-        //}
+        public static T CopyComponent<T>(T original, GameObject destination) where T : Component
+        {
+            System.Type type = original.GetType();
+            var dst = destination.GetComponent(type) as T;
+            if (!dst) dst = destination.AddComponent(type) as T;
+            var fields = type.GetFields();
+            foreach (var field in fields)
+            {
+                if (field.IsStatic) continue;
+                field.SetValue(dst, field.GetValue(original));
+            }
+            var props = type.GetProperties();
+            foreach (var prop in props)
+            {
+                if (!prop.CanWrite || !prop.CanWrite || prop.Name == "name") continue;
+                prop.SetValue(dst, prop.GetValue(original, null), null);
+            }
+            return dst as T;
+        }
 
         public static T[] GetComponentsInDirectChildren<T>(Component parent, bool includeInactive = false) where T : Component
         {
@@ -117,16 +116,38 @@ namespace Tweaks_Fixes
 
         public static float GetTemperature(GameObject go)
         {
-            //AddDebug("name " + go.name);
+            //AddDebug("GetTemperature " + go.name);
             if (go.GetComponentInParent<Player>())
-                return Player_Patches.ambientTemperature;
+                return GetPlayerTemperature();
+
             IInteriorSpace currentInterior = go.GetComponentInParent<IInteriorSpace>();
             if (currentInterior != null)
                 return currentInterior.GetInsideTemperature();
+
             if (go.transform.position.y < Ocean.GetOceanLevel())
                 return WaterTemperatureSimulation.main.GetTemperature(go.transform.position);
             else
                 return WeatherManager.main.GetFeelsLikeTemperature();
+        }
+
+        public static float GetPlayerTemperature()
+        {
+            //AddDebug("GetPlayerTemperature " + go.name);
+            //IInteriorSpace currentInterior = Player.main.GetComponentInParent<IInteriorSpace>();
+            //if (currentInterior != null)
+            //    return currentInterior.GetInsideTemperature();
+            if (Player.main.inExosuit)
+            {
+                if (config.useRealTempForColdMeter && Player.main.currentMountedVehicle.IsPowered())
+                    return config.vehicleTemp;
+                else if (!config.useRealTempForColdMeter)
+                    return config.vehicleTemp;
+            }
+            else if (Player.main.inHovercraft && !config.useRealTempForColdMeter)
+            {
+                return config.vehicleTemp;
+            }
+            return Player_Patches.ambientTemperature;
         }
 
         public static float NormalizeTo01range(int value, int min, int max)
@@ -195,7 +216,6 @@ namespace Tweaks_Fixes
         {
             //int currentSlot = Inventory.main.quickSlots.desiredSlot;
             //AddDebug("currentSlot " + currentSlot);
-    
             Inventory.main.quickSlots.DeselectImmediate();
             //Inventory.main._container.DestroyItem(tt);
             //Inventory.main.ConsumeResourcesForRecipe(tt);
@@ -209,7 +229,6 @@ namespace Tweaks_Fixes
                 UnityEngine.Object.Destroy(go);
                 //Inventory.main.quickSlots.SelectInternal(int slotID);
             }
-
         }
 
         public static void CleanUp()
@@ -217,6 +236,7 @@ namespace Tweaks_Fixes
             loadingDone = false;
             canBreathe = false;
             //AddDebug("CleanUp");
+            //Log("CleanUp !!!");
             QuickSlots_Patch.invChanged = true;
             //Base_Patch.bcls = new HashSet<BaseCellLighting>();
             Crush_Damage.extraCrushDepth = 0;
@@ -227,6 +247,7 @@ namespace Tweaks_Fixes
             LargeWorldEntity_Patch.rock_01_d_disabled = false;
             fridges = new List<ItemsContainer>();
             UI_Patches.recyclotrons = new Dictionary<ItemsContainer, Recyclotron>();
+            //Base_Patch.baseBuilt = new Dictionary<SubRoot, bool>();
             config.Load();
         }
 
@@ -249,6 +270,14 @@ namespace Tweaks_Fixes
         public static void Log(string str, QModManager.Utility.Logger.Level lvl = QModManager.Utility.Logger.Level.Debug)
         {
             QModManager.Utility.Logger.Log(lvl, str);
+        }
+
+        public static bool IsPlayerInVehicle()
+        {
+            if (Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment)
+                return true;
+
+            return Player.main.inExosuit || Player.main.inHovercraft;
         }
 
         //[HarmonyPatch(typeof(IngameMenu), "QuitGameAsync")]
@@ -285,13 +314,12 @@ namespace Tweaks_Fixes
                 survival = __instance.GetComponent<Survival>();
                 bodyTemperature = __instance.GetComponent<BodyTemperature>();
                 //IngameMenuHandler.RegisterOnSaveEvent(config.Save);
-                guiHand = __instance.GetComponent<GUIHand>();
-                pda = __instance.GetPDA();
+                //guiHand = __instance.GetComponent<GUIHand>();
+                //pda = __instance.GetPDA();
                 oceanLevel = Ocean.GetOceanLevel();
-                equipment = Inventory.main.equipment;
+                //equipment = Inventory.main.equipment;
                 //if (config.cantScanExosuitClawArm)
                 //    DisableExosuitClawArmScan();
-
             }
         }
 
@@ -304,6 +332,13 @@ namespace Tweaks_Fixes
                     AddDebug("TrackTravelStats");
 
             }
+        }
+
+        public static IEnumerator PlaySound(FMODAsset sound, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            //AddDebug("PlaySound " + sound.name);
+            Utils.PlayFMODAsset(sound, Player.main.transform);
         }
 
         static IEnumerator SelectEquippedItem()
@@ -343,7 +378,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(WaitScreen), nameof(WaitScreen.Hide))]
+        [HarmonyPatch(typeof(WaitScreen), "Hide")]
         internal class WaitScreen_Hide_Patch
         { // fires after game loads
             public static void Postfix(WaitScreen __instance)
@@ -352,7 +387,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug(" WaitScreen Hide");
                     UWE.CoroutineHost.StartCoroutine(SelectEquippedItem());
-                    KnownTech.Add(TechType.SnowBall);
+                    KnownTech.Add(TechType.SnowBall, false, false);
 
                     loadingDone = true;
                 }
@@ -394,10 +429,10 @@ namespace Tweaks_Fixes
         {
             //AddDebug("SaveData " + Inventory.main.quickSlots.activeSlot);
             //Main.config.activeSlot = Inventory.main.quickSlots.activeSlot;
-            if (Player.main.mode == Player.Mode.Normal)
-                config.playerCamRot = MainCameraControl.main.viewModel.localRotation.eulerAngles.y;
-            else
-                config.playerCamRot = -1f;
+            //if (Player.main.mode == Player.Mode.Normal)
+            //    config.playerCamRot = MainCameraControl.main.viewModel.localRotation.eulerAngles.y;
+            //else
+            //    config.playerCamRot = -1f;
 
             if (Drop_Pod_Patch.podPowerSource)
                 config.podPower[SaveLoadManager.main.currentSlot] = Drop_Pod_Patch.podPowerSource.power;
@@ -428,16 +463,17 @@ namespace Tweaks_Fixes
         public static void PostPatch()
         {
             //Log("PostPatch GetCurrentLanguage " + Language.main.GetCurrentLanguage());
-            languageCheck = Language.main.GetCurrentLanguage() == "English" || config.translatableStrings[0] != "Burnt out ";
+            Log("translatableStrings.Count " + config.translatableStrings.Count);
+            //languageCheck = Language.main.GetCurrentLanguage() == "English") || !config.translatableStrings[0].Equals("Burnt out ");
             //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
-            //dayNightSpeedLoaded = iqMod != null;
-            if (languageCheck)
-            {
-                LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.");
-                LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, "Low-power conduction unit. Can be used to cook fish.");
-                LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, "Increases the Seatruck's speed when hauling two or more modules.");
-                LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeEnergyEfficiency, "Reduces vehicle energy consumption by 20% percent.");
-            }
+            baseLightSwitchLoaded = QModServices.Main.ModPresent("BaseLightSwitch");
+            //LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, config.translatableStrings[19]);
+            //LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, config.translatableStrings[20]);
+            //// vanilla desc just copies the name
+            //LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, config.translatableStrings[21]);
+            //// vanilla desc does not tell percent
+            //LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeEnergyEfficiency, config.translatableStrings[22]);
+
             foreach (var item in config.crushDepthEquipment)
             {
                 TechTypeExtensions.FromString(item.Key, out TechType tt, true);

@@ -38,7 +38,7 @@ namespace Tweaks_Fixes
                         i = loot.Value;
                     }
                 }
-                result = (TaskResult<GameObject>)null;
+                result = null;
             }
         }
 

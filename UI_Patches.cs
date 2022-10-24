@@ -5,6 +5,7 @@ using UnityEngine;
 using HarmonyLib;
 using System.Text;
 using static ErrorMessage;
+using SMLHelper.V2.Handlers;
 
 namespace Tweaks_Fixes
 {
@@ -16,7 +17,7 @@ namespace Tweaks_Fixes
 
         public static Dictionary<ItemsContainer, Recyclotron> recyclotrons = new Dictionary<ItemsContainer, Recyclotron>() ;
         static Recyclotron openRecyclotron = null;
-        static List<TechType> landPlantSeeds = new List<TechType> { TechType.HeatFruit, TechType.PurpleVegetable, TechType.FrozenRiverPlant2Seeds, TechType.LeafyFruit, TechType.HangingFruit, TechType.MelonSeed, TechType.SnowStalkerFruit, TechType.PinkFlowerSeed, TechType.PurpleRattleSpore, TechType.OrangePetalsPlantSeed };
+        static List<TechType> landPlantSeeds = new List<TechType> { TechType.HeatFruit, TechType.PurpleVegetable, TechType.FrozenRiverPlant2Seeds, TechType.LeafyFruit, TechType.HangingFruit, TechType.MelonSeed, TechType.SnowStalkerFruit, TechType.PinkFlowerSeed, TechType.PurpleRattleSpore, TechType.OrangePetalsPlantSeed }; // obsolete plants can be found
         static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.SmallMaroonPlantSeed, TechType.TwistyBridgesMushroomChunk, TechType.JellyPlantSeed, TechType.PurpleBranchesSeed, TechType.RedBushSeed, TechType.GenericRibbonSeed, TechType.GenericSpiralChunk, TechType.SpottedLeavesPlantSeed, TechType.PurpleStalkSeed, TechType.DeepLilyShroomSeed };
         static HashSet<ItemsContainer> landPlanters = new HashSet<ItemsContainer>();
         static HashSet<ItemsContainer> waterPlanters = new HashSet<ItemsContainer>();
@@ -31,16 +32,38 @@ namespace Tweaks_Fixes
         static public string throwFlareString = string.Empty;
         static public string lightAndThrowFlareString = string.Empty;
         static public string toggleBaseLightString = string.Empty;
+        static public string changeTorpedoExosuitButtonGamepad = string.Empty;
+        static public string changeTorpedoExosuitButtonKeyboard = string.Empty;
+        static public string cycleNextButton = string.Empty;
+        static public string cyclePrevButton = string.Empty;
+        static public string slot1Button = string.Empty;
+        static public string slot2Button = string.Empty;
+        static public string slot1Plus2Button = string.Empty;
+        static public string exosuitLightsButton = string.Empty;
+
+        private static void SetTooltips()
+        {
+            LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, Main.config.translatableStrings[19]);
+            LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, Main.config.translatableStrings[20]);
+            // vanilla desc just copies the name
+            LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, Main.config.translatableStrings[21]);
+            // vanilla desc does not tell percent
+            LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeEnergyEfficiency, Main.config.translatableStrings[22]);
+        }
 
         static void GetStrings()
         {
             //AddDebug("GetStrings");
-            if (Main.config.translatableStrings.Count < 14)
+
+            if (Main.config.translatableStrings.Count < 23)
             {
                 Main.config.translatableStrings = new List<string>
-        {"Burnt out ", "Lit ", "Increases the Seatruck engine's horsepower and energy consumption by 10%. More than 1 can be used simultaneously.", " frozen", "Increases your safe diving depth by ", " meters.", "mass ", "Throw", "Light and throw", "Light", ": min ", ", max ", "Need a knife to break it", "Need a knife to break it free"};
+        {"Burnt out ", "Lit ", "Increases the Seatruck engine's horsepower and energy consumption by 10%. More than 1 can be used simultaneously.", " frozen", "Increases your safe diving depth by ", " meters.", "mass ", "Throw", "Light and throw", "Light", ": min ", ", max ", "Need a knife to break it", "Need a knife to break it free", " Hold ", " and press ", " to change torpedo ", ", Change torpedo ", "Break it free", "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.", "Low-power conduction unit. Can be used to cook fish.", "Increases the Seatruck's speed when hauling two or more modules.", "Reduces vehicle energy consumption by 20% percent.",  };
                 Main.config.Save();
             }
+            SetTooltips();
+
+            exosuitLightsButton = ", " + LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.Deconstruct);
             altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
             rightHandButton = uGUI.FormatButton(GameInput.Button.RightHand);
             leftHandButton = uGUI.FormatButton(GameInput.Button.LeftHand);
@@ -52,7 +75,16 @@ namespace Tweaks_Fixes
             beaconToolString = TooltipFactory.stringDrop + " (" + rightHandButton + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
             beaconPickString = "(" + rightHandButton + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
             toggleBaseLightString = LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.Deconstruct);
+            cycleNextButton = uGUI.FormatButton(GameInput.Button.CycleNext);
+            cyclePrevButton = uGUI.FormatButton(GameInput.Button.CyclePrev);
+            changeTorpedoExosuitButtonGamepad = Main.config.translatableStrings[14] + "(" + altToolButton + ")" + Main.config.translatableStrings[15] + "(" + cycleNextButton + "), " + "(" + cyclePrevButton + ")" + Main.config.translatableStrings[16];
+            slot1Button = "(" + uGUI.FormatButton(GameInput.Button.Slot1) + ")";
+            slot2Button = "(" + uGUI.FormatButton(GameInput.Button.Slot2) + ")";
+            slot1Plus2Button = slot1Button + slot2Button;
+            Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
+            //changeTorpedoExosuitButtonKeyboard = slot1Button + Main.config.translatableStrings[17];
         }
+
 
         [HarmonyPatch(typeof(Recyclotron), "Start")]
         class Recyclotron_Start_Patch
@@ -258,57 +290,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        private static IEnumerator IntroSequence(ExpansionIntroManager introManager, uGUI_ExpansionIntro __instance)
-        {
-            IntroVignette.isIntroActive = true;
-            if (FPSInputModule.current)
-                FPSInputModule.current.lockPauseMenu = true;
-            __instance.fader.SetState(true);
-            Player.main.playerController.inputEnabled = false;
-            __instance.PauseGameTime();
-            yield return new WaitForSecondsRealtime(0.5f);
-            MainMenuMusic.Stop();
-            introManager.TriggerStartScreenAudio();
-            __instance.mainText.SetText("");
-            yield return new WaitForSecondsRealtime(2f);
-            while (!LargeWorldStreamer.main.IsReady() || !LargeWorldStreamer.main.IsWorldSettled())
-                yield return new WaitForSecondsRealtime(1f);
-            __instance.mainText.SetText(Language.main.Get("PressAnyButton"));
-            __instance.mainText.SetState(true);
-            VRLoadingOverlay.Hide();
-            if (!QuickLaunchHelper.IsQuickLaunching())
-            {
-                while (!Input.anyKeyDown)
-                    yield return null;
-            }
-            if (FPSInputModule.current)
-                FPSInputModule.current.lockPauseMenu = false;
-            yield return introManager.Play(Player.main, __instance);
-            IntroVignette.isIntroActive = false;
-            __instance.ResumeGameTime();
-            __instance.StopCoroutine(__instance.coroutine);
-            __instance.coroutine = (Coroutine)null;
-            //gui.StartCoroutine(gui.ControlsHints());
-        }
-
-        [HarmonyPatch(typeof(uGUI_ExpansionIntro), "Play")]
-        class uGUI_ExpansionIntro_Plays_Patch
-        { 
-            static bool Prefix(uGUI_ExpansionIntro __instance, ExpansionIntroManager introManager)
-            {
-                //AddDebug("uGUI_ExpansionIntro Play");
-                if (!Main.config.disableHints)
-                    return true;
-
-                if (__instance.showing)
-                    return false;
-                //AddDebug("StartCoroutine IntroSequence");
-                __instance.coroutine = __instance.StartCoroutine(IntroSequence(introManager, __instance));
-                InputHandlerStack.main.Push((IInputHandler)__instance);
-                return false;
-            }
-        }
-
         //[HarmonyPatch(typeof(Inventory), "GetAllItemActions")]
         class Inventory_GetAllItemActions_Patch
         {
@@ -325,34 +306,272 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(GUIHand), "GetActionString")]
-        class GUIHand_GetActionString_Patch
-        { 
-            public static void Postfix(GUIHand __instance, ItemAction action, Pickupable pickupable, ref string __result)
-            {
-                GameModeUtils.GetGameMode(out GameModeOption mode, out GameModeOption _);
-                bool survival = !GameModeUtils.IsOptionActive(mode, GameModeOption.NoSurvival);
-                //AddDebug("survival " + survival);
-                if (Main.IsEatableFish(pickupable.gameObject))
-                {
-                    bool cantEat = Main.config.cantEatUnderwater && Player.main.IsUnderwater();
-                    //AddDebug("GetActionString " + action + " " + __result);
-                    //__result = "ItemActionEat";
-                    string dropText = __result;
-
-                    //string dropText = HandReticle.main.GetText(GUIHand.GetActionString(action, pickupable), true, GameInput.Button.LeftHand);
-                    //HandReticle.main.SetText(HandReticle.TextType.Use, GUIHand.GetActionString(action, pickupable), true, GameInput.Button.RightHand);
-                    //HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, text);
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(GUIHand), "OnUpdate")]
-        class GUIHand_OnUpdate_Patch
+        [HarmonyPatch(typeof(GUIHand))]
+        class GUIHand_Patch
         {
-            public static void Postfix(GUIHand __instance)
+            public static void HandlePickupableResource(GUIHand guiHand, TechType techType, PlayerTool olayerTool)
+            {
+                //AddDebug("HandlePickupableResource");
+                Rigidbody rb = guiHand.activeTarget.GetComponent<Rigidbody>();
+
+                if (rb == null || !rb.isKinematic) // attached to terrain
+                {
+                    //if (techType != TechType.None)
+                    HandReticle.main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
+                    GUIHand.Send(guiHand.activeTarget, HandTargetEventType.Hover, guiHand);
+                }
+                else if (olayerTool is Knife)
+                { 
+                    HandReticle.main.SetText(HandReticle.TextType.Hand, Main.config.translatableStrings[18], false, GameInput.Button.RightHand);
+                }
+                else
+                    HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Main.config.translatableStrings[13]);
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("OnUpdate")]
+            public static bool OnUpdatePrefix(GUIHand __instance)
+            {
+                if (!Main.config.noBreakingWithHand)
+                    return true;
+
+                __instance.usedToolThisFrame = false;
+                __instance.usedAltAttackThisFrame = false;
+                __instance.suppressTooltip = false;
+                GameInput.Button button1 = GameInput.Button.LeftHand;
+                GameInput.Button button2 = GameInput.Button.RightHand;
+                GameInput.Button button3 = GameInput.Button.Reload;
+                GameInput.Button button4 = GameInput.Button.Exit;
+                GameInput.Button button5 = GameInput.Button.AltTool;
+                GameInput.Button button6 = GameInput.Button.AutoMove;
+                GameInput.Button button7 = GameInput.Button.PDA;
+                __instance.UpdateInput(button1);
+                __instance.UpdateInput(button2);
+                __instance.UpdateInput(button3);
+                __instance.UpdateInput(button4);
+                __instance.UpdateInput(button5);
+                __instance.UpdateInput(GameInput.Button.Answer);
+                __instance.UpdateInput(GameInput.Button.Exit);
+                __instance.UpdateInput(button6);
+                __instance.UpdateInput(button7);
+        
+                if (AvatarInputHandler.main.IsEnabled() && !uGUI.isIntro && !uGUI.isLoading)
+                {
+                    uGUI_PopupNotification popupNotification = uGUI_PopupNotification.main;
+                    if (popupNotification != null && popupNotification.id == "Call")
+                    {
+                        if (__instance.GetInput(GameInput.Button.Answer, GUIHand.InputState.Down))
+                        {
+                            __instance.UseInput(GameInput.Button.Answer, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
+                            popupNotification.Answer();
+                            GameInput.ClearInput();
+                        }
+                        else if (__instance.GetInput(GameInput.Button.Exit, GUIHand.InputState.Down))
+                        {
+                            __instance.UseInput(GameInput.Button.Answer, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
+                            popupNotification.Decline();
+                            GameInput.ClearInput();
+                        }
+                    }
+                }
+                if (__instance.player.IsFreeToInteract() && (AvatarInputHandler.main.IsEnabled() || Builder.inputHandlerActive))
+                {
+                    string text = string.Empty;
+                    InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
+                    Pickupable pickupable = heldItem?.item;
+                    PlayerTool playerTool = pickupable != null ? pickupable.GetComponent<PlayerTool>() : null;
+                    bool flag = playerTool != null && playerTool is DropTool;
+                    EnergyMixin energyMixin = null;
+                    if (playerTool != null)
+                    {
+                        text = playerTool.GetCustomUseText();
+                        energyMixin = playerTool.GetComponent<EnergyMixin>();
+                    }
+                    ItemAction action = ItemAction.None;
+                    if (playerTool == null | flag && heldItem != null)
+                    {
+                        ItemAction allItemActions = Inventory.main.GetAllItemActions(heldItem);
+                        if ((allItemActions & ItemAction.Eat) != ItemAction.None)
+                            action = ItemAction.Eat;
+                        else if ((allItemActions & ItemAction.Use) != ItemAction.None)
+                            action = ItemAction.Use;
+                        if (action == ItemAction.Eat)
+                        {
+                            Plantable component1 = pickupable.GetComponent<Plantable>();
+                            LiveMixin component2 = pickupable.GetComponent<LiveMixin>();
+                            if (component1 == null && component2 != null)
+                                action = ItemAction.None;
+                        }
+                        if (action == ItemAction.None && (allItemActions & ItemAction.Drop) != ItemAction.None)
+                            action = ItemAction.Drop;
+                        if (action != ItemAction.None)
+                            HandReticle.main.SetText(HandReticle.TextType.Use, GUIHand.GetActionString(action, pickupable), true, GameInput.Button.RightHand);
+                    }
+                    if (energyMixin != null && energyMixin.allowBatteryReplacement)
+                    {
+                        int num = Mathf.FloorToInt(energyMixin.GetEnergyScalar() * 100f);
+                        if (__instance.cachedTextEnergyScalar != num)
+                        {
+                            __instance.cachedEnergyHudText = num > 0 ? Language.main.GetFormat<float>("PowerPercent", energyMixin.GetEnergyScalar()) : LanguageCache.GetButtonFormat("ExchangePowerSource", GameInput.Button.Reload);
+                            __instance.cachedTextEnergyScalar = num;
+                        }
+                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
+                        HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, __instance.cachedEnergyHudText);
+                    }
+                    else if (!string.IsNullOrEmpty(text))
+                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
+                    if (AvatarInputHandler.main.IsEnabled() && !__instance.IsPDAInUse())
+                    {
+                        if (__instance.grabMode == GUIHand.GrabMode.None)
+                            __instance.UpdateActiveTarget();
+
+                        HandReticle.main.SetTargetDistance(__instance.activeHitDistance);
+                        if (__instance.activeTarget != null && !__instance.suppressTooltip)
+                        {
+                            TechType techType = CraftData.GetTechType(__instance.activeTarget);
+
+                            if (Main.config.noBreakingWithHand && techType != TechType.None && Main.config.notPickupableResources.Contains(techType))
+                            { // ymy
+                                HandlePickupableResource(__instance, techType, playerTool);
+                            }
+                            else
+                            {
+                                if (techType != TechType.None)
+                                    HandReticle.main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
+
+                                GUIHand.Send(__instance.activeTarget, HandTargetEventType.Hover, __instance);
+                            }
+                        }
+                        if (Inventory.main.container.Contains(TechType.Scanner))
+                        {
+                            PDAScanner.UpdateTarget(8f);
+                            PDAScanner.ScanTarget scanTarget = PDAScanner.scanTarget;
+                            if (scanTarget.isValid && PDAScanner.CanScan(scanTarget) == PDAScanner.Result.Scan)
+                                uGUI_ScannerIcon.main.Show();
+                        }
+                        if (playerTool != null && (!flag || action == ItemAction.Drop || action == ItemAction.None))
+                        {
+                            if (__instance.GetInput(button2, GUIHand.InputState.Down))
+                            {
+                                if (playerTool.OnRightHandDown())
+                                {
+                                    __instance.UseInput(button2, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
+                                    __instance.usedToolThisFrame = true;
+                                    playerTool.OnToolActionStart();
+                                }
+                            }
+                            else if (__instance.GetInput(button2, GUIHand.InputState.Held))
+                            {
+                                if (playerTool.OnRightHandHeld())
+                                    __instance.UseInput(button2, GUIHand.InputState.Down | GUIHand.InputState.Held);
+                            }
+                            else if (__instance.GetInput(button2, GUIHand.InputState.Up) && playerTool.OnRightHandUp())
+                                __instance.UseInput(button2, GUIHand.InputState.Up);
+                            if (__instance.GetInput(button1, GUIHand.InputState.Down))
+                            {
+                                if (playerTool.OnLeftHandDown())
+                                {
+                                    __instance.UseInput(button1, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
+                                    playerTool.OnToolActionStart();
+                                }
+                            }
+                            else if (__instance.GetInput(button1, GUIHand.InputState.Held))
+                            {
+                                if (playerTool.OnLeftHandHeld())
+                                    __instance.UseInput(button1, GUIHand.InputState.Down | GUIHand.InputState.Held);
+                            }
+                            else if (__instance.GetInput(button1, GUIHand.InputState.Up) && playerTool.OnLeftHandUp())
+                                __instance.UseInput(button1, GUIHand.InputState.Up);
+                            if (__instance.GetInput(button5, GUIHand.InputState.Down))
+                            {
+                                if (playerTool.OnAltDown())
+                                {
+                                    __instance.UseInput(button5, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
+                                    __instance.usedAltAttackThisFrame = true;
+                                    playerTool.OnToolActionStart();
+                                }
+                            }
+                            else if (__instance.GetInput(button5, GUIHand.InputState.Held))
+                            {
+                                if (playerTool.OnAltHeld())
+                                    __instance.UseInput(button5, GUIHand.InputState.Down | GUIHand.InputState.Held);
+                            }
+                            else if (__instance.GetInput(button5, GUIHand.InputState.Up) && playerTool.OnAltUp())
+                                __instance.UseInput(button5, GUIHand.InputState.Up);
+                            if (__instance.GetInput(button3, GUIHand.InputState.Down) && playerTool.OnReloadDown())
+                                __instance.UseInput(button3, GUIHand.InputState.Down);
+                            if (__instance.GetInput(button4, GUIHand.InputState.Down) && playerTool.OnExitDown())
+                                __instance.UseInput(button4, GUIHand.InputState.Down);
+                        }
+                        if (action != ItemAction.None && __instance.GetInput(button2, GUIHand.InputState.Down))
+                        {
+                            if (action == ItemAction.Drop)
+                            {
+                                __instance.UseInput(button2, GUIHand.InputState.Down | GUIHand.InputState.Held);
+                                Inventory.main.DropHeldItem(true);
+                            }
+                            else
+                            {
+                                __instance.UseInput(button2, GUIHand.InputState.Down | GUIHand.InputState.Held);
+                                Inventory.main.ExecuteItemAction(action, heldItem);
+                            }
+                        }
+                        if (__instance.player.IsFreeToInteract() && !__instance.usedToolThisFrame)
+                        {
+                            if (__instance.activeTarget != null)
+                            {
+                                if (__instance.GetInput(button1, GUIHand.InputState.Down))
+                                {
+                                    __instance.UseInput(button1, GUIHand.InputState.Down | GUIHand.InputState.Held);
+                                    GUIHand.Send(__instance.activeTarget, HandTargetEventType.Click, __instance);
+                                }
+                            }
+                            else if (KnownTech.Contains(TechType.SnowBall) && !__instance.player.isUnderwater.value && !Player.main.IsInside())
+                            {
+                                VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
+                                int layerMask = 1 << LayerID.TerrainCollider | 1 << LayerID.Default;
+                                RaycastHit hitInfo;
+                                if (Physics.Raycast(MainCamera.camera.transform.position, MainCamera.camera.transform.forward, out hitInfo, 3f, layerMask) && hitInfo.collider.gameObject.layer == LayerID.TerrainCollider)
+                                    vfxSurfaceType = Utils.GetTerrainSurfaceType(hitInfo.point, hitInfo.normal);
+                                if (vfxSurfaceType == VFXSurfaceTypes.snow)
+                                {
+                                    HandReticle.main.SetIcon(HandReticle.IconType.Hand);
+                                    HandReticle.main.SetText(HandReticle.TextType.Hand, "PickUpSnow", true, GameInput.Button.LeftHand);
+                                    if (__instance.GetInput(button1, GUIHand.InputState.Down))
+                                    {
+                                        __instance.UseInput(button1, GUIHand.InputState.Down | GUIHand.InputState.Held);
+                                        GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(__instance.snowBallPrefab);
+                                        if (!Inventory.main.Pickup(gameObject.GetComponent<Pickupable>()))
+                                            UnityEngine.Object.Destroy(gameObject);
+                                        else
+                                            Utils.PlayFMODAsset(__instance.snowballPickupSound, MainCamera.camera.transform);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (AvatarInputHandler.main.IsEnabled() && __instance.GetInput(button6, GUIHand.InputState.Down))
+                {
+                    __instance.UseInput(button6, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
+                    GameInput.SetAutoMove(!GameInput.GetAutoMove());
+                }
+
+                if (!AvatarInputHandler.main.IsEnabled() || uGUI.isIntro || (uGUI.isLoading || !__instance.GetInput(button7, GUIHand.InputState.Down)))
+                    return false;
+
+                __instance.UseInput(button7, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
+                __instance.player.GetPDA().Open();
+                return false;
+            }
+              
+            [HarmonyPostfix]
+            [HarmonyPatch("OnUpdate")]
+            public static void OnUpdatePostfix(GUIHand __instance)
             { // UI tells you if looking at dead fish 
                 PlayerTool tool = __instance.GetTool();
+                //AddDebug("PlayerTool " + tool);
                 if (tool)
                 {
                     Flare flare = tool as Flare;
@@ -385,7 +604,7 @@ namespace Tweaks_Fixes
                             uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
                     }
                 }
-                else if (!Main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
+                else if (!Main.baseLightSwitchLoaded && !Player.main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
                 {
                     SubRoot subRoot = Player.main.currentSub;
                     if (subRoot && subRoot.isBase && subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
@@ -395,12 +614,9 @@ namespace Tweaks_Fixes
                             Base_Patch.ToggleBaseLight(subRoot);
                     }
                 }
-
-                GameModeUtils.GetGameMode(out GameModeOption mode, out GameModeOption _);
-                bool survival = !GameModeUtils.IsOptionActive(mode, GameModeOption.NoSurvival);
-                //AddDebug("survival " + survival);
                 InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
-                if (survival && heldItem != null && Main.IsEatableFish(heldItem.item.gameObject))
+                bool canEatFish = !GameModeManager.GetOption<bool>(GameOption.VegetarianDiet) && GameModeManager.GetOption<bool>(GameOption.Hunger) || GameModeManager.GetOption<bool>(GameOption.Thirst);
+                if (canEatFish && heldItem != null && Main.IsEatableFish(heldItem.item.gameObject))
                 {
                     string text = string.Empty;
                     ItemAction allItemActions = Inventory.main.GetAllItemActions(heldItem);
@@ -423,7 +639,6 @@ namespace Tweaks_Fixes
                             sb.Append(eatText);
                             text = sb.ToString();
                         }
-              
                         if (GameInput.GetButtonDown(GameInput.Button.AltTool))
                         {
                             Inventory.main.ExecuteItemAction(ItemAction.Eat, heldItem);
@@ -442,7 +657,7 @@ namespace Tweaks_Fixes
                     return;
 
                 Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
-                if (flareTarget && Main.languageCheck && flareTarget.energyLeft == 0f)
+                if (flareTarget && flareTarget.energyLeft == 0f)
                 {
                     //AddDebug("activeTarget Flare");
                     StringBuilder sb = new StringBuilder(Main.config.translatableStrings[0]);
@@ -451,7 +666,7 @@ namespace Tweaks_Fixes
                 }
                 //AddDebug("OnUpdate " + __instance.activeTarget.name);
                 LiveMixin liveMixin = __instance.activeTarget.GetComponentInParent<LiveMixin>();
-                if (liveMixin && !liveMixin.IsAlive())
+                if ( liveMixin && !liveMixin.IsAlive())
                 {
                     //AddDebug("health " + liveMixin.health);
                     Pickupable pickupable = liveMixin.GetComponent<Pickupable>();
@@ -481,6 +696,7 @@ namespace Tweaks_Fixes
 
                 }
             }
+
         }
 
         [HarmonyPatch(typeof(uGUI_MainMenu), "Update")]
@@ -489,11 +705,12 @@ namespace Tweaks_Fixes
             public static void Postfix(uGUI_MainMenu __instance)
             {
                 //AddDebug("lastGroup " +__instance.lastGroup);
-                if (__instance.lastGroup == "SavedGames")
+                //AddDebug("mouseScrollDelta " + Input.mouseScrollDelta);
+                if (__instance.lastGroup == "SavedGames" || __instance.lastGroup == "NewGame")
                 {
-                    if (Input.GetAxis("Mouse ScrollWheel") > 0f)
+                    if (Input.mouseScrollDelta.y > 0f)
                         __instance.subMenu.SelectItemInDirection(0, -1);
-                    else if (Input.GetAxis("Mouse ScrollWheel") < 0f)
+                    else if (Input.mouseScrollDelta.y < 0f)
                         __instance.subMenu.SelectItemInDirection(0, 1);
                 }
             }
@@ -506,9 +723,9 @@ namespace Tweaks_Fixes
             {
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
-                    if (Input.GetAxis("Mouse ScrollWheel") > 0f)
+                    if (Input.mouseScrollDelta.y > 0f)
                         __instance.OpenTab(__instance.GetNextTab());
-                    else if (Input.GetAxis("Mouse ScrollWheel") < 0f)
+                    else if (Input.mouseScrollDelta.y < 0f)
                         __instance.OpenTab(__instance.GetPreviousTab());
                 }
             }
@@ -568,7 +785,7 @@ namespace Tweaks_Fixes
             static void OnLanguageChangedPostfix()
             {
                 //AddDebug("TooltipFactory OnLanguageChanged ");
-                Main.languageCheck = Language.main.GetCurrentLanguage() == "English" || Main.config.translatableStrings[0] != "Burnt out ";
+                //Main.languageCheck = Language.main.GetCurrentLanguage() == "English" || Main.config.translatableStrings[0] != "Burnt out ";
                 GetStrings();
             }
        
@@ -584,78 +801,71 @@ namespace Tweaks_Fixes
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPrefix(StringBuilder sb, TechType techType, GameObject obj)
             {
-                if (Main.languageCheck)
-                { 
-                    Flare flare = obj.GetComponent<Flare>();
-                    if (flare)
-                    {
-                        //AddDebug("flare.energyLeft " + flare.energyLeft);
-                        if (flare.energyLeft <= 0f)
-                            TooltipFactory.WriteTitle(sb, Main.config.translatableStrings[0]);
-                        else if (flare.flareActivateTime > 0f)
-                            TooltipFactory.WriteTitle(sb, Main.config.translatableStrings[1]);
-                    }
-                    fishTooltip = Main.IsEatableFish(obj);
+                Flare flare = obj.GetComponent<Flare>();
+                if (flare)
+                {
+                    //AddDebug("flare.energyLeft " + flare.energyLeft);
+                    if (flare.energyLeft <= 0f)
+                        TooltipFactory.WriteTitle(sb, Main.config.translatableStrings[0]);
+                    else if (flare.flareActivateTime > 0f)
+                        TooltipFactory.WriteTitle(sb, Main.config.translatableStrings[1]);
                 }
+                fishTooltip = Main.IsEatableFish(obj);
             }
 
             [HarmonyPostfix]
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPostfix(ref StringBuilder sb, TechType techType, GameObject obj)
             {
-                if (Main.languageCheck)
-                {
-                    if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
-                    { // IInventoryDescription
-                        StringBuilder sb_ = new StringBuilder(Main.config.translatableStrings[4]);
-                        sb_.Append(Crush_Damage.crushDepthEquipment[techType].ToString());
-                        sb_.Append(Main.config.translatableStrings[5]);
-                        TooltipFactory.WriteDescription(sb, sb_.ToString());
-                    }
-                    if (techType == TechType.FirstAidKit)
-                    {
-                        sb.Clear();
-                        string name = Language.main.Get(techType);
-                        TooltipFactory.WriteTitle(sb, name);
-                        TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
-                        TooltipFactory.WriteDescription(sb, Language.main.GetFormat<float>("HealthFormat", Main.config.medKitHP));
-                        //TooltipFactory.WriteDescription(sb, "Restores " + Main.config.medKitHP + " health.");
-                        //AddDebug("ItemCommons " + sb.ToString());
-                    }
-                    else if (techType == TechType.SeaTruckUpgradeHorsePower && Main.config.seatruckMoveTweaks)
-                    {
-                        sb.Clear();
-                        TooltipFactory.WriteTitle(sb, Language.main.Get(techType));
-                        TooltipFactory.WriteDescription(sb, Main.config.translatableStrings[2]);
-                    }
-                    Eatable eatable = obj.GetComponent<Eatable>();
-                    if (eatable && Food_Patch.IsWater(eatable) && eatable.timeDecayStart > 0f)
-                    {
-                        sb.Clear();
-                        StringBuilder sb_ = new StringBuilder(Language.main.Get(techType));
-                        float frozenPercent = Main.NormalizeToRange(eatable.timeDecayStart, 0f, eatable.waterValue, 0f, 100f);
-                        sb_.Append(" ");
-                        Mathf.Clamp(frozenPercent, frozenPercent, 100f);
-                        sb_.Append(Mathf.RoundToInt(frozenPercent));
-                        sb_.Append("%");
-                        sb_.Append(Main.config.translatableStrings[3]);
-                        TooltipFactory.WriteTitle(sb, sb_.ToString());
-                        //int healthValue = (int)eatable.GetHealthValue();
-                        //if (healthValue != 0f)
-                        //    TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("HealthFormat", healthValue));
-                        int cold = Mathf.CeilToInt(eatable.GetColdMeterValue());
-                        if (cold != 0)
-                            TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("HeatImpactFormat", -cold));
-                        int foodValue = Mathf.CeilToInt(eatable.GetFoodValue());
-                        int waterValue = Mathf.CeilToInt(eatable.GetWaterValue());
-                        if (foodValue != 0)
-                            TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("FoodFormat", foodValue));
-                        if (waterValue != 0)
-                            TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("WaterFormat", waterValue));
-                        TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
-                    }
+                if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
+                { // IInventoryDescription
+                    StringBuilder sb_ = new StringBuilder(Main.config.translatableStrings[4]);
+                    sb_.Append(Crush_Damage.crushDepthEquipment[techType].ToString());
+                    sb_.Append(Main.config.translatableStrings[5]);
+                    TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }
-
+                if (techType == TechType.FirstAidKit)
+                {
+                    sb.Clear();
+                    string name = Language.main.Get(techType);
+                    TooltipFactory.WriteTitle(sb, name);
+                    TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
+                    TooltipFactory.WriteDescription(sb, Language.main.GetFormat<float>("HealthFormat", Main.config.medKitHP));
+                    //TooltipFactory.WriteDescription(sb, "Restores " + Main.config.medKitHP + " health.");
+                    //AddDebug("ItemCommons " + sb.ToString());
+                }
+                else if (techType == TechType.SeaTruckUpgradeHorsePower && Main.config.seatruckMoveTweaks)
+                {
+                    sb.Clear();
+                    TooltipFactory.WriteTitle(sb, Language.main.Get(techType));
+                    TooltipFactory.WriteDescription(sb, Main.config.translatableStrings[2]);
+                }
+                Eatable eatable = obj.GetComponent<Eatable>();
+                if (eatable && Food_Patch.IsWater(eatable) && eatable.timeDecayStart > 0f)
+                {
+                    sb.Clear();
+                    StringBuilder sb_ = new StringBuilder(Language.main.Get(techType));
+                    float frozenPercent = Main.NormalizeToRange(eatable.timeDecayStart, 0f, eatable.waterValue, 0f, 100f);
+                    sb_.Append(" ");
+                    Mathf.Clamp(frozenPercent, frozenPercent, 100f);
+                    sb_.Append(Mathf.RoundToInt(frozenPercent));
+                    sb_.Append("%");
+                    sb_.Append(Main.config.translatableStrings[3]);
+                    TooltipFactory.WriteTitle(sb, sb_.ToString());
+                    //int healthValue = (int)eatable.GetHealthValue();
+                    //if (healthValue != 0f)
+                    //    TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("HealthFormat", healthValue));
+                    int cold = Mathf.CeilToInt(eatable.GetColdMeterValue());
+                    if (cold != 0)
+                        TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("HeatImpactFormat", -cold));
+                    int foodValue = Mathf.CeilToInt(eatable.GetFoodValue());
+                    int waterValue = Mathf.CeilToInt(eatable.GetWaterValue());
+                    if (foodValue != 0)
+                        TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("FoodFormat", foodValue));
+                    if (waterValue != 0)
+                        TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("WaterFormat", waterValue));
+                    TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
+                }
                 if (Main.config.invMultLand > 0f || Main.config.invMultWater > 0f)
                 {
                     Rigidbody rb = obj.GetComponent<Rigidbody>();
@@ -677,7 +887,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("FormatString " + format + " " + args.Length);
                 //AddDebug("FormatString " + __result);
-                if (!Main.languageCheck || !fishTooltip || Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(int))
+                if (!fishTooltip || Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(int))
                     return;
                 //AddDebug("FormatString GetType " + args[0].GetType());
                 int value = (int)args[0];
@@ -758,6 +968,7 @@ namespace Tweaks_Fixes
             {
                 if (!Main.config.alwaysShowHealthNunbers)
                     return true;
+
                 int showNumbers = __instance.showNumbers ? 1 : 0;
                 __instance.showNumbers = false;
                 Player main = Player.main;
@@ -838,10 +1049,14 @@ namespace Tweaks_Fixes
                         __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
                         if (__instance.pulseTime < 0f)
                             __instance.pulseTime = 0f;
-                        float num2 = __instance.pulseDelay + __instance.pulseTime;
-                        if (__instance.pulseTween.duration > 0f && num2 <= 0f)
-                            __instance.pulseAnimationState.normalizedTime = 0f;
-                        __instance.pulseTween.duration = num2;
+
+                        if (GameModeManager.GetOption<bool>(GameOption.ShowHungerAlerts))
+                        {
+                            float num2 = __instance.pulseDelay + __instance.pulseTime;
+                            if (__instance.pulseTween.duration > 0f && num2 <= 0f)
+                                __instance.pulseAnimationState.normalizedTime = 0f;
+                            __instance.pulseTween.duration = num2;
+                        }
                     }
                     PDA pda = main.GetPDA();
                     if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
@@ -895,16 +1110,20 @@ namespace Tweaks_Fixes
                         __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
                         if (__instance.pulseTime < 0f)
                             __instance.pulseTime = 0f;
-                        float num2 = __instance.pulseDelay + __instance.pulseTime;
-                        if (__instance.pulseTween.duration > 0f && num2 <= 0f)
-                            __instance.pulseAnimationState.normalizedTime = 0f;
-                        __instance.pulseTween.duration = num2;
+
+                        if (GameModeManager.GetOption<bool>(GameOption.ShowThirstAlerts))
+                        {
+                            float num2 = __instance.pulseDelay + __instance.pulseTime;
+                            if (__instance.pulseTween.duration > 0f && num2 <= 0f)
+                                __instance.pulseAnimationState.normalizedTime = 0f;
+                            __instance.pulseTween.duration = num2;
+                        }
                     }
                     PDA pda = main.GetPDA();
                     if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
                         __instance.showNumbers = true;
                 }
-                if ((TrackedReference)__instance.pulseAnimationState != (TrackedReference)null && __instance.pulseAnimationState.enabled)
+                if (__instance.pulseAnimationState != null && __instance.pulseAnimationState.enabled)
                 {
                     RectTransform icon = __instance.icon;
                     icon.localScale = icon.localScale + __instance.punchScale;
@@ -949,13 +1168,16 @@ namespace Tweaks_Fixes
                         float num2 = __instance.pulseDelay + __instance.pulseTime;
                         if (__instance.pulseTween.duration > 0f && num2 <= 0f)
                             __instance.statePulse.normalizedTime = 0f;
-                        __instance.pulseTween.duration = num2;
-                        Vector4 overlay1St = __instance.bar.overlay1ST;
-                        overlay1St.w = -Time.time * __instance.overlay1Speed;
-                        __instance.bar.overlay1ST = overlay1St;
-                        Vector4 overlay2St = __instance.bar.overlay2ST;
-                        overlay2St.w = -Time.time * __instance.overlay2Speed;
-                        __instance.bar.overlay2ST = overlay2St;
+
+                        if (GameModeManager.GetOption<bool>(GameOption.ShowTemperatureAlerts))
+                            __instance.pulseTween.duration = num2;
+
+                        Vector4 vector4 = __instance.bar.overlay1ST;
+                        vector4.w = -Time.time * __instance.overlay1Speed;
+                        __instance.bar.overlay1ST = vector4;
+                        vector4 = __instance.bar.overlay2ST;
+                        vector4.w = -Time.time * __instance.overlay2Speed;
+                        __instance.bar.overlay2ST = vector4;
                         float num3 = Mathf.Clamp01(MathExtensions.EvaluateLine(0.5f, 1f, 1f, 0f, currentBodyHeatValue / maxBodyHeatValue));
                         __instance.bar.overlay1Alpha = num3 * __instance.overlay1Alpha;
                         __instance.bar.overlay2Alpha = num3 * __instance.overlay2Alpha;

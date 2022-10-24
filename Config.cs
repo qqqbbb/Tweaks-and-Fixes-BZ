@@ -2,7 +2,6 @@
 using SMLHelper.V2.Options.Attributes;
 using System.Collections.Generic;
 using UnityEngine;
-using SMLHelper.V2.Commands;
 using SMLHelper.V2.Handlers;
 using SMLHelper.V2.Interfaces;
 using SMLHelper.V2.Options;
@@ -18,14 +17,14 @@ namespace Tweaks_Fixes
         //public int gameSpeedMult = 1;
         [Slider("Player speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your swimming, walking and running speed will be multiplied by this.")]
         public float playerSpeedMult = 1f;
-        [Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
-        public float playerDamageMult = 1f;
-        [Slider("Vehicle damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage your vehicles take will be multiplied by this.")]
-        public float vehicleDamageMult = 1f;
-        //[Slider("Damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "When anything but the player or vehicles takes damage, it will be multiplied by this.")]
-        //public float damageMult = 1f;
-        [Slider("Predator aggression multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher it is the more aggressive predators are towards you. When it's 0 you and your vehicles will never be attacked. When it's 3 predators attack you on sight and never flee.")]
-        public float aggrMult = 1f;
+        //[Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
+        //public float playerDamageMult = 1f;
+        //[Slider("Vehicle damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage your vehicles take will be multiplied by this.")]
+        //public float vehicleDamageMult = 1f;
+        [Slider("Prawn suit speed multiplier", .5f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your prawn suit speed will be multiplied by this.")]
+        public float vehicleSpeedMult = 1f;
+        //[Slider("Predator aggression multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher it is the more aggressive predators are towards you. When it's 0 you and your vehicles will never be attacked. When it's 3 predators attack you on sight and never flee.")]
+        //public float aggrMult = 1f;
         [Slider("Oxygen per breath", 0f, 6f, DefaultValue = 3f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Amount of oxygen you consume every breath.")]
         public float oxygenPerBreath = 3f;
         [Slider("Getting cold rate multiplier", 0f, 3f, DefaultValue = 1f, Step = 0.1f, Format = "{0:R0}", Tooltip = "The rate at which you get cold when outside and get warm when inside will be multiplied by this")]
@@ -47,9 +46,9 @@ namespace Tweaks_Fixes
         public float invMultWater = 0f;
         [Slider("Inventory weight multiplier on land", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
         public float invMultLand = 0f;
-        [Toggle("Snowfox movement tweaks", Tooltip = "Snowfox can move on water as good as on land. Its backward and sideways speed is halved. You can boost for as long as you hold the sprint button. When boosting power consumption is doubled. You don't get warm when riding snowfox.")]
+        [Toggle("Snowfox movement tweaks", Tooltip = "Snowfox can move on water as good as on land. Its backward and sideways speed is halved. You can boost for as long as you hold the sprint button. When boosting power consumption is doubled.")]
         public bool hoverbikeMoveTweaks = false;
-        [Toggle("Prawn suit movement tweaks", Tooltip = "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power than walking.")]
+        [Toggle("Prawn suit movement tweaks", Tooltip = "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power. Vertical speed is reduced when using thrusters. Can't use thrusters to hover above ground when out of water.")]
         public bool exosuitMoveTweaks = false;
         [Toggle("Seatruck movement tweaks", Tooltip = "Seatruck's vertical, sideways and backward speed is halved. Afterburner is active for as long as you hold the 'sprint' key but consumes twice more power. Horsepower upgrade increases seatruck's speed by 10%. You can install more than 1 Horsepower upgrade.")]
         public bool seatruckMoveTweaks = false;
@@ -90,9 +89,9 @@ namespace Tweaks_Fixes
         public float foodDecayRateMult = 1f;
         [Slider("Snowball water value", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "When you eat a snowball, you will get this amount of water and lose this amount of warmth. The game has to be reloaded after changing this.")]
         public int snowballWater = 0;
-        [Slider("Catchable fish speed multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of fish that you can catch will be multiplied by this.")]
+        [Slider("Catchable fish speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of fish that you can catch will be multiplied by this.")]
         public float fishSpeedMult = 1f;
-        [Slider("Other creatures speed multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of creatures that you can't catch will be multiplied by this.")]
+        [Slider("Other creatures speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of creatures that you can't catch will be multiplied by this.")]
         public float creatureSpeedMult = 1f;
         //[Slider("Egg hatching period multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Time it takes a creature egg to hatch in AC will be multiplied by this.")]
         //public float eggHatchTimeMult = 1f;
@@ -148,7 +147,7 @@ namespace Tweaks_Fixes
         [Slider("Crafted battery charge percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Charge percent of batteries and power cells you craft will be set to this.")]
         public int craftedBatteryCharge = 100;
 
-        [Slider("Free torpedos", 0, 36, DefaultValue = 2, Step = 1, Format = "{0:F0}", Tooltip = "Number of torpedos you get when installing Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo Arm.")]
+        [Slider("Free torpedos", 0, 6, DefaultValue = 2, Step = 1, Format = "{0:F0}", Tooltip = "Number of torpedos you get when installing Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo Arm.")]
         public int freeTorpedos = 2;
         [Toggle("Only Vehicle upgrade console can craft vehicle upgrades", Tooltip = "Fabricator will not be able to craft vehicle upgrades. Game has to be reloaded after changing this.")]
         public bool craftVehicleUpgradesOnlyInMoonpool = false;
@@ -165,11 +164,11 @@ namespace Tweaks_Fixes
         //public bool disableReaperRoar = false;
         //[Toggle("No metal clicking sound when walking", Tooltip = "Removes metal clicking sound when walking on metal surface.")]
         //public bool fixFootstepSound = false;
-        [Toggle("Camera bobbing", Tooltip = "Camera bobbing when swimming.")]
+        [Toggle("Camera bobbing", Tooltip = "Camera bobbing when swimming."), OnChange(nameof(ToggleCameraBobbing))]
         public bool cameraBobbing = true;
         //[Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
         //public bool baseLightOff = false;
-        [Toggle("PDA clock", Tooltip = " After changing this you have to reload the game.")]
+        //[Toggle("PDA clock", Tooltip = " After changing this you have to reload the game.")]
         public bool pdaClock = true;
         [Keybind("Quickslot cycle key", Tooltip = "Press 'Cycle next' or 'Cycle previous' key while holding down this key to cycle tools in your current quickslot.")]
         public KeyCode quickslotKey = KeyCode.LeftAlt;
@@ -178,14 +177,15 @@ namespace Tweaks_Fixes
         [Keybind("Move the same items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items of the same type.")]
         public KeyCode transferSameItemsKey = KeyCode.LeftShift;
 
-
-        public float playerCamRot = -1f;
+        //public float playerCamRot = -1f;
         public int activeSlot = -1;
         //public Dictionary<string, bool> escapePodSmokeOut = new Dictionary<string, bool>();
         public HashSet<TechType> notPickupableResources = new HashSet<TechType>
         {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}  };
         //public Dictionary<string, Dictionary<int, bool>> openedWreckDoors = new Dictionary<string, Dictionary<int, bool>>();
         public float medKitHPtoHeal = 0f;
+        public float getWarmTemp = 15f;
+        public float vehicleTemp = 20f;
 
         public Dictionary<string, Dictionary<string, bool>> baseLights = new Dictionary<string, Dictionary<string, bool>>();
         public Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>> lockerNames = new Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>>();
@@ -277,6 +277,12 @@ namespace Tweaks_Fixes
             //    Base_Light.UpdateBaseLights();
             //}
         }
+
+        static void ToggleCameraBobbing()
+        {
+            MiscSettings.cameraBobbing = !MiscSettings.cameraBobbing;
+        }
+
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
         public enum LoseItemsOnDeath { Vanilla, All, None }
         public enum EmptyVehicleCanBeAttacked { Yes, No, Only_if_lights_on }
@@ -284,7 +290,8 @@ namespace Tweaks_Fixes
         public bool silentReactor = false;
         public bool randomPlantRotation = true;
         public bool fixMelons = true;
-        
+        public bool fixCoral = true;
+
         //private void EatRawFishChangedEvent(ChoiceChangedEventArgs e)
         //{
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 
@@ -292,7 +299,7 @@ namespace Tweaks_Fixes
         public List<string> translatableStrings = new List<string>
         {"Burnt out ", // used for flare
          "Lit ",// 1 used for flare
-         "Increases the Seatruck engine's horsepower and energy consumption by 10%. More than 1 can be used simultaneously.", // 2 SeaTruckUpgradeHorsePower desc
+         "Increases the Seatruck engine's horsepower and energy consumption by 10%. More than 1 can be installed.", // 2 SeaTruckUpgradeHorsePower my desc
         " frozen", // 3 frozen water
         "Increases your safe diving depth by ", // 4 crushDepthEquipment
         " meters.", // 5 crushDepthEquipment
@@ -304,7 +311,16 @@ namespace Tweaks_Fixes
         ", max ",     // 11    eatRawFish tooltip 
         "Need a knife to break it",  // 12  breaking outcrop
         "Need a knife to break it free",  // 13  picking up attached resource
-        };
+        " Hold ",                   // 14  exosuit UI
+        " and press ",               // 15  exosuit UI
+        " to change torpedo ",      // 16  exosuit UI
+        ", Change torpedo ",         // 17  exosuit UI
+        "Break it free",            // 18 Break free attached resource
+        "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.",   // 19 Bladderfish desc
+        "Low-power conduction unit. Can be used to cook fish.", // 20 SmallStove desc
+        "Increases the Seatruck's speed when hauling two or more modules.", // 21 SeaTruckUpgradeHorsePower vanilla desc
+        "Reduces vehicle energy consumption by 20% percent.", // 22 SeaTruckUpgradeEnergyEfficiency desc
+        }; // edit UI_Patches.Getstrings after adding new strings
        
 
     }

@@ -45,7 +45,7 @@ namespace Tweaks_Fixes
                 //string str1 = "";
                 //string str2 = dayScalar < 0.75 ? (dayScalar < 0.5 ? (dayScalar < 0.25 ? "Midnight" : "Morning") : "Noon") : "Evening";
                 //this.textComponent.text = num2.ToString("00") + ":" + num1.ToString("00") + " " + str1 + " (" + str2 + ")";
-                int temp = Mathf.RoundToInt(Main.bodyTemperature.CalculateEffectiveAmbientTemperature());
+                int temp = Mathf.RoundToInt(Main.GetPlayerTemperature());
                 System.Text.StringBuilder sb = new System.Text.StringBuilder(temp.ToString());
                 //sb.Append(temp.ToString());
                 sb.AppendLine("°C");
@@ -54,6 +54,7 @@ namespace Tweaks_Fixes
                     sb.Append(":");
                 else
                     sb.Append(" ");
+
                 sb.AppendLine(minutes.ToString("00"));
                 textComponent.text = sb.ToString();
                 //textComponent.text = blink ? hours.ToString("00") + ":" + minutes.ToString("00") : hours.ToString("00") + " " + minutes.ToString("00");

@@ -10,22 +10,23 @@ namespace Tweaks_Fixes
     {
         public static bool releasingGrabbedObject = false;
         public static List<GameObject> repCannonGOs = new List<GameObject>();
+        public static PlayerTool equippedTool;
 
-        [HarmonyPatch(typeof(Knife), nameof(Knife.OnToolUseAnim))]
+        [HarmonyPatch(typeof(Knife), "OnToolUseAnim")]
         class Knife_OnToolUseAnim_Postfix_Patch
         {
             public static void Postfix(Knife __instance)
             {
-                if (!Main.guiHand.activeTarget)
+                if (!Player.main.guiHand.activeTarget)
                     return;
 
-                BreakableResource breakableResource = Main.guiHand.activeTarget.GetComponent<BreakableResource>();
+                BreakableResource breakableResource = Player.main.guiHand.activeTarget.GetComponent<BreakableResource>();
                 if (breakableResource)
                 {
                     breakableResource.BreakIntoResources();
                     //AddDebug("BreakableResource");
                 }
-                Pickupable pickupable = Main.guiHand.activeTarget.GetComponent<Pickupable>();
+                Pickupable pickupable = Player.main.guiHand.activeTarget.GetComponent<Pickupable>();
                 if (pickupable)
                 {
                     TechType techType = pickupable.GetTechType();
@@ -33,20 +34,22 @@ namespace Tweaks_Fixes
                     {
                         Rigidbody rb = pickupable.GetComponent<Rigidbody>();
                         if (rb && rb.isKinematic)  // attached to wall
-                            pickupable.OnHandClick(Main.guiHand);
+                            pickupable.OnHandClick(Player.main.guiHand);
                     }
                 }
             }
         }
 
-        [HarmonyPatch(typeof(PlayerTool), nameof(PlayerTool.OnDraw))]
-        class Knife_Awake_Patch
+        [HarmonyPatch(typeof(PlayerTool), "OnDraw")]
+        class PlayerTool_OnDraw_Patch
         {
             static float knifeRangeDefault = 0f;
             static float knifeDamageDefault = 0f;
-
+       
             public static void Postfix(PlayerTool __instance)
             {
+                //AddDebug("OnDraw " + __instance.name);
+                equippedTool = __instance;
                 Knife knife = __instance as Knife;
                 if (knife)
                 {
@@ -60,6 +63,26 @@ namespace Tweaks_Fixes
                     //AddDebug(" attackDist  " + knife.attackDist);
                     //AddDebug(" damage  " + knife.damage);
                 }
+
+            }
+        }
+
+        //[HarmonyPatch(typeof(PlayerTool), "OnHolster")]
+        class PlayerTool_OnHolster_Patch
+        {
+            public static void Postfix(PlayerTool __instance)
+            {
+                AddDebug("OnHolster " + __instance.name);
+                //equippedTool = null;
+            }
+        }
+
+         //[HarmonyPatch(typeof(Pickupable), "Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
+            class Pickupable_Drop_Patch
+        {
+            public static void Postfix(Pickupable __instance)
+            {
+                AddDebug("Drop " + __instance.name);
 
             }
         }
@@ -102,7 +125,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(FlashLight), nameof(FlashLight.Start))]
+        [HarmonyPatch(typeof(FlashLight), "Start")]
         public class FlashLight_Start_Patch
         {
             public static void Prefix(FlashLight __instance)
@@ -120,8 +143,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(PropulsionCannon))]
         class PropulsionCannon_Patch
         {
-            [HarmonyPatch("OnShoot")]
             [HarmonyPrefix]
+            [HarmonyPatch("OnShoot")]
             static void OnShootPrefix(PropulsionCannon __instance)
             {
                 if (__instance.grabbedObject == null)
@@ -130,8 +153,8 @@ namespace Tweaks_Fixes
                 releasingGrabbedObject = true;
             }
 
-            [HarmonyPatch("ReleaseGrabbedObject")]
             [HarmonyPrefix]
+            [HarmonyPatch("ReleaseGrabbedObject")]
             static void ReleaseGrabbedObjectPrefix(PropulsionCannon __instance)
             {
                 if (__instance.grabbedObject == null)
@@ -142,7 +165,7 @@ namespace Tweaks_Fixes
 
         }
 
-        [HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
+        //[HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
         class RepulsionCannon_OnToolUseAnim_Patch
         {
             static bool Prefix(RepulsionCannon __instance, GUIHand guiHand)

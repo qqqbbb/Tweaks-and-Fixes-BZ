@@ -7,9 +7,6 @@ using SMLHelper.V2.Handlers;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using FMOD;
-using FMOD.Studio;
-using FMODUnity;
 using System.Text;
 using static ErrorMessage;
 
@@ -27,7 +24,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(WeatherManager), "ExtendWeatherTimeline")]
+        //[HarmonyPatch(typeof(WeatherManager), "ExtendWeatherTimeline")]
         class WeatherManager_ExtendWeatherTimeline_Patch
         {
             static bool Prefix(WeatherManager __instance)

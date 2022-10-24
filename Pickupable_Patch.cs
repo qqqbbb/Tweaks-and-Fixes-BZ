@@ -23,12 +23,14 @@ namespace Tweaks_Fixes
                 if (collider)
                     UnityEngine.Object.Destroy(collider);
             }
+
             [HarmonyPrefix]
             [HarmonyPatch("OnPickedUp")]
             static bool OnPickedUpPrefix(BeaconLabel __instance)
             {
                 return false;
             }
+
             [HarmonyPrefix]
             [HarmonyPatch("OnDropped")]
             static bool OnDroppedPrefix(BeaconLabel __instance)
@@ -41,7 +43,7 @@ namespace Tweaks_Fixes
         class Pickupable_Patch_
         {
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(Pickupable), "Awake")]
+            [HarmonyPatch("Awake")]
             static void AwakePostfix(Pickupable __instance)
             {
                 TechType tt = __instance.GetTechType();
@@ -60,6 +62,7 @@ namespace Tweaks_Fixes
                 HandReticle main = HandReticle.main;
                 if (!hand.IsFreeToInteract())
                     return false;
+
                 TechType techType = __instance.GetTechType();
                 if (__instance.AllowedToPickUp())
                 {
@@ -83,27 +86,14 @@ namespace Tweaks_Fixes
                         HandReticle.main.SetText(HandReticle.TextType.Hand, text1, false, button);
                         HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
                     }
+                    else if (techType == TechType.Beacon)
+                    {
+                        HandleBeaconText(__instance, text1, text2);
+                    }
                     else
                     {
-                        if (techType == TechType.Beacon)
-                        {
-                            BeaconLabel beaconLabel = __instance.GetComponentInChildren<BeaconLabel>();
-                            if (beaconLabel)
-                            {
-                                if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
-                                    uGUI.main.userInput.RequestString(beaconLabel.stringBeaconLabel, beaconLabel.stringBeaconSubmit, beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beaconLabel.SetLabel));
-                                text2 = beaconLabel.labelName;
-                            }
-                            StringBuilder stringBuilder = new StringBuilder(text1);
-                            stringBuilder.Append(UI_Patches.beaconPickString);
-                            HandReticle.main.SetText(HandReticle.TextType.Hand, stringBuilder.ToString(), false, GameInput.Button.LeftHand);
-                            HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
-                        }
-                        else
-                        {
-                            HandReticle.main.SetText(HandReticle.TextType.Hand, text1, false, GameInput.Button.LeftHand);
-                            HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
-                        }
+                        HandReticle.main.SetText(HandReticle.TextType.Hand, text1, false, GameInput.Button.LeftHand);
+                        HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
                     }
                 }
                 else if (__instance.isPickupable && !Player.main.HasInventoryRoom(__instance))
@@ -117,6 +107,22 @@ namespace Tweaks_Fixes
                     main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
                 }
                 return false;
+            }
+
+            private static void HandleBeaconText(Pickupable pickupable, string text1, string text2)
+            {
+                BeaconLabel beaconLabel = pickupable.GetComponentInChildren<BeaconLabel>();
+                if (beaconLabel)
+                {
+                    if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                        uGUI.main.userInput.RequestString(beaconLabel.stringBeaconLabel, beaconLabel.stringBeaconSubmit, beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beaconLabel.SetLabel));
+
+                    text2 = beaconLabel.labelName;
+                }
+                StringBuilder stringBuilder = new StringBuilder(text1);
+                stringBuilder.Append(UI_Patches.beaconPickString);
+                HandReticle.main.SetText(HandReticle.TextType.Hand, stringBuilder.ToString(), false, GameInput.Button.LeftHand);
+                HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
             }
         }
 
@@ -159,7 +165,7 @@ namespace Tweaks_Fixes
                 }
                 if (techType == TechType.FirstAidKit)
                 {
-                    if (Player.main.GetComponent<LiveMixin>().health == 100f)
+                    if (Player.main.GetComponent<LiveMixin>().health > 99.9f)
                         AddMessage(Language.main.Get("HealthFull"));
                     else
                     {
@@ -173,7 +179,6 @@ namespace Tweaks_Fixes
                             Main.config.medKitHPtoHeal += Main.config.medKitHP;
                             healTime = Time.time;
                         }
-
                     }
                 }
                 else if (techType == TechType.WaterPurificationTablet && inventory.DestroyItem(TechType.SnowBall))
@@ -192,9 +197,9 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(Inventory), "GetItemAction")]
-        internal class Inventory_GetItemAction_Patch
+        class Inventory_GetItemAction_Patch
         {
-            internal static void Postfix(Inventory __instance, ref ItemAction __result, InventoryItem item, int button)
+            static void Postfix(Inventory __instance, ref ItemAction __result, InventoryItem item, int button)
             {
                 //AddDebug("GetItemAction button " + button + " " + item.item.name + " " + __result);
                 Pickupable pickupable = item.item;
@@ -204,19 +209,18 @@ namespace Tweaks_Fixes
                     Eatable eatable = pickupable.gameObject.GetComponent<Eatable>();
                     if (Main.config.cantEatUnderwater && Player.main.IsUnderwater())
                         __result = ItemAction.None;
-                    else if(Food_Patch.IsWater(eatable) && eatable.GetWaterValue() < 0.5f)
+                    else if (Food_Patch.IsWater(eatable) && eatable.GetWaterValue() < 0.5f)
                         __result = ItemAction.None;
                 }
                 else if (__result == ItemAction.Use && Main.config.cantUseMedkitUnderwater && Player.main.IsUnderwater() && pickupable.GetTechType() == TechType.FirstAidKit)
                 {
                     __result = ItemAction.None;
                 }
-
             }
         }
 
-        [HarmonyPatch(typeof(TooltipFactory), "ItemActions")]
-        internal class TooltipFactory_ItemActions_Patch
+        //[HarmonyPatch(typeof(TooltipFactory), "ItemActions")]
+        class TooltipFactory_ItemActions_Patch
         { // for some items UI did not tell they can be dropped 
             internal static bool Prefix(StringBuilder sb, global::InventoryItem item)
             {

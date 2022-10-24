@@ -8,12 +8,13 @@ namespace Tweaks_Fixes
     class Creature_Tweaks
     {
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
+
         //[HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
         {
             public static void Postfix(FleeOnDamage __instance, DamageInfo damageInfo)
             { //
-                if (damageInfo.dealer == Player.main.gameObject)
+                if (damageInfo.dealer.Equals(Player.main.gameObject))
                 { // these 2 are the same
                     AddDebug(" moveTo " + __instance.moveTo);
                     AddDebug(" originalTargetPosition " + __instance.swimBehaviour.originalTargetPosition);
@@ -35,40 +36,29 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(CreatureEgg), "GetHatchDuration")]
-        class CreatureEgg_GetHatchDuration_Patch
-        {
-            public static bool Prefix(CreatureEgg __instance, ref float __result)
-            {
-                //__result = 1200f * Main.config.eggHatchTimeMult * __instance.daysBeforeHatching * (NoCostConsoleCommand.main.fastHatchCheat ? 0.01f : 1f);
-                //AddDebug("GetHatchDuration " + __instance.creatureType + " " + __result);
-                return false;
-            }
-        }
-
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         internal class FleeOnDamage_OnTakeDamage_Prefix_Patch
         {
             private static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
             {
                 LiveMixin liveMixin = __instance.creature.liveMixin;
-                AggressiveWhenSeeTarget agr = __instance.GetComponent<AggressiveWhenSeeTarget>();
-                if (liveMixin && agr && liveMixin.IsAlive())
+                AggressiveWhenSeeTarget awst = __instance.GetComponent<AggressiveWhenSeeTarget>();
+                if (liveMixin && awst && liveMixin.IsAlive())
                 { //  && damageInfo.dealer == Player.main
                     //if (damageInfo.dealer)
                     //  Main.Message("damage dealer " + damageInfo.dealer.name);
                     int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
                     //int halfMaxHealth = Mathf.RoundToInt(liveMixin.maxHealth * .5f);
                     int rnd = Main.rndm.Next(1, maxHealth);
-                    //float aggrMult = Mathf.Clamp(Main.config.aggrMult, 0f, 2f);
-                    int health = Mathf.RoundToInt(liveMixin.health * Main.config.aggrMult);
+                    float aggrMult = GameModeManager.GetCreatureAggressionModifier();
+                    int health = Mathf.RoundToInt(liveMixin.health * aggrMult);
                     //if (health > halfMaxHealth || rnd < health)
                     if (health > rnd)
                     {
                         damageInfo.damage = 0f;
                         //Main.Message("health " + liveMixin.health + " rnd100 " + rnd100);
                     }
-                    if (Main.config.aggrMult == 3f)
+                    if (aggrMult == 0f)
                         damageInfo.damage = 0f;
 
                     return false;
@@ -82,9 +72,19 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Creature __instance)
             {
-                VFXSurface vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
-                vFXSurface.surfaceType = VFXSurfaceTypes.organic;
-
+                VFXSurface vFXSurface = __instance.GetComponent<VFXSurface>();
+                if (vFXSurface == null)
+                {
+                    EcoTarget ecoTarget = __instance.GetComponent<EcoTarget>();
+                    if (ecoTarget && ecoTarget.type == EcoTargetType.FishSchool)
+                    { }
+                    else
+                    {
+                        vFXSurface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                        vFXSurface.surfaceType = VFXSurfaceTypes.organic;
+                        //AddDebug(__instance.name + " no VFXSurface");
+                    }
+                }
                 if (__instance is SpinnerFish || __instance is RockGrub)
                 {
                     CreatureDeath cd = __instance.GetComponent<CreatureDeath>();
@@ -183,9 +183,8 @@ namespace Tweaks_Fixes
                         //AddDebug("WaterPark ");
                         return;
                     }
-
                     PropulsionCannonWeapon pc = Inventory.main.GetHeldTool() as PropulsionCannonWeapon;
-                    if (pc && pc.propulsionCannon.grabbedObject == __instance.gameObject)
+                    if (pc && pc.propulsionCannon.grabbedObject.Equals(__instance.gameObject))
                     {
                         //AddDebug("PropulsionCannonWeapon ");
                         __result = true;
@@ -193,7 +192,7 @@ namespace Tweaks_Fixes
                     }
                     foreach (Pickupable p in Gravsphere_Patch.gravSphereFish)
                     {
-                        if (p == __instance)
+                        if (p.Equals(__instance))
                         {
                             //AddDebug("Gravsphere ");
                             __result = true;

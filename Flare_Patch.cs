@@ -6,7 +6,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    [HarmonyPatch(typeof(Flare))]
+    //[HarmonyPatch(typeof(Flare))]
     class Flare_Patch
     {
         public static float originalIntensity = -1f;
@@ -92,26 +92,28 @@ namespace Tweaks_Fixes
             if (tool.hasFirstUseAnimation && tool.pickupable)
             {
                 TechType techType = tool.pickupable.GetTechType();
-                bool flag = Player.main.AddUsedTool(techType) || PlayerToolConsoleCommands.debugFirstUse;
-                if (GameOptions.GetVrAnimationMode())
-                    flag = false;
+                bool flag = tool.ShouldPlayFirstUseAnimation();
+                if (flag)
+                    Player.main.AddUsedTool(techType);
                 Player.main.playerAnimator.SetBool("using_tool_first", flag);
                 tool.firstUseAnimationStarted = flag;
             }
             if (tool.firstUseAnimationStarted && tool.firstUseSound)
+            {
                 tool.firstUseSound.Play();
+            }
             else
             {
-                FMODAsset asset = !Player.main.IsUnderwater() || !(tool.drawSoundUnderwater != null) ? tool.drawSound : tool.drawSoundUnderwater;
+                FMODAsset asset = !Player.main.IsUnderwater() || tool.drawSoundUnderwater == null ? tool.drawSound : tool.drawSoundUnderwater;
                 if (!asset)
                     return;
                 Utils.PlayFMODAsset(asset, tool.transform);
             }
         }
 
-        [HarmonyPatch(nameof(Flare.Awake))]
         [HarmonyPrefix]
-        internal static bool AwakePrefix(Flare __instance)
+        [HarmonyPatch("Awake")]
+        static bool AwakePrefix(Flare __instance)
         {
             if (__instance.energyLeft <= 0f && !__instance.GetComponentInParent<Player>())
             { // destroy only when not in inventpry
@@ -160,10 +162,10 @@ namespace Tweaks_Fixes
             wf.underwaterGravity = .5f;
             return false;
         }
-
-        [HarmonyPatch(nameof(Flare.SetFlareActiveState))]
+      
         [HarmonyPrefix]
-        internal static bool SetFlareActiveStatePrefix(Flare __instance, bool newFlareActiveState)
+        [HarmonyPatch("SetFlareActiveState")]
+        static bool SetFlareActiveStatePrefix(Flare __instance, bool newFlareActiveState)
         {
             //AddDebug("hasBeenThrown " + __instance.hasBeenThrown);
             //AddDebug("fxIsPlaying " + __instance.fxIsPlaying);
@@ -186,9 +188,9 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPatch(nameof(Flare.OnDraw))]
         [HarmonyPrefix]
-        internal static bool OnDrawPrefix(Flare __instance, Player p)
+        [HarmonyPatch("OnDraw")]
+        static bool OnDrawPrefix(Flare __instance, Player p)
         {
             //AddDebug("OnDraw originalRange " + originalRange);
             //AddDebug("OnDraw originalIntensity " + originalIntensity);
@@ -219,9 +221,9 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPatch(nameof(Flare.OnHolster))]
         [HarmonyPostfix]
-        internal static void OnHolsterPostfix(Flare __instance)
+        [HarmonyPatch("OnHolster")]
+        static void OnHolsterPostfix(Flare __instance)
         {
             PlayerToolOnHolster(__instance);
             if (__instance.flareActivateTime > 0f)
@@ -242,9 +244,9 @@ namespace Tweaks_Fixes
             //AddDebug("fxIsPlaying " + __instance.fxIsPlaying);
         }
 
-        [HarmonyPatch(nameof(Flare.OnToolUseAnim))]
         [HarmonyPrefix]
-        internal static bool OnToolUseAnimPrefix(Flare __instance)
+        [HarmonyPatch("OnToolUseAnim")]
+        static bool OnToolUseAnimPrefix(Flare __instance)
         {
             if (__instance.isThrowing)
                 return false;
@@ -276,9 +278,9 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPatch(nameof(Flare.Throw))]
         [HarmonyPrefix]
-        internal static bool ThrowPrefix(Flare __instance)
+        [HarmonyPatch("Throw")]
+        static bool ThrowPrefix(Flare __instance)
         {
             //AddDebug("Throw " + __instance.throwDuration);
             //Inventory.main.quickSlots.SelectImmediate(1);
@@ -293,47 +295,28 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        internal static bool UpdateLight(Flare __instance)
+        static bool UpdateLight(Flare __instance)
         {
             //AddDebug("UpdateLight ");
-            //if (intensityChanged)
-            //{
-            //AddDebug("intensityChaned ");
-            //__instance.light.intensity = Main.config.lightIntensity[TechType.Flare];
-            //return false;
-            //}
-            //else
+            float burnTime = DayNightCycle.main.timePassedAsFloat - __instance.flareActivateTime;
+            if (burnTime < 0.1f)
+                return false;
+            __instance.light.intensity = halfOrigIntensity + halfOrigIntensity * Mathf.PerlinNoise(Time.time * 6f, 0f);
+            if (__instance.energyLeft < lowEnergy)
             {
-                float burnTime = DayNightCycle.main.timePassedAsFloat - __instance.flareActivateTime;
-                if (burnTime < 0.1f)
-                    return false;
-                __instance.light.intensity = halfOrigIntensity + halfOrigIntensity * Mathf.PerlinNoise(Time.time * 6f, 0f);
-                if (__instance.energyLeft < lowEnergy)
-                {
-                    float f1 = __instance.energyLeft / lowEnergy;
-                    //AddDebug("lowEnergy " + f1.ToString("0.0"));
-                    __instance.light.intensity = Mathf.Lerp(0f, __instance.light.intensity, f1);
-                    __instance.light.range = Mathf.Lerp(0f, originalRange, f1);
-                }
+                float f1 = __instance.energyLeft / lowEnergy;
+                //AddDebug("lowEnergy " + f1.ToString("0.0"));
+                __instance.light.intensity = Mathf.Lerp(0f, __instance.light.intensity, f1);
+                __instance.light.range = Mathf.Lerp(0f, originalRange, f1);
             }
             return false;
         }
 
-        [HarmonyPatch(nameof(Flare.Update))]
         [HarmonyPrefix]
-        internal static bool UpdatePrefix(Flare __instance)
+        [HarmonyPatch("Update")]
+        static bool UpdatePrefix(Flare __instance)
         {
             //Main.Message("energyLeft " + __instance.energyLeft);
-            //if (__instance.throwDuration > 1 && DayNightCycle.main.timePassedAsFloat - __instance.throwDuration > 1f)
-            //{
-            //    __instance.pickupable.isPickupable = true;
-            //    __instance.throwDuration = .1f;
-            //}
-            //if (__instance.flareActivateTime == 0 && Inventory.main.GetHeldTool() == __instance && GameInput.GetButtonDown(GameInput.Button.AltTool))
-            //{
-            //    LightFlare(__instance);
-            //    return false;
-            //}
             if (__instance.flareActiveState)
             {
                 //AddDebug("UpdateLight " + __instance.energyLeft);
@@ -365,8 +348,8 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPatch(nameof(Flare.OnDrop))]
         [HarmonyPrefix]
+        [HarmonyPatch("OnDrop")]
         public static bool OnDropPrefix(Flare __instance)
         {
             if (__instance.isThrowing)

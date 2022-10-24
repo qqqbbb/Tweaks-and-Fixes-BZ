@@ -4,10 +4,12 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    [HarmonyPatch(typeof(BreakableResource), nameof(BreakableResource.OnHandClick))]
+    [HarmonyPatch(typeof(BreakableResource))]
     public static class OnHandClickPatch
     {
-        public static bool Prefix()
+        [HarmonyPrefix]
+        [HarmonyPatch("OnHandClick")]
+        public static bool OnHandClickPrefix()
         {
             if (!Main.config.noBreakingWithHand)
                 return true;
@@ -27,21 +29,12 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-    }
 
-    [HarmonyPatch(typeof(BreakableResource), nameof(BreakableResource.OnHandHover))]
-    public static class OnHandHoverPatch
-    {
-        public static bool Prefix(BreakableResource __instance)
+        [HarmonyPrefix]
+        [HarmonyPatch("OnHandHover")]
+        public static bool OnHandHoverPrefix(BreakableResource __instance)
         {
             //AddDebug("BreakableResource OnHandHover");
-            //if (Player.main.inExosuit)
-            //{
-            //    HandReticle.main.SetInteractText(__instance.breakText);
-            //    return false;
-            //}
-            //if (__instance.GetComponent<LiveMixin>() != null)
-            //    AddDebug("BreakableResource LiveMixin");
             if (!Main.config.noBreakingWithHand)
                 return true;
 
@@ -60,60 +53,27 @@ namespace Tweaks_Fixes
                 //}
             }
             else
-                HandReticle.main.SetText(HandReticle.TextType.Hand, Main.config.translatableStrings[12], true, GameInput.Button.LeftHand);
+                HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Main.config.translatableStrings[12]);
 
             return false;
         }
+
+
     }
+
 
     [HarmonyPatch(typeof(Pickupable))]
     public static class PickupablePatch
     {
-        public static bool CanCollect(Pickupable instance, TechType techType)
+        [HarmonyPrefix]
+        [HarmonyPatch("OnHandClick")] // OnHandHover handled by GUIHand.OnUpdate
+        public static bool PickupableOnHandClick(Pickupable __instance, GUIHand hand)
         {
             if (!Main.config.noBreakingWithHand)
                 return true;
 
-            Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
-            if (exosuit && exosuit.HasClaw())
-                return true;
-
-            if (Main.config.notPickupableResources.Contains(techType))
-            {
-                Rigidbody rb = instance.GetComponent<Rigidbody>();
-                if (rb == null)
-                    return true;
-
-                if (rb.isKinematic)  // attached to terrain
-                {
-                    Knife knife = Inventory.main.GetHeldTool() as Knife;
-                    if (knife)
-                    {
-                        return true;
-                    }
-                    HandReticle.main.SetText(HandReticle.TextType.Hand, Main.config.translatableStrings[13], false);
-
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        [HarmonyPatch(nameof(Pickupable.OnHandHover))]
-        [HarmonyPrefix]
-        public static bool PickupableOnHandHover(Pickupable __instance)
-        {
-            //AddDebug("Can Collect " + CanCollect(__instance, __instance.GetTechType()));
-            //AddDebug("attached " +  __instance.attached);
-            return CanCollect(__instance, __instance.GetTechType());
-        }
-
-        [HarmonyPatch(nameof(Pickupable.OnHandClick))]
-        [HarmonyPrefix]
-        public static bool PickupableOnHandClick(Pickupable __instance)
-        {
-            if (!Main.config.noBreakingWithHand)
-                return true;
+            if (!hand.IsFreeToInteract())
+                return false;
 
             Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
             if (exosuit && exosuit.HasClaw())
@@ -123,15 +83,16 @@ namespace Tweaks_Fixes
                 return true;
 
             Rigidbody rb = __instance.GetComponent<Rigidbody>();
-            Knife knife = Inventory.main.GetHeldTool() as Knife;
+
             if (rb == null)
                 return true;
 
             if (rb.isKinematic) // attached to wall
             {
+                Knife knife = Inventory.main.GetHeldTool() as Knife;
                 if (knife)
                 {
-                    Main.guiHand.usedToolThisFrame = true;
+                    Player.main.guiHand.usedToolThisFrame = true;
                     knife.OnToolActionStart();
                     rb.isKinematic = false;
                     //return false;

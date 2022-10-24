@@ -89,12 +89,10 @@
     <Compile Include="Weather_Patch.cs" />
     <Compile Include="PDA_Patch.cs" />
     <Compile Include="Storage_Patch.cs" />
-    <Compile Include="Snowball_Patch.cs" />
     <Compile Include="PDA_Clock_.cs" />
     <Compile Include="Plants_Patch.cs" />
     <Compile Include="Game_Speed_Patch.cs" />
     <Compile Include="Predators_Patch.cs" />
-    <Compile Include="Storage_Patch_old.cs" />
     <Compile Include="Hoverbike_Patch.cs" />
     <Compile Include="Exosuit_Patch.cs" />
     <Compile Include="Player_Movement.cs" />

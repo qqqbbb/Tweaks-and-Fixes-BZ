@@ -11,11 +11,13 @@ namespace Tweaks_Fixes
     {
         public static bool boosting = false;
 
-        [HarmonyPatch(typeof(Hoverbike), "HoverEngines")]
+        [HarmonyPatch(typeof(Hoverbike))]
         class HoverboardMotor_HoverEngines_Patch
-        { // increase hover heigt above water, can jump and boost on water
-            static bool Prefix(Hoverbike __instance)
-            {
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("HoverEngines")]
+            static bool HoverEnginesPrefix(Hoverbike __instance)
+            { // increase hover heigt above water, can jump and boost on water
                 if (!Main.config.hoverbikeMoveTweaks)
                     return true;
                 //AddDebug("forwardAccel " + __instance.forwardAccel);
@@ -45,7 +47,9 @@ namespace Tweaks_Fixes
                         __instance.jumpReset = false;
                         __instance.wasOnGround = false;
                         __instance.jumpFuel = __instance.verticalBoostForce;
-                        __instance.jumpFxControl.Play();
+                        if (MiscSettings.flashes)
+                            __instance.jumpFxControl.Play();
+
                         __instance.sfx_jump.Play();
                         Player.main.playerAnimator.SetTrigger("hovercraft_button_1");
                         __instance.animator.SetBool("hovercraft_jump", true);
@@ -61,7 +65,9 @@ namespace Tweaks_Fixes
                         //AddDebug("boost " + boosting);
                         __instance.boostReset = false;
                         __instance.boostFuel = __instance.forwardBoostForce;
-                        __instance.boostFxControl.Play();
+                        if (MiscSettings.flashes)
+                            __instance.boostFxControl.Play();
+
                         __instance.sfx_boost.Play();
                         __instance.SetBoostButtonState(false);
                         Player.main.playerAnimator.SetTrigger("hovercraft_button_3");
@@ -172,36 +178,33 @@ namespace Tweaks_Fixes
                             __instance.Invoke("CreakReset", UnityEngine.Random.Range(0.3f, 0.5f));
                     }
                 }
-                __instance.sfx_wind.SetParameterValue("velocity", Mathf.Clamp01(__instance.rb.velocity.magnitude / __instance.sfxWindThreshold));
+                //__instance.sfx_wind.SetParameterValue("velocity", Mathf.Clamp01(__instance.rb.velocity.magnitude / __instance.sfxWindThreshold));
                 __instance.rb.AddForce(new Vector3(0.0f, -__instance.gravity * Time.deltaTime, 0.0f), ForceMode.VelocityChange);
                 __instance.animator.SetBool("on_land", flag3);
                 return false;
             }
-        }
 
-        [HarmonyPatch(typeof(Hoverbike), "UpdateEnergy")]
-        class HoverboardMotor_UpdateEnergy_Patch
-        {//
-            static bool Prefix(Hoverbike __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("UpdateEnergy")]
+            static bool UpdateEnergyPrefix(Hoverbike __instance)
             {
                 //AddDebug("maxEnergy " + __instance.energyMixin.maxEnergy);
                 //AddDebug("capacity " + __instance.energyMixin.capacity);
                 //AddDebug("charge " + __instance.energyMixin.charge);
                 if (!__instance.appliedThrottle)
                     return false;
+
                 if (boosting)
                     __instance.energyMixin.ConsumeEnergy(Time.deltaTime * __instance.enginePowerConsumption * 2f);
                 else
                     __instance.energyMixin.ConsumeEnergy(Time.deltaTime * __instance.enginePowerConsumption);
                 return false;
             }
-        }
 
-        [HarmonyPatch(typeof(Hoverbike), "PhysicsMove")]
-        class HoverboardMotor_PhysicsMove_Patch
-        {// move on water, halve strafe and backward speed
-            static bool Prefix(Hoverbike __instance)
-            {
+            [HarmonyPrefix]
+            [HarmonyPatch("PhysicsMove")]
+            static bool PhysicsMovePrefix(Hoverbike __instance)
+            {// move on water, halve strafe and backward speed
                 if (!Main.config.hoverbikeMoveTweaks)
                     return true;
                 //AddDebug("overWater " + __instance.overWater);
@@ -232,8 +235,8 @@ namespace Tweaks_Fixes
                 Vector3 accel = __instance.horizMoveDir * __instance.forwardAccel;
                 //if (boosting)
                 //{
-                    //__instance.rb.AddForce(__instance.transform.forward * __instance.forwardBoostForce);
-                    //accel += __instance.transform.forward * __instance.forwardBoostForce;
+                //__instance.rb.AddForce(__instance.transform.forward * __instance.forwardBoostForce);
+                //accel += __instance.transform.forward * __instance.forwardBoostForce;
                 //}
                 __instance.rb.AddForce(accel);
                 return false;

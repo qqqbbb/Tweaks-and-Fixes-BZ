@@ -6,14 +6,14 @@ using static ErrorMessage;
 using SMLHelper.V2.Assets;
 
 namespace Tweaks_Fixes
-{
+{   //  47 -14 -28
     [HarmonyPatch(typeof(Brinicle))]
     public class Brinicle_Patch 
     {
         static int daysToGrow = 3; 
 
         [HarmonyPrefix]
-        [HarmonyPatch("SetState", new Type[] {typeof(Brinicle.State), typeof(float)})]
+        [HarmonyPatch("SetState", new Type[] { typeof(Brinicle.State), typeof(float) })]
         public static bool SetStatePrefix(Brinicle __instance, Brinicle.State newState, float changedTime)
         {
             __instance.timeStateCanged = changedTime;

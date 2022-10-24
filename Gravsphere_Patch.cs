@@ -17,7 +17,7 @@ namespace Tweaks_Fixes
         static public HashSet<TechType> gravTrappable = new HashSet<TechType>();
 
         [HarmonyPostfix]
-        [HarmonyPatch(nameof(Gravsphere.IsValidTarget))]
+        [HarmonyPatch("IsValidTarget")]
         public static void OnPickedUp(Gravsphere __instance, GameObject obj, ref bool __result)
         {
             if (__result)
@@ -32,7 +32,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(nameof(Gravsphere.AddAttractable))]
+        [HarmonyPatch("AddAttractable")]
         public static void AddAttractable(Gravsphere __instance, Rigidbody r)
         {
             gravSphere = __instance;
@@ -45,24 +45,23 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(nameof(Gravsphere.ClearAll))]
+        [HarmonyPatch("ClearAll")]
         public static void ClearAll(Gravsphere __instance)
         {
             //AddDebug("ClearAll ");
             gravSphereFish = new HashSet<Pickupable>();
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(nameof(Gravsphere.OnTriggerEnter))]
-        public static bool OnTriggerEnter(Gravsphere __instance, Collider collider)
+        //[HarmonyPrefix]
+        //[HarmonyPatch("OnDropped")]
+        public static bool OnTriggerEnter(Gravsphere __instance, Pickupable p)
         {
-            InventoryItem item = Inventory.main.quickSlots.heldItem;
-            if (item != null && item.item.transform.root.gameObject == collider.transform.root.gameObject)
-            {
-                //AddDebug("OnTriggerEnter heldItem ");
-                return false;
-            }
-            return true;
+
+            AddDebug(" OnDropped ");
+            //__instance.animator.SetBool("deployed", true);
+            //__instance.trigger.enabled = false;
+            //__instance.StartCoroutine(__instance.ActivateAsync());
+            return false;
         }
 
         [HarmonyPatch(typeof(Pickupable), "Pickup")]

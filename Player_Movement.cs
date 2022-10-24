@@ -65,37 +65,39 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(UnderwaterMotor), "AlterMaxSpeed")]
+        [HarmonyPatch(typeof(UnderwaterMotor))]
         internal class AlterMaxSpeedPatch
         {
-            public static bool Prefix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
+            [HarmonyPrefix]
+            [HarmonyPatch("AlterMaxSpeed")]
+            public static bool AlterMaxSpeedPrefix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
             {
                 if (!Main.config.playerMoveTweaks)
                     return true;
                 //AddDebug("AlterMaxSpeed");
                 __result = inMaxSpeed;
 
-                TechType suit = Main.equipment.GetTechTypeInSlot("Body");
+                TechType suit = Inventory.main.equipment.GetTechTypeInSlot("Body");
                 if (suit != TechType.None)
                     __result *= 0.9f;
                 //!!!
                 //if (Player.main.motorMode != Player.MotorMode.Seaglide)
                 //    Utils.AdjustSpeedScalarFromWeakness(ref __result);
 
-                TechType fins = Main.equipment.GetTechTypeInSlot("Foots");
+                TechType fins = Inventory.main.equipment.GetTechTypeInSlot("Foots");
                 if (fins == TechType.Fins)
                     __result *= 1.2f;
                 else if (fins == TechType.UltraGlideFins)
                     __result *= 1.3f;
 
-                TechType tank = Main.equipment.GetTechTypeInSlot("Tank");
+                TechType tank = Inventory.main.equipment.GetTechTypeInSlot("Tank");
                 if (tank == TechType.PlasteelTank)
                     __result *= 0.97f;
                 else if (tank != TechType.None)
                     __result *= 0.9f;
 
 
-                if (Main.pda.isInUse)
+                if (Player.main.pda.isInUse)
                     __result *= 0.5f;
                 else
                 {
@@ -116,7 +118,9 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            public static void Postfix(float inMaxSpeed, ref float __result)
+            [HarmonyPostfix]
+            [HarmonyPatch("AlterMaxSpeed")]
+            public static void AlterMaxSpeedPostfix(float inMaxSpeed, ref float __result)
             {
                 __result *= Main.config.playerSpeedMult;
                 if (Main.config.newHungerSystem)
@@ -150,54 +154,11 @@ namespace Tweaks_Fixes
                 //ms = Player.main.rigidBody.velocity.magnitude;
                 //Main.Message("movementSpeed  " + ms);
             }
-        }
 
-        ////[HarmonyPatch(typeof(PlayerController), "SetMotorMode")]
-        class PlayerController_SetMotorMode_Patch
-        {
-            static void Postfix(PlayerController __instance)
-            {
-                if (Main.config.playerMoveTweaks)
-                { // underWaterController ignores these
-                    //AddDebug("SetMotorMode");
-                    __instance.underWaterController.backwardMaxSpeed = __instance.underWaterController.forwardMaxSpeed * .5f;
-                    __instance.underWaterController.strafeMaxSpeed = __instance.underWaterController.backwardMaxSpeed;
-                    __instance.underWaterController.verticalMaxSpeed = __instance.underWaterController.backwardMaxSpeed;
-
-                    __instance.groundController.backwardMaxSpeed = __instance.groundController.forwardMaxSpeed * .5f;
-                    __instance.groundController.strafeMaxSpeed = __instance.groundController.backwardMaxSpeed;
-                    __instance.groundController.verticalMaxSpeed = __instance.groundController.backwardMaxSpeed;
-                    //AddDebug("backwardMaxSpeed " + __instance.underWaterController.backwardMaxSpeed);
-                    //Main.Log("forwardMaxSpeed " + __instance.forwardMaxSpeed);
-                    //Main.Log("backwardMaxSpeed " + __instance.backwardMaxSpeed);
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(MainCameraControl), "GetCameraBob")]
-        class MainCameraControl_GetCameraBob_Patch
-        {
-            static bool Prefix(MainCameraControl __instance, ref bool __result)
-            {
-                if (!Main.config.cameraBobbing)
-                {
-                    __result = false;
-                    return false;
-                }
-                // Seaglide seaglide = Inventory.main.GetHeldTool() as Seaglide;
-                // bool seagliding = seaglide && seaglide.activeState;
-                __result = Player.main.GetMode() == Player.Mode.Normal && __instance.swimCameraAnimation > 0f && !UWEXR.XRSettings.enabled && MiscSettings.cameraBobbing;
-                //AddDebug(" seagliding " + seagliding);
-                //AddDebug(" GetCameraBob " + __result);
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(UnderwaterMotor), "UpdateMove")]
-        internal class UnderwaterMotor_UpdateMove_Patch
-        { // strafe, backward, vertival speed halved
-            public static bool Prefix(UnderwaterMotor __instance, ref Vector3 __result)
-            {
+            [HarmonyPrefix]
+            [HarmonyPatch("UpdateMove")]
+            public static bool UpdateMovePrefix(UnderwaterMotor __instance, ref Vector3 __result)
+            {// strafe, backward, vertival speed halved
                 if (!Main.config.playerMoveTweaks)
                     return true;
 
@@ -315,23 +276,66 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            public static void Postfix(UnderwaterMotor __instance, ref Vector3 __result)
+            [HarmonyPostfix]
+            [HarmonyPatch("UpdateMove")]
+            public static void UpdateMovePostfix(UnderwaterMotor __instance, ref Vector3 __result)
             {
                 if (Main.config.playerSpeedMult != 1f)
                     __instance.rb.drag /= Main.config.playerSpeedMult;
             }
         }
 
+        ////[HarmonyPatch(typeof(PlayerController), "SetMotorMode")]
+        class PlayerController_SetMotorMode_Patch
+        {
+            static void Postfix(PlayerController __instance)
+            {
+                if (Main.config.playerMoveTweaks)
+                { // underWaterController ignores these
+                    //AddDebug("SetMotorMode");
+                    __instance.underWaterController.backwardMaxSpeed = __instance.underWaterController.forwardMaxSpeed * .5f;
+                    __instance.underWaterController.strafeMaxSpeed = __instance.underWaterController.backwardMaxSpeed;
+                    __instance.underWaterController.verticalMaxSpeed = __instance.underWaterController.backwardMaxSpeed;
+
+                    __instance.groundController.backwardMaxSpeed = __instance.groundController.forwardMaxSpeed * .5f;
+                    __instance.groundController.strafeMaxSpeed = __instance.groundController.backwardMaxSpeed;
+                    __instance.groundController.verticalMaxSpeed = __instance.groundController.backwardMaxSpeed;
+                    //AddDebug("backwardMaxSpeed " + __instance.underWaterController.backwardMaxSpeed);
+                    //Main.Log("forwardMaxSpeed " + __instance.forwardMaxSpeed);
+                    //Main.Log("backwardMaxSpeed " + __instance.backwardMaxSpeed);
+                }
+            }
+        }
+
+        //[HarmonyPatch(typeof(MainCameraControl), "GetCameraBob")]
+        class MainCameraControl_GetCameraBob_Patch
+        {
+            static bool Prefix(MainCameraControl __instance, ref bool __result)
+            {
+                if (!Main.config.cameraBobbing)
+                {
+                    __result = false;
+                    return false;
+                }
+                // Seaglide seaglide = Inventory.main.GetHeldTool() as Seaglide;
+                // bool seagliding = seaglide && seaglide.activeState;
+                __result = Player.main.GetMode() == Player.Mode.Normal && __instance.swimCameraAnimation > 0f && !UWEXR.XRSettings.enabled && MiscSettings.cameraBobbing;
+                //AddDebug(" seagliding " + seagliding);
+                //AddDebug(" GetCameraBob " + __result);
+                return false;
+            }
+        }
+
         private static float AdjustGroundSpeed(float maxSpeed)
         {
-            TechType suit = Main.equipment.GetTechTypeInSlot("Body");
+            TechType suit = Inventory.main.equipment.GetTechTypeInSlot("Body");
             if (suit != TechType.None)
                 maxSpeed *= 0.9f;
-            TechType fins = Main.equipment.GetTechTypeInSlot("Foots");
+            TechType fins = Inventory.main.equipment.GetTechTypeInSlot("Foots");
             if (fins != TechType.None)
                 maxSpeed *= 0.9f;
 
-            TechType tank = Main.equipment.GetTechTypeInSlot("Tank");
+            TechType tank = Inventory.main.equipment.GetTechTypeInSlot("Tank");
             if (tank == TechType.PlasteelTank)
                 maxSpeed *= 0.97f;
             else if (tank != TechType.None)
@@ -343,7 +347,7 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(GroundMotor), "ApplyInputVelocityChange")]
         internal class GroundMotor_ApplyInputVelocityChange_Patch
-        {// can sprint only if moving forward, sideways and backward speed halved 
+        {// sideways and backward speed halved 
             public static bool Prefix(GroundMotor __instance, ref Vector3 __result, Vector3 velocity)
             {
                 //if (!Main.config.playerMoveSpeedTweaks)
@@ -355,7 +359,7 @@ namespace Tweaks_Fixes
                     return false;
                 }
 
-                Quaternion quaternion = !__instance.underWater || !__instance.canSwim ? Quaternion.Euler(0.0f, __instance.playerController.forwardReference.rotation.eulerAngles.y, 0.0f) : __instance.playerController.forwardReference.rotation;
+                Quaternion quaternion = !__instance.underWater || !__instance.canSwim ? Quaternion.Euler(0f, __instance.playerController.forwardReference.rotation.eulerAngles.y, 0f) : __instance.playerController.forwardReference.rotation;
                 Vector3 input = __instance.movementInputDirection;
                 if (Main.config.playerMoveTweaks)
                 {
@@ -365,8 +369,8 @@ namespace Tweaks_Fixes
                         input.z *= .5f;
                 }
                 float inputMagn = Mathf.Min(1f, input.magnitude);
-                float y = !__instance.underWater || !__instance.canSwim ? 0.0f : input.y;
-                input.y = 0.0f;
+                float y = !__instance.underWater || !__instance.canSwim ? 0f : input.y;
+                input.y = 0f;
                 input = quaternion * input;
                 input.y += y;
                 input.Normalize();
@@ -393,36 +397,42 @@ namespace Tweaks_Fixes
                             mult *= __instance.forwardSprintModifier;
                         else if (!Main.config.playerMoveTweaks && z == 0f)
                             mult *= __instance.strafeSprintModifier;
+
                         __instance.sprinting = true;
                         if (timeSprintStart == 0f)
                             timeSprintStart = DayNightCycle.main.timePassedAsFloat;
+
                         timeSprinted = DayNightCycle.main.timePassedAsFloat - timeSprintStart;
                     }
                     hVelocity = input * __instance.forwardMaxSpeed * mult * inputMagn;
                 }
                 if (!__instance.underWater && UWEXR.XRSettings.enabled)
                     hVelocity *= VROptions.groundMoveScale;
+
                 if (!__instance.underWater && __instance.movingPlatform.enabled && __instance.movingPlatform.movementTransfer == GroundMotor.MovementTransferOnJump.PermaTransfer)
                 {
                     hVelocity += __instance.movement.frameVelocity;
-                    hVelocity.y = 0.0f;
+                    hVelocity.y = 0f;
                 }
                 if (!__instance.underWater)
                 {
                     if (__instance.grounded)
                         hVelocity = __instance.AdjustGroundVelocityToNormal(hVelocity, __instance.groundNormal);
                     else
-                        velocity.y = 0.0f;
+                        velocity.y = 0f;
                 }
-                float num4 = __instance.GetMaxAcceleration(__instance.grounded) * Time.deltaTime;
+                float acc = __instance.GetMaxAcceleration(__instance.grounded) * Time.deltaTime;
 
                 Vector3 vector3_5 = hVelocity - velocity;
-                if (vector3_5.sqrMagnitude > num4 * num4)
-                    vector3_5 = vector3_5.normalized * num4;
+                if (vector3_5.sqrMagnitude > acc * acc)
+                    vector3_5 = vector3_5.normalized * acc;
+
                 if (__instance.grounded || __instance.canControl)
                     velocity += vector3_5;
+
                 if (__instance.grounded && !__instance.underWater)
-                    velocity.y = Mathf.Min(velocity.y, 0.0f);
+                    velocity.y = Mathf.Min(velocity.y, 0f);
+
                 __result = velocity;
                 return false;
             }

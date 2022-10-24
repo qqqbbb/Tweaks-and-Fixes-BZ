@@ -603,7 +603,6 @@ namespace Tweaks_Fixes
         }
 
 
-
         //[HarmonyPatch(typeof(CyclopsLocker))]
         public class CyclopsLocker_Patch
         {

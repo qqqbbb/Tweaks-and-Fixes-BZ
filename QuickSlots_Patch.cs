@@ -68,10 +68,12 @@ namespace Tweaks_Fixes
             //GetEquippedTools();
         }
 
-        [HarmonyPatch(typeof(Inventory), "OnAddItem")]
+        [HarmonyPatch(typeof(Inventory))]
         internal class Inventory_OnAddItem_Patch
-        { // this called during loading and tools returned are wrong
-            public static void Postfix(Inventory __instance, InventoryItem item)
+        { // when this called during loading returned tools are wrong
+            [HarmonyPostfix]
+            [HarmonyPatch("OnAddItem")]
+            public static void OnAddItemPostfix(Inventory __instance, InventoryItem item)
             {
                 if (item != null && item.isBindable)
                 {
@@ -80,12 +82,10 @@ namespace Tweaks_Fixes
                     //AddDebug("Inventory OnAddItem ");
                 }
             }
-        }
-
-        [HarmonyPatch(typeof(Inventory), "OnRemoveItem")]
-        internal class Inventory_OnRemoveItem_Patch
-        {
-            public static void Postfix(Inventory __instance, InventoryItem item)
+          
+            [HarmonyPostfix]
+            [HarmonyPatch("OnRemoveItem")]
+            public static void OnRemoveItemPostfix(Inventory __instance, InventoryItem item)
             {
                 if (item != null && item.isBindable)
                 {
@@ -107,20 +107,19 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(QuickSlots), "Bind")]
+        [HarmonyPatch(typeof(QuickSlots))]
         internal class QuickSlots_Bind_Patch
         {
-            public static void Postfix(QuickSlots __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Bind")]
+            public static void BindPostfix(QuickSlots __instance)
             {
                 GetEquippedTools();
                 //AddDebug(" Bind ");
             }
-        }
-
-        [HarmonyPatch(typeof(QuickSlots), "SlotNext")]
-        internal class QuickSlots_SlotNext_Patch
-        {
-            public static bool Prefix(QuickSlots __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("SlotNext")]
+            public static bool SlotNextPrefix(QuickSlots __instance)
             {
                 if (Input.GetKey(Main.config.quickslotKey))
                 {
@@ -133,25 +132,19 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
-        }
-
-        [HarmonyPatch(typeof(QuickSlots), "SlotPrevious")]
-        internal class QuickSlots_SlotPrevious_Patch
-        {
-            public static bool Prefix(QuickSlots __instance)
+            [HarmonyPrefix]
+            [HarmonyPatch("SlotPrevious")]
+            public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
-                if (Input.GetKey(Main.config.quickslotKey))
+                if (Input.GetKey(Main.config.quickslotKey) && Inventory.main.GetHeld() != null)
                 {
-                    Pickupable pickupable = Inventory.main.GetHeld();
-                    if (pickupable != null)
-                    {
-                        EquipNextTool();
-                        return false;
-                    }
+                    EquipNextTool();
+                    return false;
                 }
                 return true;
             }
         }
+
 
     }
 }

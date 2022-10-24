@@ -13,8 +13,8 @@ namespace Tweaks_Fixes
     {
         public static bool rock_01_d_disabled = false;
 
-        [HarmonyPatch("Start")]
         [HarmonyPrefix]
+        [HarmonyPatch("Start")]
         public static void StartPrefix(LargeWorldEntity __instance)
         {
             //if (Vector3.Distance(Player.main.transform.position, __instance.transform.position) < 6)
@@ -23,19 +23,14 @@ namespace Tweaks_Fixes
             //    Main.Log(__instance.name + " close to player");
             //}
             TechType tt = CraftData.GetTechType(__instance.gameObject);
-            //if (tt == TechType.None && __instance.name.StartsWith("kelpcave_root"))
-            {
-                //AttachFruitPlantToKelpRoot(__instance.gameObject);
-                //PrefabPlaceholder[] pphs = __instance.GetComponentsInChildren<PrefabPlaceholder>();
-                //Pickupable[] ps = __instance.GetComponentsInChildren<Pickupable>();
-                //AddDebug(__instance.name + " LargeWorldEntity Start PrefabPlaceholder " + pphs.Length + " Pickupable " + ps.Length);
-                //Main.Log(__instance.name +" LargeWorldEntity Start PrefabPlaceholder " + pphs.Length + " Pickupable " + ps.Length);
-            }
-            if (tt == TechType.GenericJeweledDisk)
+
+
+            if (tt == TechType.GenericJeweledDisk && Main.config.fixCoral)
             {
                 Animator a = __instance.GetComponentInChildren<Animator>();
                 if (a)
                     a.enabled = false;
+
                 Vector3 rot = __instance.gameObject.transform.eulerAngles;
                 //Main.Log("fix GenericJeweledDisk " + __instance.gameObject.transform.position.x + " " + __instance.gameObject.transform.position.y + " " + __instance.gameObject.transform.position.z + " rot " + rot.x + " " + rot.y + " " + rot.z);
                 __instance.gameObject.transform.eulerAngles = new Vector3(rot.x, rot.y, 0f);
@@ -63,9 +58,48 @@ namespace Tweaks_Fixes
                 //PickPrefab[] pickPrefabs = __instance.GetAllComponentsInChildren<PickPrefab>();
                 Plants_Patch.AttachFruitPlant(__instance.gameObject);
             }
+            else if (tt == TechType.TwistyBridgeCoralLong)
+            {// disable collision but allow scanning
+                Collider collider = __instance.GetComponent<Collider>();
+                if (collider)
+                    UnityEngine.Object.Destroy(collider);
+
+                Transform tr = __instance.transform.Find("GameObject");
+                if (tr)
+                {
+                    BoxCollider bc = tr.GetComponent<BoxCollider>();
+                    bc.isTrigger = true;
+                }
+            }
+            else if (tt == TechType.TapePlant )
+            {// disable collision but allow scanningy
+                Transform tr = __instance.transform.GetChild(0);
+                CapsuleCollider cc = __instance.GetComponent<CapsuleCollider>();
+                GameObject go = new GameObject("collision");
+                go.transform.SetParent(__instance.transform);
+                go.transform.position = tr.position;
+                go.transform.localPosition = tr.localPosition;
+                go.layer = 13;
+                CapsuleCollider cc1 = go.AddComponent<CapsuleCollider>();
+                cc1.isTrigger = true;
+                cc1.center = cc.center;
+                cc1.radius = cc.radius;
+                cc1.height = cc.height * cc.height;
+                UnityEngine.Object.Destroy(cc);
+            }
+            else if (tt == TechType.CyanFlower)
+            {// disable collision but allow scanning
+                Transform tr = __instance.transform.Find("collision");
+                if (tr)
+                {
+                    tr.gameObject.layer = 13;
+                    CapsuleCollider cc = tr.GetComponent<CapsuleCollider>();
+                    cc.isTrigger = true;
+                }
+            }
             else if (tt == TechType.None)
             {
-                if (__instance.name == "treespires_fissure_edge_01_b_curved_inner(Clone)")
+                //if (__instance.name == "treespires_fissure_edge_01_b_curved_inner(Clone)")
                 {
                     //int x = (int)__instance.transform.position.x;
                     //int y = (int)__instance.transform.position.y;
@@ -78,7 +112,7 @@ namespace Tweaks_Fixes
                         //__instance.transform.eulerAngles = new Vector3(rot.x, rot.y, 359f);
                     }
                 }
-                else if(__instance.name == "treespires_fissure_edge_01_b_straight(Clone)")
+                if(__instance.name == "treespires_fissure_edge_01_b_straight(Clone)")
                 {
                     int x = (int)__instance.transform.position.x;
                     int y = (int)__instance.transform.position.y;
@@ -115,19 +149,9 @@ namespace Tweaks_Fixes
                     {
                         __instance.transform.position = new Vector3(__instance.transform.position.x, -401f, __instance.transform.position.z);
                     }
-                    else if (x == -112 && y == -444 && z == -1430)// this can't be moved down
-                    { 
-                    }
-                    else if (x == -208 && y == -376 && z == -1332)
-                    { // there is 2 of them! reported to UWE, should be fixed
-                        if (rock_01_d_disabled)
-                            __instance.transform.position = new Vector3(-209f, -377.4f, -1331.5f);
-                        else
-                        {
-                            __instance.gameObject.SetActive(false);
-                            rock_01_d_disabled = true;
-                        }
-                    }
+                    //else if (x == -112 && y == -444 && z == -1430)// this can't be moved down
+                    //{ 
+                    //}
                 }
                 else if (__instance.name == "treespires_eroded_rock_01_e(Clone)")
                 {
@@ -135,7 +159,7 @@ namespace Tweaks_Fixes
                     int y = (int)__instance.transform.position.y;
                     int z = (int)__instance.transform.position.z;
                     if (x == -222 && y == -396 && z == -1394)
-                    { // -222.97 -396.54 -1394.43        0  166.82 341.89
+                    { // -222.97 -396.54 -1394.43    
                         __instance.transform.position = new Vector3(-224f, __instance.transform.position.y, __instance.transform.position.z);
                         Vector3 rot = __instance.transform.eulerAngles;
                         __instance.transform.eulerAngles = new Vector3(rot.x, 177f, 338f);
@@ -157,9 +181,9 @@ namespace Tweaks_Fixes
             //}
             //else if (tt == TechType.Boomerang || tt == TechType.CookedBoomerang)
         }
-     
-        [HarmonyPatch("Start")]
+
         [HarmonyPostfix]
+        [HarmonyPatch("Start")]
         public static void StartPostfix(LargeWorldEntity __instance)
         {
             //TechType tt = CraftData.GetTechType(__instance.gameObject);
@@ -176,6 +200,7 @@ namespace Tweaks_Fixes
                     //Main.Log(__instance.name + " lodGroup " + lodG.name);
                     if (!lodG.enabled)
                         continue;
+
                     if (lodG.lodCount == 1)
                     {
                         lodG.enabled = false;
@@ -225,6 +250,14 @@ namespace Tweaks_Fixes
         {
             if (!Main.loadingDone)
                 return false;
+
+            //AddDebug(__instance.name + " StartFading ");
+            if (Tools_Patch.equippedTool != null && Tools_Patch.equippedTool.gameObject.Equals(__instance.gameObject))
+            {
+                //AddDebug(__instance.name + " StartFading equippedTool");
+                Tools_Patch.equippedTool = null;
+                return false;
+            }
             else if(Tools_Patch.releasingGrabbedObject)
             {
                 Tools_Patch.releasingGrabbedObject = false;

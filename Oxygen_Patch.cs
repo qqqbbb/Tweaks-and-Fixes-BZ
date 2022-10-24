@@ -19,20 +19,12 @@ namespace Tweaks_Fixes
         {
             void OnTriggerExit(Collider other)
             {
-                if (other.gameObject.FindAncestor<Player>() == Player.main)
+                if (other.gameObject.FindAncestor<Player>().Equals(Player.main))
                 {
                     Main.canBreathe = false;
                     //AddDebug("OnTriggerExit ");
                 }
             }
-            //void OnTriggerEnter(Collider other)
-            //{
-            //    if (other.gameObject.FindAncestor<Player>() == Player.main)
-            //    {
-            //        Main.canBreathe = true;
-            //        AddDebug("OnTriggerEnter ");
-            //    }
-            //}
         }
 
         static void SpawnBubble(Vector3 position)
@@ -144,7 +136,7 @@ namespace Tweaks_Fixes
         { // OnTriggerExit does not fire when you pick up pipe
             public static void Postfix(OxygenArea __instance, Collider other)
             {
-                if (other.gameObject.FindAncestor<Player>() == Player.main)
+                if (other.gameObject.FindAncestor<Player>().Equals(Player.main))
                 {
                     Main.canBreathe = true;
                     //AddDebug("OnTriggerStay ");
@@ -176,7 +168,7 @@ namespace Tweaks_Fixes
         { 
             internal static bool Prefix(Player __instance, ref float __result, float breathingInterval, int depthClass)
             {
-                if (GameModeUtils.RequiresOxygen())
+                if (GameModeManager.GetOption<bool>(GameOption.OxygenDepletes))
                     __result = Main.config.oxygenPerBreath;
                 else
                     __result = 0f;
@@ -189,9 +181,9 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(Player), "GetBreathPeriod")]
-        internal class Player_GetBreathPeriod_Patch
+        class Player_GetBreathPeriod_Patch
         {
-            internal static bool Prefix(Player __instance, ref float __result)
+            static bool Prefix(Player __instance, ref float __result)
             {
                 //AddDebug("depthLevel " + (int)__instance.depthLevel);
                 //AddDebug("depthOf " + (int)Ocean.main.GetDepthOf(__instance.gameObject);
@@ -255,7 +247,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance.GetComponent<Bladderfish>() || __instance.GetComponent<Floater>())
                 {
-                    //AddDebug("Kill ");
+                    AddDebug("Kill ");
                     SpawnBubble(__instance.gameObject.transform.position);
                 }
 

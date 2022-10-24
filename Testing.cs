@@ -7,17 +7,14 @@ using SMLHelper.V2.Handlers;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using FMOD;
-using FMOD.Studio;
-using FMODUnity;
 using System.Text;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 { 
     class Testing
-    {// -29 -79 -861
-
+    {// purpleVent -29 -79 -861
+        // crypto -90 -7 -340
         //[HarmonyPatch(typeof(uGUI_PDA), "OnOpenPDA")]
         class uGUI_PDA_Patch
         {
@@ -36,6 +33,10 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
                 //AddDebug("_dayNightSpeed " + DayNightCycle.main._dayNightSpeed);
+                //AddDebug("CreatureAggressionModifier " + GameOption.CreatureAggressionModifier);
+                //AddDebug("IsUnderwater " + Player.main.IsUnderwater());
+                //AddDebug("GetPlayerTemperature " + (int)Main.GetPlayerTemperature());
+                //AddDebug("ambientTemperature " + (int)Player_Patches.ambientTemperature);
                 BodyTemperature bt = __instance.GetComponent<BodyTemperature>();
                 if (bt)
                 {
@@ -85,13 +86,23 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+                    //AddDebug("CreatureAggressionModifier " + GameModeManager.GetOption<float>(GameOption.CreatureAggressionModifier));
+                    GameObject target = Player.main.guiHand.activeTarget;
+                    if (!target)
+                    {
+                        Targeting.GetTarget(Player.main.gameObject, 5f, out target, out float targetDist);
+                    }
+                    if (target)
+                    {
+                        AddDebug(target.name);
+                        AddDebug("parent " + target.transform.parent.name);
+                    }
                     //VFXSurfaceTypes vfxSurfaceTypes = VFXSurfaceTypes.none;
                     //int layerMask = 1 << LayerID.TerrainCollider | 1 << LayerID.Default;
                     //RaycastHit hitInfo;
                     //if (Physics.Raycast(MainCamera.camera.transform.position, MainCamera.camera.transform.forward, out hitInfo, 3f, layerMask) && hitInfo.collider.gameObject.layer == LayerID.TerrainCollider)
                     //    vfxSurfaceTypes = Utils.GetTerrainSurfaceType(hitInfo.point, hitInfo.normal);
                     //AddDebug("vfxSurfaceTypes " + vfxSurfaceTypes);
-
                     //TechType tt = TechType.IceBubble;
                     //string classid = CraftData.GetClassIdForTechType(tt);
                     //CoroutineTask<GameObject> result = AddressablesUtility.InstantiateAsync("PrefabInstance/Bubble", position: Player.main.transform.position);
@@ -105,7 +116,6 @@ namespace Tweaks_Fixes
                         //GameObject go = result.GetResult();
                     }
                     //Survival survival = Player.main.GetComponent<Survival>();
-
                     //if (Input.GetKey(KeyCode.LeftShift))
                     //    survival.water++;
                     //else
@@ -125,7 +135,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug(" Base_Light.bases " +);
                     //Inventory.main.quickSlots.SelectImmediate(Main.config.activeSlot);
-                    GameObject target = Main.guiHand.activeTarget;
+                    GameObject target = Player.main.guiHand.activeTarget;
                     //AddDebug("activeTarget parent " + target.transform.parent.name);
                     //AddDebug("activeTarget parent parent " + target.transform.parent.parent.name);
                     if (!target)
@@ -139,16 +149,15 @@ namespace Tweaks_Fixes
                         {
                             AddDebug("target " + pi.gameObject.name);
                             AddDebug("target TechType " + CraftData.GetTechType(pi.gameObject));
+                            //AddDebug("IsLightOn " + Predators_Patch.IsLightOn(pi.gameObject));
                             int x = (int)pi.transform.position.x;
                             int y = (int)pi.transform.position.y;
                             int z = (int)pi.transform.position.z;
-                            AddDebug(x + " " + y + " " + z);
-                            Brinicle brinicle = pi.GetComponent<Brinicle>();
-                            if (brinicle)
-                                AddDebug("Brinicle " + brinicle.state );
+                            //AddDebug(x + " " + y + " " + z);
                         }
                         else
                         {
+                            //AddDebug("IsVehicle " + Predators_Patch.IsVehicle(target));
                             AddDebug("target " + target.name);
                             AddDebug("target TechType " + CraftData.GetTechType(target));
                         }
@@ -202,7 +211,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(SoundQueue), "Play", new Type[6] { typeof(string), typeof(SoundHost), typeof(bool), typeof(string), typeof(int), typeof(int) })]
+        //[HarmonyPatch(typeof(SoundQueue), "Play", new Type[6] { typeof(string), typeof(SoundHost), typeof(bool), typeof(string), typeof(int), typeof})]
         class SoundQueue_PlayQueued_Patch
         {
             public static bool Prefix(SoundQueue __instance, string sound)

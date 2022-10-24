@@ -101,8 +101,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(PickPrefab))]
         class PickPrefab_Patch
         {
-            [HarmonyPatch("Start")]
             [HarmonyPrefix]
+            [HarmonyPatch("Start")]
             public static void StartPrefix(PickPrefab __instance)
             {
                 if (__instance.pickTech == TechType.IceFruit)
@@ -149,8 +149,9 @@ namespace Tweaks_Fixes
                 light.intensity = creepVineSeedLightInt - (float)fp.inactiveFruits.Count / (float)fp.fruits.Length * creepVineSeedLightInt;
                 //AddDebug(" intensity " + light.intensity);
             }
-            [HarmonyPatch("SetPickedState")]
+
             [HarmonyPostfix]
+            [HarmonyPatch("SetPickedState")]
             public static void SetPickedStatePostfix(PickPrefab __instance, bool newPickedState)
             {
                 //AddDebug(__instance.pickTech + " SetPickedState " + newPickedState);
@@ -203,11 +204,12 @@ namespace Tweaks_Fixes
                     __instance.fruitSpawnInterval = 1f;
             }
             [HarmonyPrefix]
-            [HarmonyPatch(nameof(FruitPlant.Initialize))]
+            [HarmonyPatch("Initialize")]
             public static bool InitializePrefix(FruitPlant __instance)
             {
                 if (__instance.initialized)
                     return false;
+
                 __instance.inactiveFruits.Clear();
                 if (__instance.fruits == null)
                 {
@@ -225,8 +227,8 @@ namespace Tweaks_Fixes
             }
 
             [HarmonyPostfix]
-            [HarmonyPatch(nameof(FruitPlant.Initialize))]
-            public static void Postfix(FruitPlant __instance)
+            [HarmonyPatch("Initialize")]
+            public static void InitializePostfix(FruitPlant __instance)
             {
                 if (CraftData.GetTechType(__instance.gameObject) == TechType.Creepvine)
                 {
@@ -363,7 +365,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Pickupable), nameof(Pickupable.OnHandClick))]
+        //[HarmonyPatch(typeof(Pickupable), "OnHandClick")]
         class Pickupable_OnHandClick_Patch
         {
             public static void Postfix(Pickupable __instance)
@@ -374,7 +376,8 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        //[HarmonyPatch(typeof(PickPrefab), nameof(PickPrefab.OnHandClick))]
+      
+        //[HarmonyPatch(typeof(PickPrefab), "OnHandClick")]
         class PickPrefab_OnHandClick_Patch
         {
             public static void Postfix(Pickupable __instance)

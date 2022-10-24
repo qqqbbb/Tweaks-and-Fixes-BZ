@@ -9,8 +9,6 @@ namespace Tweaks_Fixes
 {
     class Food_Patch : MonoBehaviour
     {
-        //static float waterValueMult = 1f;
-        //static float foodValueMult = 1f;
         static float foodCons = .5f; // vanilla 0.4
         static float waterCons = .5f; // vanilla 0.55
         //static float updateHungerInterval { get { return Main.config.hungerUpdateInterval / DayNightCycle.main.dayNightSpeed; } }
@@ -77,7 +75,11 @@ namespace Tweaks_Fixes
         public static void CheckWater(Eatable eatable)
         {   // __instance.timeDecayStart stores decay value
             float temp = Main.GetTemperature(eatable.gameObject);
-            //AddDebug(eatable.name + " CheckWater " + eatable.timeDecayStart);
+            //TechType tt = CraftData.GetTechType(eatable.gameObject);
+            //if (tt == TechType.BigFilteredWater)
+                //AddDebug(eatable.name + " CheckWater " + temp);
+                //AddDebug(eatable.name + " CheckWater " + eatable.timeDecayStart);
+
             if (temp < 0f)
             {
                 //AddDebug(" freeze " + eatable.name);
@@ -147,6 +149,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance.throwing)
                     __instance.sequence.Update();
+
                 return false;
             }
         }
@@ -157,37 +160,51 @@ namespace Tweaks_Fixes
             //AddDebug("UpdateStats  " + updateHungerInterval);
             float oldFood = __instance.food;
             float oldWater = __instance.water;
-            __instance.food -= foodCons;
-            __instance.water -= waterCons;
+            bool hunger = GameModeManager.GetOption<bool>(GameOption.Hunger);
+            bool thirst = GameModeManager.GetOption<bool>(GameOption.Thirst);
+
+            if (hunger)
+                __instance.food -= foodCons;
+
+            if (thirst)
+                __instance.water -= waterCons;
+
             if (Player_Movement.timeSprinted > 0f)
             {
                 float sprintFoodCons = foodCons * Player_Movement.timeSprinted * Main.config.hungerUpdateInterval * .01f;
                 //AddDebug("UpdateStats timeSprinted " + Player_Movement.timeSprinted);
                 //AddDebug("UpdateStats sprintFoodCons " + sprintFoodCons);
-                __instance.food -= sprintFoodCons;
-                __instance.water -= sprintFoodCons;
+                if (hunger)
+                    __instance.food -= sprintFoodCons;
+
+                if (thirst)
+                    __instance.water -= sprintFoodCons;
+
                 Player_Movement.timeSprintStart = 0f;
                 Player_Movement.timeSprinted = 0f;
             }
             float foodDamage = 0f;
-            if (__instance.food < -100f)
+            if (hunger && __instance.food < -100f)
             {
                 foodDamage = Mathf.Abs(__instance.food + 100f);
                 __instance.food = -100f;
             }
-            if (__instance.water < -100f)
+            if (thirst && __instance.water < -100f)
             {
                 foodDamage += Mathf.Abs(__instance.water + 100f);
                 __instance.water = -100f;
             }
             if (foodDamage > 0)
                 Player.main.liveMixin.TakeDamage(foodDamage, Player.main.gameObject.transform.position, DamageType.Starve);
+
             float threshold1 = Main.config.newHungerSystem ? 0f : 20f;
             float threshold2 = Main.config.newHungerSystem ? -50f : 10f;
-            __instance.UpdateWarningSounds(__instance.foodWarningSounds, __instance.food, oldFood, threshold1, threshold2);
-            __instance.UpdateWarningSounds(__instance.waterWarningSounds, __instance.water, oldWater, threshold1, threshold2);
+            if (GameModeManager.GetOption<bool>(GameOption.ShowHungerAlerts))
+            { 
+                __instance.UpdateWarningSounds(__instance.foodWarningSounds, __instance.food, oldFood, threshold1, threshold2);
+                __instance.UpdateWarningSounds(__instance.waterWarningSounds, __instance.water, oldWater, threshold1, threshold2);
+            }
             hungerUpdateTime = Time.time + Main.config.hungerUpdateInterval;
-
             //AddDebug("Invoke  hungerUpdateInterval " + Main.config.hungerUpdateInterval);
             //AddDebug("Invoke dayNightSpeed " + DayNightCycle.main.dayNightSpeed);
             //__instance.Invoke("UpdateHunger", updateHungerInterval);
@@ -198,18 +215,15 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Player __instance)
             {
-                if (!GameModeUtils.RequiresSurvival() || Main.survival.freezeStats || !Main.loadingDone)
+                if (!GameModeManager.GetOption<bool>(GameOption.Hunger) || Main.survival.freezeStats || !Main.loadingDone)
                     return;
 
                 if (hungerUpdateTime > Time.time)
                     return;
 
+                //AddDebug("UpdateHunger");
                 if (Main.config.newHungerSystem)
-                {
                     UpdateStats(Main.survival);
-                    //__instance.Invoke("UpdateHunger", updateHungerInterval);
-                    //AddDebug("updateHungerInterval " + updateHungerInterval);
-                }
                 else
                     Main.survival.UpdateHunger();
             }
@@ -231,20 +245,6 @@ namespace Tweaks_Fixes
                         if (Main.IsEatableFishAlive(go))
                             Main.CookFish(go);
                     }
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(PlayerTool), "Awake")]
-        internal class PlayerTool_Patch
-        {
-            public static void Postfix(PlayerTool __instance)
-            {
-                //TechType tt = CraftData.GetTechType(__instance.gameObject);
-   
-                //if (Main.cooking)
-                {
-                    AddDebug(__instance.name + " Awake ");
                 }
             }
         }
@@ -355,24 +355,24 @@ namespace Tweaks_Fixes
                 //AddDebug("minWater " + minWater + " maxWater " + maxWater);
                 float finalWater = Mathf.Min(water, rndWater);
                 //AddDebug("finalWater " + finalWater);
-                if (Main.config.newHungerSystem && __instance.food > 100f && finalFood > 0)
+                if (Main.config.newHungerSystem && __instance.food > 100f && finalFood > 0f)
                 {
                     float mult = (200f - __instance.food) * .01f;
                     finalFood *= mult;
                 }
-                if (Main.config.newHungerSystem && __instance.water > 100f && finalWater > 0)
+                if (Main.config.newHungerSystem && __instance.water > 100f && finalWater > 0f)
                 {
                     float mult = (200f - __instance.water) * .01f;
                     finalWater *= mult;
                     //AddDebug("newHungerSystem finalWater " + finalWater);
                 }
-                if (finalWater < 0 && __instance.water + finalWater < playerMinFood)
+                if (finalWater < 0f && __instance.water + finalWater < playerMinFood)
                 {
                     int waterDamage = (int)(__instance.water + finalWater - playerMinFood);
                     //AddDebug("waterDamage " + waterDamage);
                     Player.main.liveMixin.TakeDamage(Mathf.Abs(waterDamage), Player.main.gameObject.transform.position, DamageType.Starve);
                 }
-                if (finalFood < 0 && __instance.food + finalFood < playerMinFood)
+                if (finalFood < 0f && __instance.food + finalFood < playerMinFood)
                 {
                     int foodDamage = (int)(__instance.food + finalFood - playerMinFood);
                     //AddDebug("foodDamage " + foodDamage);
@@ -391,22 +391,22 @@ namespace Tweaks_Fixes
                 if (finalWater > 0)
                     GoalManager.main.OnCustomGoalEvent("Drink_Something");
 
-                __instance.onEat.Trigger((float)finalFood);
+                __instance.onEat.Trigger(finalFood);
                 __instance.food += finalFood;
-                __instance.onDrink.Trigger((float)finalWater);
+                __instance.onDrink.Trigger(finalWater);
                 __instance.water += finalWater;
-                if (healthValue != 0)
+                if (healthValue != 0f)
                 {
                     //AddDebug("healthValue " + healthValue);
-                    if (healthValue > 0)
+                    if (healthValue > 0f)
                     {
                         __instance.liveMixin.AddHealth(healthValue);
                         GoalManager.main.OnCustomGoalEvent("Heal_Damage");
                     }
-                    else if (healthValue <= -1.0)
+                    else if (healthValue <= -1f)
                         __instance.liveMixin.TakeDamage(-healthValue, type: DamageType.FoodPoison);
                 }
-                if (coldMeterValue != 0)
+                if (coldMeterValue != 0f)
                 {
                     //AddDebug(" survival eat coldMeterValue " + coldMeterValue);
                     __instance.bodyTemperature.AddCold(coldMeterValue);
@@ -437,9 +437,10 @@ namespace Tweaks_Fixes
                 int warn = Main.config.newHungerSystem ? 0 : 20;
                 if (!__instance.InConversation())
                 {
-                    if (finalWater > 0 && __instance.water > warn && __instance.water - finalWater < warn)
+                    if (finalWater > 0f && __instance.water > warn && __instance.water - finalWater < warn)
                         __instance.vitalsOkNotification.Play();
-                    else if (finalFood > 0 && __instance.food > warn && __instance.food - finalWater < warn)
+
+                    else if (finalFood > 0f && __instance.food > warn && __instance.food - finalWater < warn)
                         __instance.vitalsOkNotification.Play();
                 }
                 if (IsWater(eatable))
@@ -524,17 +525,6 @@ namespace Tweaks_Fixes
                     {
                         __instance.waterValue = __instance.foodValue * .5f;
                     }
-                    //else if (__instance.decomposes)
-                    //{
-                        //if (Main.IsEatableFish(__instance.gameObject))
-                        //{
-                            //AddDebug("dead Fish " + __instance.gameObject.name);
-                        //    __instance.waterValue = Mathf.Abs(__instance.foodValue) * .5f;
-                        //}
-
-                        //Main.Log(tt + " decomposes " + __instance.kDecayRate);
-                        //Main.Log(tt + " decomposes half" + __instance.kDecayRate);
-                    //}
                 }
             }
 
@@ -601,10 +591,10 @@ namespace Tweaks_Fixes
             }
 
             //[HarmonyPostfix]
-            //[HarmonyPatch("GetWaterValue")]
-            public static void GetWaterValuePostfix(Eatable __instance, ref float __result)
+            //[HarmonyPatch("UnpauseDecay")]
+            public static void GetWaterValuePostfix(Eatable __instance)
             {
-                //if (IsWater(__instance))
+                if (IsWater(__instance))
                 {
                     //if (__result > __instance.waterValue)
                     //    __result = __instance.waterValue;
@@ -630,9 +620,39 @@ namespace Tweaks_Fixes
 
         }
 
+        [HarmonyPatch(typeof(Fridge))]
+        class Fridge_patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("AddItem")]
+            static bool AddItemPrefix(Fridge __instance, InventoryItem item)
+            { // dont touch timeDecayStart if water
+                if (item == null || item.item == null)
+                    return false;
 
+                Eatable eatable = item.item.GetComponent<Eatable>();
+                if (eatable == null || IsWater(eatable) || !eatable.decomposes || !__instance.powerConsumer.IsPowered())
+                    return false;
+
+                eatable.PauseDecay();
+                return false;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("RemoveItem")]
+            static bool RemoveItemPrefix(Fridge __instance, InventoryItem item)
+            { // dont touch timeDecayStart if water
+                if (item == null || item.item == null)
+                    return false;
+                Eatable eatable = item.item.GetComponent<Eatable>();
+                if (eatable == null || IsWater(eatable) || !eatable.decomposes)
+                    return false;
+                eatable.UnpauseDecay();
+                return false;
+            }
+        }
+           
         //[HarmonyPatch(typeof(Inventory), "ConsumeResourcesForRecipe")]
-        class Inventory_ConsumeResourcesForRecipe_patch
+            class Inventory_ConsumeResourcesForRecipe_patch
         {
             public static void Postfix(Inventory __instance, TechType techType)
             {
