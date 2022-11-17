@@ -12,32 +12,7 @@ namespace Tweaks_Fixes
         static float healTime = 0f;
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
 
-        [HarmonyPatch(typeof(BeaconLabel))]
-        class BeaconLabel_Patch
-        {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
-            static void StartPostfix(BeaconLabel __instance)
-            {
-                Collider collider = __instance.GetComponent<Collider>();
-                if (collider)
-                    UnityEngine.Object.Destroy(collider);
-            }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("OnPickedUp")]
-            static bool OnPickedUpPrefix(BeaconLabel __instance)
-            {
-                return false;
-            }
-
-            [HarmonyPrefix]
-            [HarmonyPatch("OnDropped")]
-            static bool OnDroppedPrefix(BeaconLabel __instance)
-            {
-                return false;
-            }
-        }
 
         [HarmonyPatch(typeof(Pickupable))]
         class Pickupable_Patch_
@@ -121,7 +96,7 @@ namespace Tweaks_Fixes
                 }
                 StringBuilder stringBuilder = new StringBuilder(text1);
                 stringBuilder.Append(UI_Patches.beaconPickString);
-                HandReticle.main.SetText(HandReticle.TextType.Hand, stringBuilder.ToString(), false, GameInput.Button.LeftHand);
+                HandReticle.main.SetText(HandReticle.TextType.Hand, stringBuilder.ToString(), false, GameInput.Button.Deconstruct);
                 HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
             }
         }

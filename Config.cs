@@ -23,6 +23,10 @@ namespace Tweaks_Fixes
         //public float vehicleDamageMult = 1f;
         [Slider("Prawn suit speed multiplier", .5f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your prawn suit speed will be multiplied by this.")]
         public float vehicleSpeedMult = 1f;
+        [Slider("Seatruck speed multiplier", .5f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your seatruck speed will be multiplied by this.")]
+        public float seatruckSpeedMult = 1f;
+        [Slider("Snowfox speed multiplier", .5f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your snowfox speed will be multiplied by this.")]
+        public float snowfoxSpeedMult = 1f;
         //[Slider("Predator aggression multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher it is the more aggressive predators are towards you. When it's 0 you and your vehicles will never be attacked. When it's 3 predators attack you on sight and never flee.")]
         //public float aggrMult = 1f;
         [Slider("Oxygen per breath", 0f, 6f, DefaultValue = 3f, Step = 0.1f, Format = "{0:R0}", Tooltip = "Amount of oxygen you consume every breath.")]
@@ -40,7 +44,7 @@ namespace Tweaks_Fixes
         public float buildTimeMult = 1f;
         [Toggle("Player movement tweaks", Tooltip = "Player vertical, backward, sideways movement speed is halved. Any diving suit reduces your speed by 10% on land and in water. Fins reduce your speed by 10% on land. Lightweight high capacity tank reduces your speed by 5%. Every other tank reduces your speed by 10% on both land and water. Camera now does not bob up and down when swimming. You can sprint only if moving forward. Seaglide works only if moving forward. When swimming while your PDA is open your movement speed is halved. When swimming while holding a tool in your hand your movement speed is reduced to 70%.")]
         public bool playerMoveTweaks = false;
-        [Toggle("Only ambient tempterature makes player warm", Tooltip = "In vanilla game when you are underwater you get warm if moving and get cold if not. When out of water some areas (caves, your unpowered base) make you warm regardless of ambient tempterature. With this on you get warm only if ambient temperature is above 15°C.")]
+        [Toggle("Only ambient tempterature makes player warm", Tooltip = "In vanilla game when you are underwater you get warm if moving and get cold when not. When out of water some areas (caves, your unpowered base) make you warm regardless of ambient tempterature. With this on you get warm only if ambient temperature is above getWarmTemp setting.")]
         public bool useRealTempForColdMeter = false;
         [Slider("Inventory weight multiplier in water", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
         public float invMultWater = 0f;
@@ -85,8 +89,10 @@ namespace Tweaks_Fixes
         [Toggle("Can't eat underwater", Tooltip = "You won't be able to eat or drink underwater.")]
         public bool cantEatUnderwater = false;
 
-        [Slider("Food decay rate multiplier", 0.1f, 2f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "Food decay rate will be multiplied by this.")]
+        [Slider("Food decay rate multiplier", 0.1f, 2f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "Food decay rate will be multiplied by this. The game has to be reloaded after changing this.")]
         public float foodDecayRateMult = 1f;
+        [Slider("Water freeze rate multiplier", 0f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Bottled water will freeze at this rate if ambient temperature is below 0 C°. The game has to be reloaded after changing this.")]
+        public float waterFreezeRate = 1f;
         [Slider("Snowball water value", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "When you eat a snowball, you will get this amount of water and lose this amount of warmth. The game has to be reloaded after changing this.")]
         public int snowballWater = 0;
         [Slider("Catchable fish speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of fish that you can catch will be multiplied by this.")]
@@ -153,17 +159,14 @@ namespace Tweaks_Fixes
         public bool craftVehicleUpgradesOnlyInMoonpool = false;
         [Choice("Losing items when you die", Tooltip = "When set to 'All' you will drop every item in your inventory when you die.")]
         public LoseItemsOnDeath loseItemsOnDeath;
-
+        //[Toggle("Can't repair vehicles in water", Tooltip = "")]
+        //public bool cantRepairVehicleInWater = false;
         [Toggle("No particles when creature dies", Tooltip = "No particles (yellow cloud) will spawn when a creature dies. Game has to be reloaded after changing this.")]
         public bool noKillParticles = false;
         [Toggle("Always show health and food values in UI", Tooltip = "Health and food values will be always shown not only when PDA is open.")]
         public bool alwaysShowHealthNunbers = false;
-        //[Toggle("No easy shale outcrops from sea treaders", Tooltip = "Sea treaders unearth shale outcrops only when stomping the ground.")]
-        //public bool seaTreaderChunks = false;
-        //[Toggle("Disable reaper's roar", Tooltip = "Game has to be reloaded after changing this.")]
-        //public bool disableReaperRoar = false;
-        //[Toggle("No metal clicking sound when walking", Tooltip = "Removes metal clicking sound when walking on metal surface.")]
-        //public bool fixFootstepSound = false;
+        [Slider("Brinewing freeze damage", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "When this is not 0 brinewing attack will drain your cold meter by this amount instead of freezing you.")]
+        public int brinewingAttackColdDamage = 0;
         [Toggle("Camera bobbing", Tooltip = "Camera bobbing when swimming."), OnChange(nameof(ToggleCameraBobbing))]
         public bool cameraBobbing = true;
         //[Toggle("Turn off lights in your base"), OnChange(nameof(UpdateBaseLight))]
@@ -291,7 +294,7 @@ namespace Tweaks_Fixes
         public bool randomPlantRotation = true;
         public bool fixMelons = true;
         public bool fixCoral = true;
-
+        public bool seaGlideMap = true;
         //private void EatRawFishChangedEvent(ChoiceChangedEventArgs e)
         //{
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 

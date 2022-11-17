@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using HarmonyLib;
 using static ErrorMessage;
+using System.Collections;
+using FMOD;
+using FMOD.Studio;
+using FMODUnity;
 
 namespace Tweaks_Fixes
 {
@@ -11,10 +15,79 @@ namespace Tweaks_Fixes
         public static bool releasingGrabbedObject = false;
         public static List<GameObject> repCannonGOs = new List<GameObject>();
         public static PlayerTool equippedTool;
+        public static List<PlayerTool> fixedFish = new List<PlayerTool>();
+
+        public static IEnumerator FixDeadFish()
+        {
+            while (!uGUI.main.hud.active)
+                yield return null;
+
+            yield return new WaitForSeconds(0.5f);
+            int activeSlot = Inventory.main.quickSlots.activeSlot;
+            //AddDebug("DeselectImmediate " + Inventory.main.quickSlots.activeSlot);
+            Inventory.main.quickSlots.DeselectImmediate();
+            Inventory.main.quickSlots.Select(activeSlot);
+        }
 
         [HarmonyPatch(typeof(Knife), "OnToolUseAnim")]
-        class Knife_OnToolUseAnim_Postfix_Patch
+        class Knife_OnToolUseAnim_Prefix_Patch
         {
+            public static bool Prefix(Knife __instance)
+            {
+                Vector3 position = new Vector3();
+                GameObject closestObj = null;
+                Vector3 normal;
+                UWE.Utils.TraceFPSTargetPosition(Player.main.gameObject, __instance.attackDist, ref closestObj, ref position, out normal);
+                if (closestObj == null)
+                {
+                    InteractionVolumeUser component = Player.main.gameObject.GetComponent<InteractionVolumeUser>();
+                    if (component != null && component.GetMostRecent() != null)
+                        closestObj = component.GetMostRecent().gameObject;
+                }
+                if (closestObj)
+                {
+                    GameObject root = null;
+                    LargeWorldEntity lwe = closestObj.GetComponentInParent<LargeWorldEntity>();
+                    if (lwe)
+                        root = lwe.gameObject;
+
+                    //AddDebug("closestObj " + closestObj.name);
+                    //AddDebug("root " + root.name);
+
+                    LiveMixin lm = closestObj.GetComponent<LiveMixin>();
+
+                    if (lm && Knife.IsValidTarget(lm))
+                    {
+                        bool wasAlive = lm.IsAlive();
+                        lm.TakeDamage(__instance.damage, position, __instance.damageType, Utils.GetLocalPlayer());
+                        __instance.GiveResourceOnDamage(closestObj, lm.IsAlive(), wasAlive);
+                    }
+                    VFXSurface surface = closestObj.GetComponent<VFXSurface>();
+                    if (surface == null && root != null)
+                        surface = root.GetComponent<VFXSurface>();
+
+                    Vector3 euler = MainCameraControl.main.transform.eulerAngles + new Vector3(300f, 90f, 0f);
+                    //if (surface)
+                    //    AddDebug("surface " + surface.surfaceType);
+
+                    VFXSurfaceTypeManager.main.Play(surface, __instance.vfxEventType, position, Quaternion.Euler(euler), Player.main.transform);
+
+                    VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
+                    if (surface)
+                        vfxSurfaceType = surface.surfaceType;
+                    else
+                        vfxSurfaceType = Utils.GetTerrainSurfaceType(position, normal, VFXSurfaceTypes.sand);
+
+                    FMOD.Studio.EventInstance fmodEvent = Utils.GetFMODEvent(__instance.hitSound, __instance.transform.position);
+                    fmodEvent.setParameterValueByIndex(__instance.surfaceParamIndex, (int)vfxSurfaceType);
+                    fmodEvent.start();
+                    fmodEvent.release();
+                }
+                Utils.PlayFMODAsset(Player.main.IsUnderwater() ? __instance.swingWaterSound : __instance.swingSound, __instance.transform.position);
+                return false;
+
+            }
+              
             public static void Postfix(Knife __instance)
             {
                 if (!Player.main.guiHand.activeTarget)
@@ -39,16 +112,25 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
-        [HarmonyPatch(typeof(PlayerTool), "OnDraw")]
+        
+        [HarmonyPatch(typeof(PlayerTool))]
         class PlayerTool_OnDraw_Patch
         {
             static float knifeRangeDefault = 0f;
             static float knifeDamageDefault = 0f;
-       
-            public static void Postfix(PlayerTool __instance)
+
+            [HarmonyPostfix]
+            [HarmonyPatch("OnDraw")]
+            public static void OnDrawPostfix(PlayerTool __instance)
             {
                 //AddDebug("OnDraw " + __instance.name);
+                if (Main.IsEatableFish(__instance.gameObject) && !fixedFish.Contains(__instance) && !__instance.GetComponent<LiveMixin>().IsAlive())
+                {
+                    //AddDebug("OnDraw " + __instance.name);
+                    //Inventory.main.quickSlots.DeselectImmediate();
+                    fixedFish.Add(__instance);
+                    UWE.CoroutineHost.StartCoroutine(FixDeadFish());
+                }
                 equippedTool = __instance;
                 Knife knife = __instance as Knife;
                 if (knife)
@@ -64,6 +146,45 @@ namespace Tweaks_Fixes
                     //AddDebug(" damage  " + knife.damage);
                 }
 
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("OnHolster")]
+            public static void OnHolsterPostfix(PlayerTool __instance)
+            {
+                if (__instance is Seaglide)
+                {
+                    VehicleInterface_MapController mc = __instance.GetComponent<VehicleInterface_MapController>();
+                    Main.config.seaGlideMap = mc.mapActive;
+                }
+            }
+
+        }
+
+        [HarmonyPatch(typeof(BeaconLabel))]
+        class BeaconLabel_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            static void StartPostfix(BeaconLabel __instance)
+            {
+                Collider collider = __instance.GetComponent<Collider>();
+                if (collider)
+                    UnityEngine.Object.Destroy(collider);
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("OnPickedUp")]
+            static bool OnPickedUpPrefix(BeaconLabel __instance)
+            {
+                return false;
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("OnDropped")]
+            static bool OnDroppedPrefix(BeaconLabel __instance)
+            {
+                return false;
             }
         }
 
@@ -165,59 +286,29 @@ namespace Tweaks_Fixes
 
         }
 
-        //[HarmonyPatch(typeof(RepulsionCannon), "OnToolUseAnim")]
-        class RepulsionCannon_OnToolUseAnim_Patch
+        [HarmonyPatch(typeof(VehicleInterface_MapController), "Start")]
+        class VehicleInterface_MapController_Start_Patch
         {
-            static bool Prefix(RepulsionCannon __instance, GUIHand guiHand)
+            public static void Postfix(VehicleInterface_MapController __instance)
             {
-                //AddDebug("ShootObject " + rb.name);
-                if (__instance.energyMixin.charge <= 0f)
-                    return false;
-                float num1 = Mathf.Clamp01(__instance.energyMixin.charge / 4f);
-                Vector3 forward = MainCamera.camera.transform.forward;
-                Vector3 position = MainCamera.camera.transform.position;
-                int num2 = UWE.Utils.SpherecastIntoSharedBuffer(position, 1f, forward, 35f, ~(1 << LayerMask.NameToLayer("Player")));
-                float num3 = 0.0f;
-                for (int index1 = 0; index1 < num2; ++index1)
+                //AddDebug("VehicleInterface_MapController Start " + __instance.name);
+                __instance.mapActive = Main.config.seaGlideMap;
+            }
+        }
+
+        //[HarmonyPatch(typeof(Welder), "CanWeldTarget")]
+        class Welder_CanWeldTarget_Patch
+        {
+            static void Postfix(Welder __instance, LiveMixin activeWeldTarget, ref bool __result)
+            {
+                //if (Main.config.cantRepairVehicleInWater && Player.main.isUnderwater.value && activeWeldTarget)
                 {
-                    RaycastHit raycastHit = UWE.Utils.sharedHitBuffer[index1];
-                    Vector3 point = raycastHit.point;
-                    float num4 = 1f - Mathf.Clamp01(((position - point).magnitude - 1f) / 35f);
-                    GameObject go = UWE.Utils.GetEntityRoot(raycastHit.collider.gameObject);
-                    if (go == null)
-                        go = raycastHit.collider.gameObject;
-                    Rigidbody component = go.GetComponent<Rigidbody>();
-                    if (component != null)
+                    if (activeWeldTarget.GetComponent<SeaTruckSegment>() != null || activeWeldTarget.GetComponent<Exosuit>() != null)
                     {
-                        num3 += component.mass;
-                        bool flag = true;
-                        go.GetComponents<IPropulsionCannonAmmo>(__instance.iammo);
-                        for (int index2 = 0; index2 < __instance.iammo.Count; ++index2)
-                        {
-                            if (!__instance.iammo[index2].GetAllowedToShoot())
-                            {
-                                flag = false;
-                                break;
-                            }
-                        }
-                        __instance.iammo.Clear();
-                        if (flag && !(raycastHit.collider is MeshCollider) && (go.GetComponent<Pickupable>() != null || go.GetComponent<Living>() != null || component.mass <= 1300f && UWE.Utils.GetAABBVolume(go) <= 400f))
-                        {
-                            float num5 = (1f + component.mass * 0.005f);
-                            Vector3 velocity = forward * num4 * num1 * 70f / num5;
-                            repCannonGOs.Add(go);
-                            __instance.ShootObject(component, velocity);
-                        }
+                        //AddDebug("CanWeldTarget SeaTruckSegment ");
+                        __result = false;
                     }
                 }
-                __instance.energyMixin.ConsumeEnergy(4f);
-                __instance.fxControl.Play();
-                __instance.callBubblesFX = true;
-                Utils.PlayFMODAsset(__instance.shootSound, __instance.transform);
-                float num6 = Mathf.Clamp(num3 / 100f, 0f, 15f);
-                Player.main.GetComponent<Rigidbody>().AddForce(-forward * num6, ForceMode.VelocityChange);
-
-                return false;
             }
         }
 

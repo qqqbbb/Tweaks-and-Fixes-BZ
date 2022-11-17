@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
                         Player.main.playerAnimator.SetTrigger("hovercraft_button_1");
                         __instance.animator.SetBool("hovercraft_jump", true);
                         Player.main.playerAnimator.SetBool("hovercraft_jump", true);
-                        if (__instance.jumpCooldown > 0.0)
+                        if (__instance.jumpCooldown > 0f)
                             __instance.Invoke("ResetJumpCD", __instance.jumpCooldown);
                     }
                     boosting = GameInput.GetButtonHeld(GameInput.Button.Sprint);
@@ -201,46 +201,47 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPrefix]
+            [HarmonyPrefix] // fixed
             [HarmonyPatch("PhysicsMove")]
             static bool PhysicsMovePrefix(Hoverbike __instance)
             {// move on water, halve strafe and backward speed
-                if (!Main.config.hoverbikeMoveTweaks)
-                    return true;
-                //AddDebug("overWater " + __instance.overWater);
                 __instance.isPiloting = __instance.GetPilotingCraft();
                 if (__instance.dockedPad || !__instance.isPiloting)
                     return false;
+
                 __instance.moveDirection = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
                 Vector3 vector3 = new Vector3(__instance.moveDirection.x, 0f, __instance.moveDirection.z);
                 Vector2 overflowInput = __instance.overflowInput;
                 if (__instance.energyMixin.IsDepleted())
                     __instance.moveDirection = Vector3.zero;
                 __instance.appliedThrottle = __instance.moveDirection != Vector3.zero;
-                //float num1 = __instance.overWater ? __instance.horizontalDampening / __instance.waterDampening : __instance.horizontalDampening;
-                float num1 = __instance.horizontalDampening;
+                float horizontalDampening = __instance.horizontalDampening;
+                if (__instance.overWater && !Main.config.hoverbikeMoveTweaks)
+                    horizontalDampening = __instance.horizontalDampening / __instance.waterDampening;
+
                 __instance.rb.AddTorque(__instance.transform.right * -overflowInput.x * __instance.sidewaysTorque * __instance.verticalDampening, ForceMode.VelocityChange);
-                __instance.rb.AddTorque(__instance.transform.up * overflowInput.y * __instance.sidewaysTorque * num1, ForceMode.VelocityChange);
+                __instance.rb.AddTorque(__instance.transform.up * overflowInput.y * __instance.sidewaysTorque * horizontalDampening, ForceMode.VelocityChange);
                 //Vector3 velocity = __instance.rb.velocity;
                 Vector3 moveDirection = __instance.moveDirection;
-                moveDirection.Normalize();
-                moveDirection.x *= .5f;
-                if (moveDirection.z < 0f)
-                    moveDirection.z *= .5f;
                 //double num2 = Mathf.Min(1f, moveDirection.magnitude);
-                moveDirection.y = 0.0f;
+                moveDirection.y = 0f;
+                moveDirection.Normalize();
+                if (Main.config.hoverbikeMoveTweaks)
+                { 
+                    moveDirection.x *= .5f;
+                    if (moveDirection.z < 0f)
+                        moveDirection.z *= .5f;
+                }
                 __instance.horizMoveDir = MainCamera.camera.transform.rotation * moveDirection;
-                //__instance.rb.AddForce(__instance.horizMoveDir * (__instance.overWater ? __instance.forwardAccel / __instance.waterDampening : __instance.forwardAccel));
-                //bool boosting = GameInput.GetButtonHeld(GameInput.Button.Sprint);
                 Vector3 accel = __instance.horizMoveDir * __instance.forwardAccel;
-                //if (boosting)
-                //{
-                //__instance.rb.AddForce(__instance.transform.forward * __instance.forwardBoostForce);
-                //accel += __instance.transform.forward * __instance.forwardBoostForce;
-                //}
-                __instance.rb.AddForce(accel);
+                if (__instance.overWater && !Main.config.hoverbikeMoveTweaks)
+                    accel = __instance.horizMoveDir * (__instance.forwardAccel / __instance.waterDampening);
+
+                accel *= Main.config.snowfoxSpeedMult;
+                 __instance.rb.AddForce(accel);
                 return false;
             }
+
         }
 
 

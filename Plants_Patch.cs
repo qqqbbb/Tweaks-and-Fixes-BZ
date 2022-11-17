@@ -260,9 +260,10 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SetScale")]
             static bool SetScalePrefix(GrowingPlant __instance, Transform tr, float progress)
             {
-                TechType tt = __instance.plantTechType;
-                if (!Main.config.fixMelons && tt == TechType.MelonPlant)
+                if (!Main.config.fixMelons)
                     return true;
+
+                TechType tt = __instance.plantTechType;
 
                 if (tt == TechType.SnowStalkerPlant || tt == TechType.MelonPlant)
                 {
@@ -292,12 +293,12 @@ namespace Tweaks_Fixes
         {
             static void Prefix(Planter __instance, InventoryItem item)
             {
+                if (!Main.config.fixMelons)
+                    return;
+
                 Plantable p = item.item.GetComponent<Plantable>();
                 TechType tt = p.plantTechType;
                 //AddDebug("Planter AddItem " + p.plantTechType);
-                if (!Main.config.fixMelons && tt == TechType.MelonPlant)
-                    return;
-
                 if (tt == TechType.SnowStalkerPlant || tt== TechType.MelonPlant)
                 {
                     //AddDebug("Planter AddItem  " + p.plantTechType);

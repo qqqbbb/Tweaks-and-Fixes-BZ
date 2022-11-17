@@ -24,16 +24,20 @@ namespace Tweaks_Fixes
             //}
             TechType tt = CraftData.GetTechType(__instance.gameObject);
 
-
-            if (tt == TechType.GenericJeweledDisk && Main.config.fixCoral)
+            if (tt == TechType.GenericJeweledDisk)
             {
-                Animator a = __instance.GetComponentInChildren<Animator>();
-                if (a)
-                    a.enabled = false;
+                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                surface.surfaceType = VFXSurfaceTypes.coral;
+                if (Main.config.fixCoral)
+                {
+                    Animator a = __instance.GetComponentInChildren<Animator>();
+                    if (a)
+                        a.enabled = false;
 
-                Vector3 rot = __instance.gameObject.transform.eulerAngles;
-                //Main.Log("fix GenericJeweledDisk " + __instance.gameObject.transform.position.x + " " + __instance.gameObject.transform.position.y + " " + __instance.gameObject.transform.position.z + " rot " + rot.x + " " + rot.y + " " + rot.z);
-                __instance.gameObject.transform.eulerAngles = new Vector3(rot.x, rot.y, 0f);
+                    Vector3 rot = __instance.gameObject.transform.eulerAngles;
+                    //Main.Log("fix GenericJeweledDisk " + __instance.gameObject.transform.position.x + " " + __instance.gameObject.transform.position.y + " " + __instance.gameObject.transform.position.z + " rot " + rot.x + " " + rot.y + " " + rot.z);
+                    __instance.gameObject.transform.eulerAngles = new Vector3(rot.x, rot.y, 0f);
+                }
             }
             else if (tt == TechType.PurpleVegetablePlant || tt == TechType.LeafyFruitPlant || tt == TechType.HeatFruitPlant || tt == TechType.HangingFruitTree || tt == TechType.MelonPlant)
             {
@@ -59,7 +63,10 @@ namespace Tweaks_Fixes
                 Plants_Patch.AttachFruitPlant(__instance.gameObject);
             }
             else if (tt == TechType.TwistyBridgeCoralLong)
-            {// disable collision but allow scanning
+            {
+                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                surface.surfaceType = VFXSurfaceTypes.vegetation;
+                // disable collision but allow scanning
                 Collider collider = __instance.GetComponent<Collider>();
                 if (collider)
                     UnityEngine.Object.Destroy(collider);
@@ -96,6 +103,16 @@ namespace Tweaks_Fixes
                     CapsuleCollider cc = tr.GetComponent<CapsuleCollider>();
                     cc.isTrigger = true;
                 }
+            }
+            else if (tt == TechType.TwistyBridgesCoralShelf || tt == TechType.JeweledDiskPiece || tt == TechType.GenericJeweledDisk)
+            {
+                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                surface.surfaceType = VFXSurfaceTypes.coral;
+            }
+            else if (tt == TechType.OxygenPlant)
+            {
+                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                surface.surfaceType = VFXSurfaceTypes.lilypad;
             }
             else if (tt == TechType.None)
             {
@@ -164,6 +181,11 @@ namespace Tweaks_Fixes
                         Vector3 rot = __instance.transform.eulerAngles;
                         __instance.transform.eulerAngles = new Vector3(rot.x, 177f, 338f);
                     }
+                }
+                else if (__instance.name.Contains("talactite"))
+                {
+                    VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                    surface.surfaceType = VFXSurfaceTypes.rock;
                 }
             }
             //else if (tt == TechType.KelpRootPustule) // KelpRoot tt is none
@@ -248,10 +270,11 @@ namespace Tweaks_Fixes
         [HarmonyPatch("StartFading")]
         public static bool StartFadingPrefix(LargeWorldEntity __instance)
         {
-            if (!Main.loadingDone)
+            if (uGUI.isLoading)
                 return false;
 
             //AddDebug(__instance.name + " StartFading ");
+            //AddDebug(" Tools_Patch.equippedTool " + Tools_Patch.equippedTool.name);
             if (Tools_Patch.equippedTool != null && Tools_Patch.equippedTool.gameObject.Equals(__instance.gameObject))
             {
                 //AddDebug(__instance.name + " StartFading equippedTool");
@@ -268,6 +291,12 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("StartFading rep Cannon go " + __instance.name);
                 Tools_Patch.repCannonGOs.Remove(__instance.gameObject);
+                return false;
+            }
+            TechType tt = CraftData.GetTechType(__instance.gameObject);
+            if (tt == TechType.JeweledDiskPiece || tt == TechType.Gold || tt == TechType.Silver || tt == TechType.Titanium || tt == TechType.Lead || tt == TechType.Lithium || tt == TechType.Diamond)
+            {
+                //AddDebug("resource");
                 return false;
             }
             return true;

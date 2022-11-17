@@ -94,15 +94,15 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(CreatureDeath), "OnKill")]
-        //class CreatureDeath_OnKill_Prefix_Patch
-        //{
-        //    public static void Prefix(CreatureDeath __instance)
-        //    {
-        //        if (Main.config.creaturesRespawn)
-        //            __instance.respawnOnlyIfKilledByCreature = false;
-        //    }
-        //}
+        [HarmonyPatch(typeof(CreatureEgg), "Start")]
+        class CreatureEgg_Start_Patch
+        {
+            public static void Postfix(CreatureEgg __instance)
+            {
+                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                surface.surfaceType = VFXSurfaceTypes.organic;
+            }
+        }
 
         [HarmonyPatch(typeof(CreatureDeath))]
         class CreatureDeath_Patch
@@ -207,7 +207,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SwimBehaviour))]
         class SwimBehaviour_SwimToInternal_patch
         {
-            [HarmonyPatch(nameof(SwimBehaviour.SwimToInternal))]
+            [HarmonyPatch("SwimToInternal")]
             public static void Prefix(SwimBehaviour __instance, ref float velocity)
             {
                 if (Main.IsEatableFish(__instance.gameObject))
@@ -234,7 +234,9 @@ namespace Tweaks_Fixes
                 }
             }
         }
-        
+
+
+
         //[HarmonyPatch(typeof(CreatureDeath), nameof(CreatureDeath.OnKill))]
         class CreatureDeath_OnKill_Patch
         {

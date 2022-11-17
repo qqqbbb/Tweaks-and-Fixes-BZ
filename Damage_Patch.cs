@@ -12,19 +12,7 @@ namespace Tweaks_Fixes
         static HashSet<DealDamageOnImpact> ddoiHB = new HashSet<DealDamageOnImpact>();
         
         static void SetBloodColor(GameObject go)
-        {   // GenericCreatureHit(Clone)
-            // RGBA(0.784, 1.000, 0.157, 0.392)
-            // RGBA(0.784, 1.000, 0.157, 1.000)
-            // RGBA(0.784, 1.000, 0.157, 0.588)
-            // RGBA(0.784, 1.000, 0.157, 1.000)
-            // RGBA(1.000, 0.925, 0.333, 1.000)
-            // xKnifeHit_Organic(Clone)
-            // RGBA(0.784, 1.000, 0.157, 0.392)
-            // RGBA(0.784, 1.000, 0.157, 0.392)
-            // RGBA(0.784, 1.000, 0.157, 1.000)
-            // RGBA(0.784, 1.000, 0.157, 0.392)
-            // RGBA(0.784, 1.000, 0.157, 1.000)
-            // RGBA(0.784, 1.000, 0.157, 1.000)
+        {  
             ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
             //AddDebug("SetBloodColor " + go.name + " " + pss.Length);
             //Main.Log("SetBloodColor " + go.name );
@@ -33,6 +21,7 @@ namespace Tweaks_Fixes
                 //ps.startColor = new Color(1f, 0f, 0f);
                 ParticleSystem.MainModule psMain = ps.main;
                 //Main.Log("startColor " + psMain.startColor.color);
+                //AddDebug("startColor " + psMain.startColor.color);
                 Color newColor = new Color(Main.config.bloodColor["Red"], Main.config.bloodColor["Green"], Main.config.bloodColor["Blue"], psMain.startColor.color.a);
                 //newColor = Color.blue;
                 //Main.Log("blood Color " + newColor);
@@ -42,58 +31,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(VFXDestroyAfterSeconds), "OnEnable")]
-        class VFXDestroyAfterSeconds_OnEnable_Patch
-        {
-            public static void Prefix(VFXDestroyAfterSeconds __instance)
-            {// particles from GenericCreatureHit play on awake
-                //AddDebug("GenericCreatureHit OnEnable " + __instance.gameObject.name);
-                if (__instance.gameObject.name == "GenericCreatureHit(Clone)")
-                {
-                    //AddDebug("GenericCreatureHit OnEnable");
-                    //setBloodColor = true;
-                    SetBloodColor(__instance.gameObject);
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(VFXSurfaceTypeManager), "Play", new Type[] { typeof(VFXSurfaceTypes), typeof(VFXEventTypes), typeof(Vector3), typeof(Quaternion), typeof(Transform) })]
-        class VFXSurfaceTypeManager_Play_Patch
-        { // blood color
-            static bool Prefix(VFXSurfaceTypeManager __instance, ref ParticleSystem __result, VFXSurfaceTypes surfaceType, VFXEventTypes eventType, Vector3 position, Quaternion orientation, Transform parent)
-            {
-                ParticleSystem particleSystem = null;
-                GameObject fxprefab = __instance.GetFXprefab(surfaceType, eventType);
-                if (fxprefab != null)
-                {
-                    GameObject fx = UnityEngine.Object.Instantiate<GameObject>(fxprefab, position, orientation);
-                    if (eventType == VFXEventTypes.exoDrill)
-                    {
-                        fx.transform.parent = null;
-                        fx.GetComponent<VFXFakeParent>().Parent(parent, Vector3.zero, Vector3.zero);
-                        fx.GetComponent<VFXLateTimeParticles>().Play();
-                        particleSystem = fx.GetComponent<ParticleSystem>();
-                    }
-                    else
-                    {
-                        fx.transform.parent = parent;
-                        if (surfaceType == VFXSurfaceTypes.organic)
-                        {
-                            //AddDebug("VFXSurfaceTypeManager Play " + parent.name);
-                            SetBloodColor(fx);
-                        }
-                        particleSystem = fx.GetComponent<ParticleSystem>();
-                        particleSystem.Play();
-                    }
-                }
-                //particleSystem.startColor = new Color(1f, 1f, 1f);
-                __result = particleSystem;
-                //__result = null;
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(DealDamageOnImpact), "OnCollisionEnter")]
+        [HarmonyPatch(typeof(DealDamageOnImpact))]
         class DealDamageOnImpact_Patch
         { // seatruck mirroredSelfDamageFraction .12 hoverbike mirroredSelfDamageFraction 1
             static Rigidbody prevColTarget;
@@ -101,6 +39,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Start")]
             static void StartPostfix(DealDamageOnImpact __instance)
             {
+                //AddDebug(" DealDamageOnImpact Start " + __instance.name);
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //if (tt == TechType.SeaTruck)
                 //    __instance.mirroredSelfDamageFraction = 1f;
@@ -118,10 +57,13 @@ namespace Tweaks_Fixes
                 if (ddoiHB.Contains(__instance))
                     return true;
 
-                float damageMult = Mathf.Max(0f, Vector3.Dot(-collision.contacts[0].normal, __instance.prevVelocity));
+                float damageMax = Mathf.Max(0f, Vector3.Dot(-collision.contacts[0].normal, __instance.prevVelocity));
                 float colMag = collision.relativeVelocity.magnitude;
+                //AddDebug(" colMag " + colMag);
+                //AddDebug(" speedMinimumForDamage " + __instance.speedMinimumForDamage);
                 if (colMag < __instance.speedMinimumForDamage)
                     return false;
+
                 if (__instance.impactSound && __instance.timeLastImpactSound + .5f < Time.time)
                 {
                     //AddDebug("minDamageInterval " + __instance.minDamageInterval);
@@ -156,18 +98,20 @@ namespace Tweaks_Fixes
                 }
                 if (!__instance.damageBases && UWE.Utils.GetComponentInHierarchy<Base>(collision.gameObject))
                     return false;
+
                 LiveMixin targetLM = __instance.GetLiveMixin(collision.contacts[0].otherCollider.gameObject);
                 Vector3 position = collision.contacts[0].point;
                 Rigidbody rb = Utils.FindAncestorWithComponent<Rigidbody>(collision.gameObject);
                 float targetMass = rb != null ? rb.mass : 5000f;
                 //AddDebug(" targetMass " + targetMass);
                 float myMass = __instance.GetComponent<Rigidbody>().mass;
-                float colMult = Mathf.Clamp((1f + (myMass - targetMass) * 0.001f), 0f, damageMult);
+                float colMult = Mathf.Clamp((1f + (myMass - targetMass) * 0.001f), 0f, damageMax);
                 float targetDamage = colMag * colMult;
+
                 if (targetLM && targetLM.IsAlive() && Time.time > __instance.timeLastDamage + __instance.minDamageInterval)
                 {
                     bool skip = false;
-                    if (prevColTarget.Equals(rb) && Time.time < __instance.timeLastDamage + 3f)
+                    if (prevColTarget && rb && prevColTarget.Equals(rb) && Time.time < __instance.timeLastDamage + 3f)
                         skip = true;
 
                     if (!skip)
@@ -187,7 +131,7 @@ namespace Tweaks_Fixes
                 if (__instance.mirroredSelfDamageFraction == 0f || !myLM || Time.time <= __instance.timeLastDamagedSelf + 1f || tooSmall)
                     return false;
                 //float num3 = targetDamage * __instance.mirroredSelfDamageFraction;
-                float myDamage = colMag * Mathf.Clamp((1f + (targetMass - myMass) * 0.001f), 0f, damageMult);
+                float myDamage = colMag * Mathf.Clamp((1f + (targetMass - myMass) * 0.001f), 0f, damageMax);
                 if (__instance.capMirrorDamage != -1f)
                     myDamage = Mathf.Min(__instance.capMirrorDamage, myDamage);
                 myLM.TakeDamage(myDamage, position, DamageType.Collide, __instance.gameObject);
@@ -204,14 +148,19 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Start")]
             static void StartPostfix(LiveMixin __instance)
             {
-                //if (__instance.data.deathEffect)
-                //{
-                //    Main.Log("deathEffect " + __instance.data.deathEffect);
-                //}
-                if (Main.config.noKillParticles)
+                //    Main.Log("deathEffect " + __instance.name);
+                //    AddDebug("deathEffect " + __instance.name);
+                if (__instance.data.damageEffect || __instance.data.deathEffect)
                 {
-                    //__instance.data.damageEffect = null;
-                    __instance.data.deathEffect = null;
+                    VFXSurface surface = __instance.GetComponent<VFXSurface>();
+                    if (surface && surface.surfaceType == VFXSurfaceTypes.organic)
+                    {
+                        if (__instance.data.damageEffect )
+                            SetBloodColor(__instance.data.damageEffect);
+
+                        if (__instance.data.deathEffect)
+                            SetBloodColor(__instance.data.deathEffect);
+                    }
                 }
             }
 
@@ -257,10 +206,10 @@ namespace Tweaks_Fixes
                         __instance.loopingDamageEffectObj = UWE.Utils.InstantiateWrap(__instance.loopingDamageEffect, __instance.transform.position, Quaternion.identity);
                         __instance.loopingDamageEffectObj.transform.parent = __instance.transform;
                     }
-                    if (Time.time > __instance.timeLastElecDamageEffect + 2.5f && type == DamageType.Electrical && __instance.electricalDamageEffect != null)
+                    if (type == DamageType.Electrical && Time.time > __instance.timeLastElecDamageEffect + 2.5f && __instance.electricalDamageEffect != null)
                     {
-                        FixedBounds component = __instance.gameObject.GetComponent<FixedBounds>();
-                        UnityEngine.Bounds bounds = !(component != null) ? UWE.Utils.GetEncapsulatedAABB(__instance.gameObject) : component.bounds;
+                        FixedBounds fixedBounds = __instance.gameObject.GetComponent<FixedBounds>();
+                        Bounds bounds = !(fixedBounds != null) ? UWE.Utils.GetEncapsulatedAABB(__instance.gameObject) : fixedBounds.bounds;
                         GameObject gameObject = UWE.Utils.InstantiateWrap(__instance.electricalDamageEffect, bounds.center, Quaternion.identity);
                         gameObject.transform.parent = __instance.transform;
                         gameObject.transform.localScale = bounds.size * 0.65f;
@@ -358,7 +307,7 @@ namespace Tweaks_Fixes
 
             static bool Prefix(DamagePlayerInRadius __instance)
             {
-                if (!__instance.enabled || !__instance.gameObject.activeInHierarchy || __instance.damageRadius <= 0f)
+                if (!__instance.enabled || !__instance.gameObject.activeInHierarchy || __instance.damageRadius <= 0f || __instance.isPilotingPlayerProtected && Player.main.IsPiloting() && !Player.main.inHovercraft)
                     return false;
 
                 float distanceToPlayer = __instance.tracker.distanceToPlayer;
@@ -407,32 +356,60 @@ namespace Tweaks_Fixes
                 //}
                 return false;
             }
+       
         }
 
-        //[HarmonyPatch(typeof(FrozenMixin), "UpdateFrozenState")]
-        class FrozenMixin_UpdateFrozenState_Patch
+        [HarmonyPatch(typeof(VFXSurfaceTypeDatabase), "SetPrefab")]
+        class VFXSurfaceTypeDatabase_SetPrefab_Patch
         {
-            static float frozenDamage = 10f;
-            static float frozenDamageTime = 0f;
-            static float frozenDamageInterval = 1f;
-            static void Postfix(FrozenMixin __instance, float time)
+            static void Postfix(VFXSurfaceTypeDatabase __instance, VFXSurfaceTypes surfaceType, VFXEventTypes eventType, GameObject prefab)
             {
-                if (__instance.frozen)
+                if (surfaceType == VFXSurfaceTypes.organic)
                 {
-                    if (Time.time > frozenDamageTime)
-                    {
-                        frozenDamageTime = Time.time + frozenDamageInterval;
-                        if (__instance.GetComponent<Player>())
-                            AddDebug("Take Cold Damage " + frozenDamage);
-                        LiveMixin lm = __instance.GetComponent<LiveMixin>();
-                        if (lm != null && lm.IsAlive())
-                            lm.TakeDamage(frozenDamage, __instance.transform.position, DamageType.Cold);
-                    }
-
+                    //Main.Log("VFXSurfaceTypeDatabase SetPrefab surfaceType " + surfaceType + " eventType " + eventType);
+                    SetBloodColor(prefab);
                 }
+
             }
         }
-               
+
+        [HarmonyPatch(typeof(PlayerFrozenMixin))]
+        class PlayerFrozenMixin_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("Freeze")]
+            static bool Freeze_Prefix(PlayerFrozenMixin __instance)
+            {
+                bool flare_ = false;
+                Flare flare = Tools_Patch.equippedTool as Flare;
+                if (flare && flare.flareActivateTime > 0f)
+                    flare_ = true;
+
+                if (Main.config.brinewingAttackColdDamage > 0)
+                {
+                    float damage = Main.config.brinewingAttackColdDamage;
+                    if (flare_)
+                        damage *= .5f;
+
+                    Main.bodyTemperature.AddCold(damage);
+                    return false;
+                }
+                if (flare_)
+                    return false;
+
+                return true;
+            }
+        }
+
+        //[HarmonyPatch(typeof(Crash), "Start")]
+        class Crash_Start_Patch
+        {
+            public static void Postfix(Crash __instance)
+            {
+                SetBloodColor(__instance.detonateParticlePrefab);
+            }
+        }
+
         //[HarmonyPatch(typeof(BrinewingBrine), "OnTriggerEnter")]
         class BrinewingBrine_OnTriggerEnter_Patch
         {
@@ -481,42 +458,44 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(LiveMixin), "Kill")]
-        class LiveMixin_Kill_Patch
-        {
-            static void Postfix(LiveMixin __instance, DamageType damageType)
+        //[HarmonyPatch(typeof(VFXSurfaceTypeManager), "Play", new Type[] { typeof(VFXSurfaceTypes), typeof(VFXEventTypes), typeof(Vector3), typeof(Quaternion), typeof(Transform) })]
+        class VFXSurfaceTypeManager_Play_Patch
+        { // blood color
+            static bool Prefix(VFXSurfaceTypeManager __instance, ref ParticleSystem __result, VFXSurfaceTypes surfaceType, VFXEventTypes eventType, Vector3 position, Quaternion orientation, Transform parent)
             {
-                //ProfilingUtils.BeginSample("LiveMixin.Kill");
-                __instance.health = 0.0f;
-                __instance.tempDamage = 0.0f;
-                __instance.SyncUpdatingState();
-                if (__instance.deathClip)
-                    Utils.PlayEnvSound(__instance.deathClip, __instance.transform.position, 25f);
-                if (__instance.deathEffect != null)
+                ParticleSystem particleSystem = null;
+                GameObject fxprefab = __instance.GetFXprefab(surfaceType, eventType);
+                if (fxprefab != null)
                 {
-                    GameObject go = UWE.Utils.InstantiateWrap(__instance.deathEffect, __instance.transform.position, Quaternion.identity);
-                }
-
-                if (__instance.passDamageDataOnDeath)
-                    __instance.gameObject.BroadcastMessage("OnKill", damageType, SendMessageOptions.DontRequireReceiver);
-                else if (__instance.broadcastKillOnDeath)
-                    __instance.gameObject.BroadcastMessage("OnKill", SendMessageOptions.DontRequireReceiver);
-                if (__instance.destroyOnDeath)
-                {
-                    //if (__instance.explodeOnDestroy)
-                    //{
-                    //    Living component = __instance.gameObject.GetComponent<Living>();
-                    //    if (component)
-                    //        component.enabled = false;
-                    //    ExploderObject.ExplodeGameObject(__instance.gameObject);
-                    //}
-                    //else
+                    //AddDebug("VFXSurfaceTypeManager Play surfaceType " + surfaceType + " eventType " + eventType);
+                    GameObject fx = UnityEngine.Object.Instantiate<GameObject>(fxprefab, position, orientation);
+                    if (eventType == VFXEventTypes.exoDrill)
                     {
-                        __instance.CleanUp();
-                        UWE.Utils.DestroyWrap(__instance.gameObject);
+                        fx.transform.parent = null;
+                        fx.GetComponent<VFXFakeParent>().Parent(parent, Vector3.zero, Vector3.zero);
+                        fx.GetComponent<VFXLateTimeParticles>().Play();
+                        particleSystem = fx.GetComponent<ParticleSystem>();
+                    }
+                    else
+                    {
+                        fx.transform.parent = parent;
+                        if (surfaceType == VFXSurfaceTypes.organic)
+                        {
+                            //AddDebug("VFXSurfaceTypeManager Play " + parent.name);
+                            SetBloodColor(fx);
+                        }
+                        particleSystem = fx.GetComponent<ParticleSystem>();
+                        //var startSize = particleSystem.main.startSize;
+                        //startSize.curveMultiplier = .1f;
+                        //var sub = particleSystem.subEmitters;
+                        //sub.enabled = false;
+                        particleSystem.Play();
                     }
                 }
-                //ProfilingUtils.EndSample();
+                //particleSystem.startColor = new Color(1f, 1f, 1f);
+                __result = particleSystem;
+                //__result = null;
+                return false;
             }
         }
 

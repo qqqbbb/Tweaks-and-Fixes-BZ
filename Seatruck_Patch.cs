@@ -10,9 +10,9 @@ namespace Tweaks_Fixes
     {
         public static bool afterBurnerWasActive = false;
         public static GameObject wcpGO = null;
-        public static GameObject seaTruckAquarium = null;
+        //public static GameObject seaTruckAquarium = null;
         public static int powerUpgrades = 0;
-        public static List<GameObject> seatruckModules = new List<GameObject>();
+        //public static List<GameObject> seatruckModules = new List<GameObject>();
         public static HashSet<TechType> installedUpgrades = new HashSet<TechType>();
         static string uiText = string.Empty;
         static string uiTextSub = string.Empty;
@@ -80,6 +80,14 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SeaTruckSegment))]
         class SeaTruckSegment_Patch
         {
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(SeaTruckSegment __instance)
+            {
+                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                surface.surfaceType = VFXSurfaceTypes.metal;
+            }
+
             [HarmonyPrefix]
             [HarmonyPatch("OnClickHatch")]
             public static bool OnClickHatchPrefix(SeaTruckSegment __instance, HandTargetEventData eventData)
@@ -98,13 +106,13 @@ namespace Tweaks_Fixes
                     {
                         //AddDebug("name" + __instance.name);
                         //AddDebug("parent " + __instance.transform.parent.name);
-                        if (__instance.name == "SeaTruck(Clone)")
+                        if (__instance.isMainCab)
                         {
                             __instance.StartCoroutine(Main.PlaySound(__instance.exitSound, .5f));
                             if (stopPilotSound)
                                 __instance.StartCoroutine(Main.PlaySound(stopPilotSound, .5f));
                         }
-                        else if(__instance.name == "SeaTruckDockingModule(Clone)")
+                        else if(CraftData.GetTechType(__instance.gameObject) == TechType.SeaTruckDockingModule)
                         {
                             __instance.StartCoroutine(Main.PlaySound(__instance.exitSound, 1.5f));
                             if (stopPilotSound)
@@ -139,9 +147,9 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPrefix]
+            [HarmonyPostfix]
             [HarmonyPatch("Exit")]
-            public static void ExitPrefix(SeaTruckSegment __instance)
+            public static void ExitPostfix(SeaTruckSegment __instance)
             {
                 //AddDebug("isMainCab " + __instance.isMainCab);
                 //AddDebug("isRearConnected " + __instance.isRearConnected);
@@ -153,6 +161,14 @@ namespace Tweaks_Fixes
                 }
             }
 
+            [HarmonyPostfix]
+            [HarmonyPatch("IInteriorSpace.GetInsideTemperature")]
+            public static void GetInsideTemperaturePostfix(SeaTruckSegment __instance, ref float __result)
+            {
+                if (Main.config.useRealTempForColdMeter && !__instance.relay.IsPowered())
+                    __result = Player_Patches.ambientTemperature;
+                //AddDebug("SeaTruckSegment GetInsideTemperature " + __result);
+            }
             //[HarmonyPostfix]
             //[HarmonyPatch("OnHoverHatch")]
             public static void OnHoverHatchPostfix(SeaTruckSegment __instance)
@@ -404,99 +420,9 @@ namespace Tweaks_Fixes
             public static void StartPostfix(SeaTruckMotor __instance)
             {
                 stopPilotSound = __instance.stopPilotSound;
+                __instance.stopPilotSound = null;// dont play exit sound when not exiting cabin 
             }
-             // dont play exit sound when not exiting cabin 
-            [HarmonyPrefix]
-            [HarmonyPatch("StopPiloting")]
-            public static bool StopPilotingPrefix(SeaTruckMotor __instance, ref bool __result, bool waitForDocking, bool forceStop, bool skipUnsubscribe, bool immediate, bool forceGetupAnimation, IInteriorSpace newInterior)
-            {
-                //AddDebug("StopPiloting");
-                bool flag = false;
-                if (!skipUnsubscribe)
-                    __instance.Unsubscribe();
-
-                if (__instance.piloting)
-                {
-                    if (__instance.truckSegment.isMainCab & immediate)
-                    {
-                        __instance.truckSegment.Exit(new Vector3?(Player.main.transform.position), true);
-                        Player.main.ExitLockedMode(findNewPosition: false);
-                        Player.main.armsController.SetTrigger(AnimatorHashID.seatruck_exit);
-                        __instance.animator.SetTrigger("seatruck_exit");
-                        flag = true;
-                    }
-                    else if (__instance.truckSegment.isMainCab && __instance.truckSegment.underCreatureAttack)
-                    {
-                        __instance.truckSegment.Exit();
-                        Player.main.ExitLockedMode(findNewPosition: false);
-                        if (__instance.seatruckanimation && (!__instance.liveMixin || __instance.liveMixin.IsAlive()))
-                            __instance.seatruckanimation.currentAnimation = SeaTruckAnimation.Animation.EjectPilot;
-                        flag = true;
-                    }
-                    else if (__instance.truckSegment.isMainCab && (__instance.truckSegment.rearConnection && !__instance.truckSegment.rearConnection.occupied || !__instance.truckSegment.IsWalkable()) && !forceGetupAnimation)
-                    {
-                        Vector3 exitPoint1;
-                        bool skipAnimations;
-                        bool exitPoint2 = __instance.truckSegment.FindExitPoint(out exitPoint1, out skipAnimations, SeaTruckAnimation.Animation.ExitPilot);
-                        skipAnimations = !__instance.truckSegment.IsWalkable() || skipAnimations;
-                        if (!exitPoint2 && !forceStop)
-                            AddError(Language.main.Get("ExitFailedNoSpace"));
-                        else
-                        {
-                            Player.main.ExitLockedMode(findNewPosition: false);
-                            if (!exitPoint2)
-                            {
-                                AddError(Language.main.Get("ExitFailedNoSpace"));
-                                __instance.truckSegment.Exit();
-                            }
-                            else
-                                __instance.truckSegment.Exit(new Vector3?(exitPoint1), skipAnimations);
-                            if (!skipAnimations)
-                            {
-                                __instance.seatruckanimation.currentAnimation = SeaTruckAnimation.Animation.ExitPilot;
-                            }
-                            else
-                            {
-                                Player.main.armsController.SetTrigger(AnimatorHashID.seatruck_exit);
-                                __instance.animator.SetTrigger("seatruck_exit");
-                            }
-                            flag = true;
-                        }
-                    }
-                    else
-                    {
-                        __instance.waitForDocking = waitForDocking;
-                        if (forceGetupAnimation)
-                            __instance.truckSegment.Exit(skipTeleport: true, newInterior: newInterior);
-                        if (!waitForDocking)
-                            Player.main.ExitLockedMode(findNewPosition: false);
-                        if (__instance.seatruckanimation && (!__instance.liveMixin || __instance.liveMixin.IsAlive()))
-                            __instance.seatruckanimation.currentAnimation = SeaTruckAnimation.Animation.EndPilot;
-                        flag = true;
-                    }
-                    if (flag)
-                    {
-                        if (!__instance.truckSegment.isMainCab)
-                        {
-                            __instance.truckSegment.Exit();
-                            InputHandlerStack.main.Pop(__instance.inputStackDummy);
-                        }
-                        __instance.piloting = false;
-                        __instance.UpdateIKEnabledState();
-                        Player.main.inSeatruckPilotingChair = false;
-                        __instance.SendMessage("OnPilotEnd", null, SendMessageOptions.DontRequireReceiver);
-                        //if (__instance.stopPilotSound)
-                        //    Utils.PlayFMODAsset(__instance.stopPilotSound, __instance.transform);
-
-                        __instance.UpdateIKEnabledState();
-                        if (__instance.truckSegment.isMainCab)
-                            __instance.useRigidbody.velocity -= Vehicle.GetUpwardsVelocity(__instance.transform, __instance.useRigidbody);
-                    }
-                }
-                __result = flag;
-                return false;
-            }
-
+         
             [HarmonyPostfix]
             [HarmonyPatch("StartPiloting")]
             public static void StartPilotingPostfix(SeaTruckMotor __instance)
@@ -564,66 +490,61 @@ namespace Tweaks_Fixes
                     __instance.afterBurnerActive = false;
                 }
             }
-          
+
             [HarmonyPrefix]
-            [HarmonyPatch("FixedUpdate")]
+            [HarmonyPatch("FixedUpdate")] // fixed
             public static bool FixedUpdatePrefix(SeaTruckMotor __instance)
             {
-                if (!Main.config.seatruckMoveTweaks)
-                    return true;
+                //if (!Main.config.seatruckMoveTweaks)
+                //    return true;
+
+                if (!__instance.truckSegment.isMainCab && __instance.useRigidbody != null && (!__instance.useRigidbody.isKinematic && !__instance.piloting) && (__instance.useRigidbody.velocity.y > -0.3f && __instance.pilotPosition.position.y > Ocean.GetOceanLevel() - 2f))
+                    __instance.useRigidbody.AddForce(new Vector3(0f, -0.3f - __instance.useRigidbody.velocity.y, 0f), ForceMode.VelocityChange);
 
                 if (__instance.transform.position.y < Ocean.GetOceanLevel() && __instance.useRigidbody != null && (__instance.IsPowered() && !__instance.IsBusyAnimating()))
                 {
                     if (__instance.piloting)
                     {
-                        Vector3 input = AvatarInputHandler.main.IsEnabled() || __instance.inputStackDummy.activeInHierarchy ? GameInput.GetMoveDirection() : Vector3.zero;
-                        input = input.normalized;
-                        input.x *= .5f;
-                        input.y *= .5f;
-                        if (input.z < 0)
-                            input.z *= .5f;
-
+                        Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() || __instance.inputStackDummy.activeInHierarchy ? GameInput.GetMoveDirection() : Vector3.zero;
+                        if (!Main.config.seatruckMoveTweaks)
+                        { 
+                            moveDirection = moveDirection.normalized;
+                            moveDirection.x *= .5f;
+                            moveDirection.y *= .5f;
+                            if (moveDirection.z < 0f)
+                                moveDirection.z *= .5f;
+                        }
                         Int2 int2;
-                        int2.x = input.x <= 0f ? (input.x >= 0f ? 0 : -1) : 1;
-                        int2.y = input.z <= 0f ? (input.z >= 0f ? 0 : -1) : 1;
+                        int2.x = moveDirection.x <= 0f ? (moveDirection.x >= 0 ? 0 : -1) : 1;
+                        int2.y = moveDirection.z <= 0f ? (moveDirection.z >= 0 ? 0 : -1) : 1;
                         __instance.leverDirection = int2;
                         if (__instance.afterBurnerActive)
-                            input.z = 1f;
+                            moveDirection.z = 1f;
 
-                        float powerBonus = 1 + powerUpgrades * .1f;
-                        if (__instance.relay == null) // player pushing module
-                            powerBonus = 1f;
-
-                        Vector3 vector3_2 = MainCameraControl.main.rotation * input;
-                        float acceleration = 1f / Mathf.Max(1f, __instance.GetWeight() * 0.35f) * __instance.acceleration * powerBonus;
+                        moveDirection = moveDirection.normalized;
+                        Vector3 vector3_2 = MainCameraControl.main.rotation * moveDirection;
+                        float acceleration = 1f / Mathf.Max(1f, __instance.GetWeight() * 0.35f) * __instance.acceleration;
                         if (__instance.afterBurnerActive)
-                        {
-                            //AddDebug("afterBurnerActive " + __instance.afterBurnerActive);
                             acceleration += 7f;
-                        }
-                        //AddDebug("__instance.relay " + __instance.relay);
-                        __instance.useRigidbody.AddForce(acceleration * vector3_2, ForceMode.Acceleration);
-                        if (__instance.relay && input != Vector3.zero)
-                        {
-                            float mult = __instance.afterBurnerActive ? 2f : 1f;
-                            mult *= powerBonus;
-                            __instance.relay.ConsumeEnergy(mult * Time.deltaTime * __instance.powerEfficiencyFactor * 0.12f, out float _);
-                        }
 
+                        acceleration *= Main.config.seatruckSpeedMult;
+                        __instance.useRigidbody.AddForce(acceleration * vector3_2, ForceMode.Acceleration);
+                        if (__instance.relay && moveDirection != Vector3.zero)
+                            __instance.relay.ConsumeEnergy((Time.deltaTime * __instance.powerEfficiencyFactor * 0.12f), out float _);
                     }
                     __instance.StabilizeRoll();
                 }
                 if (!__instance.truckSegment.IsFront() || __instance.IsPowered() && !__instance.truckSegment.ReachingOutOfWater() && (!__instance.seatruckanimation || __instance.seatruckanimation.currentAnimation != SeaTruckAnimation.Animation.Enter))
                     return false;
+
                 __instance.StabilizePitch();
                 return false;
             }
-
         }
 
         //[HarmonyPatch(typeof(GenericHandTarget), "OnHandClick")]
         class GenericHandTarget_OnHandClick_Patch
-        {
+            {
             public static void OnHandClickPostfix(GenericHandTarget __instance)
             {
                 AddDebug(__instance.name + " GenericHandTarget OnHandClick" + __instance.transform.parent.name);

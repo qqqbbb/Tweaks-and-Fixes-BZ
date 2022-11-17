@@ -41,8 +41,9 @@ namespace Tweaks_Fixes
         static public string slot1Plus2Button = string.Empty;
         static public string exosuitLightsButton = string.Empty;
 
-        private static void SetTooltips()
+        static void SetTooltips()
         {
+
             LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, Main.config.translatableStrings[19]);
             LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, Main.config.translatableStrings[20]);
             // vanilla desc just copies the name
@@ -73,7 +74,7 @@ namespace Tweaks_Fixes
             throwFlareString = Main.config.translatableStrings[7] + " (" + rightHandButton + ")";
             lightAndThrowFlareString = Main.config.translatableStrings[8] + " (" + rightHandButton + ")";
             beaconToolString = TooltipFactory.stringDrop + " (" + rightHandButton + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
-            beaconPickString = "(" + rightHandButton + ")\n" + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+            beaconPickString = "(" + leftHandButton + ")\n" + Language.main.Get("BeaconLabelEdit");
             toggleBaseLightString = LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.Deconstruct);
             cycleNextButton = uGUI.FormatButton(GameInput.Button.CycleNext);
             cyclePrevButton = uGUI.FormatButton(GameInput.Button.CyclePrev);
@@ -699,11 +700,34 @@ namespace Tweaks_Fixes
 
         }
 
+        [HarmonyPatch(typeof(Targeting), "GetTarget", new Type[] { typeof(float), typeof(GameObject), typeof(float) }, new[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out})]
+        class Targeting_GetTarget_Patch
+        {
+            public static void Postfix(Targeting __instance, ref GameObject result, ref bool __result)
+            {
+                if (result == null)
+                    return;
+
+                TechType tt = CraftData.GetTechType(result);
+                if (tt == TechType.Creepvine || tt == TechType.CreepvineSeedCluster)
+                {
+                    //AddDebug("GetTarget TechType " + tt);
+                    if (Player.main._currentInterior != null && !Player.main._currentInterior.Equals(null) && Player.main._currentInterior is SeaTruckSegment)
+                    {
+                        __result = false;
+                        result = null;
+                    }
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(uGUI_MainMenu), "Update")]
         class uGUI_MainMenu_Update_Patch
         {
             public static void Postfix(uGUI_MainMenu __instance)
             {
+                //int num2 = ~(1 << LayerID.Player | 1 << LayerID.AllowPlayerAndVehicle | 1 << LayerID.OnlyVehicle);
+                //AddDebug("num2 " + num2);
                 //AddDebug("lastGroup " +__instance.lastGroup);
                 //AddDebug("mouseScrollDelta " + Input.mouseScrollDelta);
                 if (__instance.lastGroup == "SavedGames" || __instance.lastGroup == "NewGame")

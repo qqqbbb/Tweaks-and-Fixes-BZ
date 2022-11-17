@@ -10,15 +10,15 @@ namespace Tweaks_Fixes
 {
     class QuickSlots_Patch
     {
-        static HashSet<TechType> eqiupped;
-        static Queue<InventoryItem> toEqiup;
-        static HashSet<TechType> toEqiupTT;
+        static HashSet<TechType> equipped;
+        static Queue<InventoryItem> toEquip;
+        static HashSet<TechType> toEquipTT;
         public static bool invChanged = true;
 
         public static void GetTools()
         {
-            toEqiup = new Queue<InventoryItem>();
-            toEqiupTT = new HashSet<TechType>();
+            toEquip = new Queue<InventoryItem>();
+            toEquipTT = new HashSet<TechType>();
             GetEquippedTools();
             //Main.Log("GetTools " );
             foreach (InventoryItem item in Inventory.main.container)
@@ -26,10 +26,10 @@ namespace Tweaks_Fixes
                 if (item.item.GetComponent<PlayerTool>() && !item.item.GetComponent<Eatable>())
                 { // eatable fish is PlayerTool
                     TechType techType = item.item.GetTechType();
-                    if (!eqiupped.Contains(techType) && !toEqiupTT.Contains(techType))
+                    if (!equipped.Contains(techType) && !toEquipTT.Contains(techType))
                     {
-                        toEqiup.Enqueue(item);
-                        toEqiupTT.Add(techType);
+                        toEquip.Enqueue(item);
+                        toEquipTT.Add(techType);
                         //AddDebug("toEqiup " + techType);
                         //Main.Log("toEqiup " + techType);
                     }
@@ -39,11 +39,11 @@ namespace Tweaks_Fixes
 
         public static void GetEquippedTools()
         {
-            eqiupped = new HashSet<TechType>();
+            equipped = new HashSet<TechType>();
             //Main.Log("GetEquippedTools");
             foreach (TechType item in Inventory.main.quickSlots.GetSlotBinding())
             {
-                eqiupped.Add(item);
+                equipped.Add(item);
                 //Main.Log("eqiupped " + item);
             }
         }
@@ -61,9 +61,9 @@ namespace Tweaks_Fixes
             //    AddDebug("currentItem == null ");
             //AddDebug("currentItem " + currentItem.item.GetTechName());
             //AddDebug("toEqiup Remove " + toEqiup.Peek().item.GetTechName());
-            Inventory.main.quickSlots.Bind(activeSlot, toEqiup.Peek());
-            toEqiup.Dequeue();
-            toEqiup.Enqueue(currentItem);
+            Inventory.main.quickSlots.Bind(activeSlot, toEquip.Peek());
+            toEquip.Dequeue();
+            toEquip.Enqueue(currentItem);
             Inventory.main.quickSlots.SelectImmediate(activeSlot);
             //GetEquippedTools();
         }

@@ -12,7 +12,7 @@ namespace Tweaks_Fixes
     {
         //static HashSet<SubRoot> cyclops = new HashSet<SubRoot>();
         //static Dictionary<AttackCyclops, AggressiveWhenSeeTarget> attackCyclopsAWST = new Dictionary<AttackCyclops, AggressiveWhenSeeTarget>();
-
+        
         public static bool IsVehicle(GameObject go)
         {
             return go.GetComponent<Vehicle>() || go.GetComponent<SeaTruckSegment>() || go.GetComponent<Hoverbike>();
@@ -497,27 +497,33 @@ namespace Tweaks_Fixes
             [HarmonyPrefix]
             [HarmonyPatch("CanDealDamageTo")]
             public static bool CanDealDamageToPrefix(MeleeAttack __instance, GameObject target, ref bool __result)
-            {
+            { // skipped some code
+                //AddDebug(__instance.name + " CanDealDamageTo " + target.name );
                 Player player = target.GetComponent<Player>();
                 if (player != null)
                 {
                     //AddDebug(__instance.name + " CanDealDamageTo player CanBeAttacked " + player.CanBeAttacked() + " canBitePlayer " + __instance.canBitePlayer);
-                    float aggrMult = GameModeManager.GetCreatureAggressionModifier();
-                    __result = aggrMult > 0f && __instance.canBitePlayer && player.CanBeAttacked();
+                    __result = __instance.canBitePlayer && player.CanBeAttacked();
                     return false;
                 }
-                GameObject lastTarget = __instance.lastTarget.target;
                 if (__instance.biteOnlyCurrentTarget)
                 {
-                    __result = target.Equals(lastTarget);
+                    __result = target.Equals(__instance.lastTarget.target);
                     return false;
                 }
-                if (__instance.canBiteVehicle)
+                if (__instance.canBiteVehicle && IsVehicle(target) && IsValidVehicle(target))
                 {
-                    __result = IsValidVehicle(target);
+                    __result = true;
                     return false;
                 }
                 __result = __instance.canBiteCreature && target.GetComponent<Creature>() != null;
+                //TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //if (tt == TechType.BruteShark)
+                //{
+                //    LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
+                //    string name = lwe.gameObject.name;
+                //    AddDebug(__instance.name + " CanDealDamageTo " + name + " " + __result);
+                //}
                 return false;
             }
             //[HarmonyPostfix]
@@ -531,6 +537,8 @@ namespace Tweaks_Fixes
             }
         }
 
+
+        
     }
 }
 

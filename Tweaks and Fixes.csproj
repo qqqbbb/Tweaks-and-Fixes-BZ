@@ -32,6 +32,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FMODUnity, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Games\STEAM\SteamApps\common\SubnauticaZero\SubnauticaZero_Data\Managed\FMODUnity.dll</HintPath>
+    </Reference>
     <Reference Include="QModInstaller">
       <HintPath>C:\GAMES\Steam\steamapps\common\SubnauticaZero\BepInEx\plugins\QModManager\QModInstaller.dll</HintPath>
     </Reference>

@@ -12,6 +12,12 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(Exosuit))]
     class Exosuit_Patch
     {
+        //event:/sub/seamoth/seaglide_light_on
+        //{fe76457f-0c94-4245-a080-8a5b2f8853c4}
+        //event:/sub/seamoth/seaglide_light_off
+        //{b52592a9-19f5-45d1-ad56-7d355fc3dcc3}
+        static FMODAsset lightOnSound;
+        static FMODAsset lightOffSound;
         private const float vertThrustAcc = 4.25f;
         private const float horThrustAcc = 7.5f;
         private const float thrustUpgradeAcc = 1.33f;
@@ -340,6 +346,13 @@ namespace Tweaks_Fixes
                 GetArmNames(__instance);
                 armNamesChanged = true;
             }
+            lightOnSound = ScriptableObject.CreateInstance<FMODAsset>();
+            lightOnSound.path = "event:/sub/seamoth/seaglide_light_on";
+            lightOnSound.id = "{fe76457f-0c94-4245-a080-8a5b2f8853c4}";
+            lightOffSound = ScriptableObject.CreateInstance<FMODAsset>();
+            lightOffSound.path = "event:/sub/seamoth/seaglide_light_off";
+            lightOffSound.id = "{b52592a9-19f5-45d1-ad56-7d355fc3dcc3}";
+
             CollisionSound collisionSound = __instance.gameObject.EnsureComponent<CollisionSound>();
             FMODAsset so = ScriptableObject.CreateInstance<FMODAsset>();
             so.path = "event:/sub/common/fishsplat";
@@ -598,9 +611,15 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("IngameMenu isActiveAndEnabled " + IngameMenu.main.isActiveAndEnabled);
                     if (!lightsT.gameObject.activeSelf && __instance.energyInterface.hasCharge)
+                    {
                         lightsT.gameObject.SetActive(true);
+                        Utils.PlayFMODAsset(lightOnSound, Player.main.transform);
+                    }
                     else if (lightsT.gameObject.activeSelf)
+                    {
                         lightsT.gameObject.SetActive(false);
+                        Utils.PlayFMODAsset(lightOffSound, Player.main.transform);
+                    }
                     //AddDebug("lights " + lightsT.gameObject.activeSelf);
                 }
             }
@@ -612,7 +631,6 @@ namespace Tweaks_Fixes
         { // reduce vert thrust speed. jumpJetsUpgrade affects vert and hor speed the same way. powersliding
             if (!Main.config.exosuitMoveTweaks)
                 return true;
-
 
             VehicleFixedUpdate(__instance);
 
@@ -772,6 +790,7 @@ namespace Tweaks_Fixes
                 {
                     if (!string.IsNullOrEmpty(leftArm))
                         __instance.sb.Append(", ");
+
                     __instance.sb.Append(rightArm);
                     __instance.sb.Append(" ");
                     __instance.sb.Append(UI_Patches.rightHandButton);
@@ -823,7 +842,7 @@ namespace Tweaks_Fixes
         //[HarmonyPatch("OnUpgradeModuleChange")]
         public static void OnUpgradeModuleChangePostfix(Exosuit __instance, int slotID, TechType techType, bool added)
         { // runs before Exosuit.Start
-            if (!exosuitStarted || !Main.loadingDone)
+            if (!exosuitStarted || uGUI.isLoading)
                 return;
 
             //AddDebug("OnUpgradeModuleChange " + techType + " " + added + " " + slotID);

@@ -14,31 +14,22 @@ namespace Tweaks_Fixes
 { 
     class Testing
     {// purpleVent -29 -79 -861
-        // crypto -90 -7 -340
-        //[HarmonyPatch(typeof(uGUI_PDA), "OnOpenPDA")]
-        class uGUI_PDA_Patch
-        {
-            //[HarmonyPrefix]
-            //[HarmonyPatch("Update")]
-            static bool Prefix(uGUI_PDA __instance)
-            {
-                AddDebug("uGUI_PDA OnOpenPDA");
-                return false;
-            }
-        }
+     // crypto -90 -7 -340
+     //[HarmonyPatch(typeof(uGUI_PDA), "OnOpenPDA")]
+        static GameObject previousTarget;
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("_dayNightSpeed " + DayNightCycle.main._dayNightSpeed);
+                //AddDebug("IsPiloting " + __instance.IsPiloting());
                 //AddDebug("CreatureAggressionModifier " + GameOption.CreatureAggressionModifier);
                 //AddDebug("IsUnderwater " + Player.main.IsUnderwater());
                 //AddDebug("GetPlayerTemperature " + (int)Main.GetPlayerTemperature());
                 //AddDebug("ambientTemperature " + (int)Player_Patches.ambientTemperature);
-                BodyTemperature bt = __instance.GetComponent<BodyTemperature>();
-                if (bt)
+                //BodyTemperature bt = __instance.GetComponent<BodyTemperature>();
+                //if (bt)
                 {
                     //AddDebug("isExposed " + bt.isExposed);
                     //int temp = (int)bt.CalculateEffectiveAmbientTemperature();
@@ -46,23 +37,6 @@ namespace Tweaks_Fixes
                     //    AddDebug("CalculateEffectiveAmbientTemperature " + temp);
                     //AddDebug("GetWaterTemperature " + (int)Main.bodyTemperature.GetWaterTemperature());
                 }
-                //bool inTruck = Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment;
-                //AddDebug("inTruck " + inTruck);
-                //AddDebug("IsPilotingSeatruck " + Player.main.IsPilotingSeatruck());
-                //AddDebug("inExosuit " + Player.main.inExosuit);
-                if (Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment)
-                {
-                    //SeaTruckSegment sts = (SeaTruckSegment)Player.main._currentInterior;
-                    //Rigidbody rb = sts.GetComponent<Rigidbody>();
-                    //if (rb)
-                    //{
-                    //    AddDebug("vel " + rb.velocity.x);
-                    //}
-                }
-                //if (Player.main._currentSub)
-                //    AddDebug("_currentSub " + Player.main._currentSub);
-                //if (Player.main.inExosuit)
-                //    AddDebug("inExosuit ");
                 //float movementSpeed = (float)System.Math.Round(__instance.movementSpeed * 10f) / 10f;
                 if (Input.GetKeyDown(KeyCode.B))
                 {
@@ -133,34 +107,53 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.Z))
                 {
+                    GameObject target = Player.main.guiHand.activeTarget;
+                    if (Input.GetKey(KeyCode.LeftShift))
+                    {
+                        if (previousTarget)
+                        {
+                            AddDebug("enable " + previousTarget.name);
+                            previousTarget.SetActive(true);
+                            previousTarget = null;
+                            return;
+                        }
+                    }
                     //AddDebug(" Base_Light.bases " +);
                     //Inventory.main.quickSlots.SelectImmediate(Main.config.activeSlot);
-                    GameObject target = Player.main.guiHand.activeTarget;
                     //AddDebug("activeTarget parent " + target.transform.parent.name);
-                    //AddDebug("activeTarget parent parent " + target.transform.parent.parent.name);
+                    //AddDebug("activeTarget " + target.name);
                     if (!target)
                     { 
                         Targeting.GetTarget(Player.main.gameObject, 5f, out target, out float targetDist);
                     }
                     if (target)
                     {
+
                         PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
                         if (pi)
+                            target = pi.gameObject;
+
+                        if (Input.GetKey(KeyCode.LeftShift))
                         {
-                            AddDebug("target " + pi.gameObject.name);
-                            AddDebug("target TechType " + CraftData.GetTechType(pi.gameObject));
-                            //AddDebug("IsLightOn " + Predators_Patch.IsLightOn(pi.gameObject));
-                            int x = (int)pi.transform.position.x;
-                            int y = (int)pi.transform.position.y;
-                            int z = (int)pi.transform.position.z;
-                            //AddDebug(x + " " + y + " " + z);
+                            AddDebug("disable target");
+                            target.SetActive(false);
+                            previousTarget = target;
                         }
-                        else
-                        {
-                            //AddDebug("IsVehicle " + Predators_Patch.IsVehicle(target));
-                            AddDebug("target " + target.name);
-                            AddDebug("target TechType " + CraftData.GetTechType(target));
-                        }
+                        //AddDebug("IsVehicle " + Predators_Patch.IsVehicle(target));
+                        AddDebug("target " + target.name);
+                        AddDebug("target TechType " + CraftData.GetTechType(target));
+                        VFXSurface surface = target.GetComponent<VFXSurface>();
+                        if (surface)
+                            AddDebug("target surface " + surface.surfaceType);
+
+                        VFXSurface surface1 = target.GetComponentInChildren<VFXSurface>();
+                        if (surface1)
+                            AddDebug("target child surface " + surface1.surfaceType);
+
+                        int x = (int)pi.transform.position.x;
+                        int y = (int)pi.transform.position.y;
+                        int z = (int)pi.transform.position.z;
+                        //AddDebug(x + " " + y + " " + z);
                     }
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {
@@ -169,6 +162,22 @@ namespace Tweaks_Fixes
                     {
                     }
                 }
+                else if (Input.GetKeyDown(KeyCode.D))
+                {
+
+
+                }
+            }
+        }
+
+        class uGUI_PDA_Patch
+        {
+            //[HarmonyPrefix]
+            //[HarmonyPatch("Update")]
+            static bool Prefix(uGUI_PDA __instance)
+            {
+                AddDebug("uGUI_PDA OnOpenPDA");
+                return false;
             }
         }
 

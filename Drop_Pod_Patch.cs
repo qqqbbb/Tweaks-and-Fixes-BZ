@@ -101,7 +101,15 @@ namespace Tweaks_Fixes
             }
         }
 
-
+        //[HarmonyPatch(typeof(LifepodDrop), "Start")]
+        class LifepodDrop_Start_Patch
+        {
+            static void Postfix(LifepodDrop __instance)
+            {
+                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                surface.surfaceType = VFXSurfaceTypes.metal;
+            }
+        }
 
     }
 }

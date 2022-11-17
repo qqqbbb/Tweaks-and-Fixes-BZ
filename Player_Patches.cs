@@ -144,7 +144,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("GetDepthClass");
                 Ocean.DepthClass depthClass = Ocean.DepthClass.Surface;
-                if (!Main.loadingDone)
+                if (uGUI.isLoading)
                 {
                     __result = depthClass;
                     return false;

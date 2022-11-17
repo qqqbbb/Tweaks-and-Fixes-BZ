@@ -121,6 +121,7 @@ namespace Tweaks_Fixes
                     {
                         Eatable eatable = item.item.GetComponent<Eatable>();
                         timeDecayStart = eatable.timeDecayStart;
+                        //AddDebug("OnRemoveItem save timeDecayStart " + timeDecayStart);
                     }
                     //else
                     //    timeDecayStart = 0f;

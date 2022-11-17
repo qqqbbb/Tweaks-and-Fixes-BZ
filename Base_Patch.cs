@@ -169,21 +169,22 @@ namespace Tweaks_Fixes
                 }
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("Start")]
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
             public static void StartPostfix(SubRoot __instance)
             {
-                if (!Main.loadingDone && __instance.powerRelay)
-                {
-                    AddDebug("SubRoot Start powerRelay " + __instance.powerRelay.isPowered);
-                    AddDebug("SubRoot Start IsHeatOnline " + __instance.IsHeatOnline());
-                }
-                if (!Main.loadingDone && __instance.powerRelay && __instance.powerRelay.isPowered)
-                {
-                    __instance.internalTemperature = __instance.heatedIndoorTargetTemperature;
-                    AddDebug("SubRoot Start " + __instance.internalTemperature);
-                }
-
+                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
+                surface.surfaceType = VFXSurfaceTypes.metal;
+                //if (uGUI.isLoading && __instance.powerRelay)
+                //{
+                //    AddDebug("SubRoot Start powerRelay " + __instance.powerRelay.isPowered);
+                //    AddDebug("SubRoot Start IsHeatOnline " + __instance.IsHeatOnline());
+                //}
+                //if (uGUI.isLoading && __instance.powerRelay && __instance.powerRelay.isPowered)
+                //{
+                //    __instance.internalTemperature = __instance.heatedIndoorTargetTemperature;
+                //    AddDebug("SubRoot Start " + __instance.internalTemperature);
+                //}
             }
 
             //[HarmonyPrefix]
@@ -303,8 +304,9 @@ namespace Tweaks_Fixes
             static bool Prefix(CoffeeVendingMachine __instance)
             {
                 //AddDebug("CoffeeVendingMachine Start");
-                if (Main.loadingDone)
+                if (!uGUI.isLoading)
                     __instance.idleSound.Play();
+
                 return false;
             }
         }

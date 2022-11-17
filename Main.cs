@@ -11,11 +11,9 @@ using UnityEngine;
 using System.Text;
 using SMLHelper.V2.Assets;
 using static ErrorMessage;
-// ugly terrain -414 -101 -390
-// pick up snow HoverBikeBase GlacialBasin_snow_bulb_01_b
 //GameModeManager.GetOption<bool>(GameOption.Hunger)
-// test LOD 208 -20 -540
-// TEST base light
+// bad grass LOD 213 -26 -541
+
 namespace Tweaks_Fixes
 {
     [QModCore]
@@ -25,7 +23,8 @@ namespace Tweaks_Fixes
         public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
         public static bool canBreathe = false;
-        public static bool loadingDone = false;
+        //!uGUI.isLoading
+        //public static bool loadingDone = false;
         //public static bool languageCheck = false;
         public static System.Random rndm = new System.Random();
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
@@ -132,7 +131,7 @@ namespace Tweaks_Fixes
 
         public static float GetPlayerTemperature()
         {
-            //AddDebug("GetPlayerTemperature " + go.name);
+            //AddDebug("GetPlayerTemperature ");
             //IInteriorSpace currentInterior = Player.main.GetComponentInParent<IInteriorSpace>();
             //if (currentInterior != null)
             //    return currentInterior.GetInsideTemperature();
@@ -146,6 +145,13 @@ namespace Tweaks_Fixes
             else if (Player.main.inHovercraft && !config.useRealTempForColdMeter)
             {
                 return config.vehicleTemp;
+            }
+            else if(Player.main._currentInterior != null && !Player.main._currentInterior.Equals(null) && Player.main._currentInterior is SeaTruckSegment)
+            {
+                SeaTruckSegment sts = Player.main._currentInterior as SeaTruckSegment;
+                //AddDebug("SeaTruck IsPowered " + sts.relay.IsPowered());
+                if (sts.relay.IsPowered())
+                    return config.vehicleTemp;
             }
             return Player_Patches.ambientTemperature;
         }
@@ -233,7 +239,7 @@ namespace Tweaks_Fixes
 
         public static void CleanUp()
         {
-            loadingDone = false;
+            //loadingDone = false;
             canBreathe = false;
             //AddDebug("CleanUp");
             //Log("CleanUp !!!");
@@ -248,6 +254,7 @@ namespace Tweaks_Fixes
             fridges = new List<ItemsContainer>();
             UI_Patches.recyclotrons = new Dictionary<ItemsContainer, Recyclotron>();
             //Base_Patch.baseBuilt = new Dictionary<SubRoot, bool>();
+            Tools_Patch.fixedFish = new List<PlayerTool>();
             config.Load();
         }
 
@@ -274,7 +281,7 @@ namespace Tweaks_Fixes
 
         public static bool IsPlayerInVehicle()
         {
-            if (Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment)
+            if (Player.main._currentInterior != null && !Player.main._currentInterior.Equals(null) && Player.main._currentInterior is SeaTruckSegment)
                 return true;
 
             return Player.main.inExosuit || Player.main.inHovercraft;
@@ -354,7 +361,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //static public GameObject addedToInv = null;
         static public IEnumerator AddToInventory(TechType techType)
         {
             GameObject gameObject = null;
@@ -366,7 +372,7 @@ namespace Tweaks_Fixes
             if (gameObject != null)
             {
                 //addedToInv = gameObject;
-                Eatable eatable = gameObject.GetComponent<Eatable>();
+                //Eatable eatable = gameObject.GetComponent<Eatable>();
                 //if (eatable != null)
                 //    eatable.SetDecomposes(true); gameObject.EnsureComponent<EcoTarget>().SetTargetType(EcoTargetType.DeadMeat);
                 Pickupable pickupable = gameObject.GetComponent<Pickupable>();
@@ -383,13 +389,13 @@ namespace Tweaks_Fixes
         { // fires after game loads
             public static void Postfix(WaitScreen __instance)
             {
-                if (!loadingDone)
+                //AddDebug(" WaitScreen Hide");
+                //if (uGUI.isLoading)
                 {
-                    //AddDebug(" WaitScreen Hide");
+                    //AddDebug(" WaitScreen Hide  !!!");
                     UWE.CoroutineHost.StartCoroutine(SelectEquippedItem());
                     KnownTech.Add(TechType.SnowBall, false, false);
-
-                    loadingDone = true;
+                    //loadingDone = true;
                 }
             }
         }
@@ -405,7 +411,7 @@ namespace Tweaks_Fixes
                     //return;
                 //}
                 AddDebug(" uGUI_SceneLoading end");
-                loadingDone = true;
+                //loadingDone = true;
                 //Base_Light.BaseCellLighting_Start_Patch.UpdateBaseLights(true);
                 //Base_Light.BaseCellLighting_Start_Patch q = new Base_Light.BaseCellLighting_Start_Patch();
                 //q.Invoke("UpdateBaseLights", 3f);
@@ -438,7 +444,16 @@ namespace Tweaks_Fixes
                 config.podPower[SaveLoadManager.main.currentSlot] = Drop_Pod_Patch.podPowerSource.power;
 
             config.activeSlot = Inventory.main.quickSlots.activeSlot;
-            //InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
+            InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
+            if (heldItem != null)
+            {
+                VehicleInterface_MapController mc = heldItem.item.GetComponent<VehicleInterface_MapController>();
+                if (mc)
+                {
+                    //AddDebug(" save seaglide");
+                    config.seaGlideMap = mc.mapActive;
+                }
+            }
             //if (heldItem.item.GetTechType() == TechType.Seaglide)
             //    config.activeSlot = -1;
 
@@ -456,14 +471,17 @@ namespace Tweaks_Fixes
             IngameMenuHandler.RegisterOnSaveEvent(SaveData);
             IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
             CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
+            CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(21f, -39.5f, -364.3f), new Vector3(30f, 50f, 340f)));
+            CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("a3f8c8e0-0a2c-4f9b-b585-8804d15bc04b", new Vector3(-412.3f, -100.79f, -388.2f), new Vector3(310f, 0f, 90f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-208f, -376f, -1332f), new Vector3(4f, 114.77f, 0f)));
+
         }
 
         [QModPostPatch]
         public static void PostPatch()
         {
             //Log("PostPatch GetCurrentLanguage " + Language.main.GetCurrentLanguage());
-            Log("translatableStrings.Count " + config.translatableStrings.Count);
+            //Log("translatableStrings.Count " + config.translatableStrings.Count);
             //languageCheck = Language.main.GetCurrentLanguage() == "English") || !config.translatableStrings[0].Equals("Burnt out ");
             //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
             baseLightSwitchLoaded = QModServices.Main.ModPresent("BaseLightSwitch");
