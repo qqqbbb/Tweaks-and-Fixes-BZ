@@ -32,7 +32,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Knife), "OnToolUseAnim")]
         class Knife_OnToolUseAnim_Prefix_Patch
         {
-            public static bool Prefix(Knife __instance)
+            public static bool Prefix(Knife __instance, GUIHand hand)
             {
                 Vector3 position = new Vector3();
                 GameObject closestObj = null;
@@ -40,9 +40,9 @@ namespace Tweaks_Fixes
                 UWE.Utils.TraceFPSTargetPosition(Player.main.gameObject, __instance.attackDist, ref closestObj, ref position, out normal);
                 if (closestObj == null)
                 {
-                    InteractionVolumeUser component = Player.main.gameObject.GetComponent<InteractionVolumeUser>();
-                    if (component != null && component.GetMostRecent() != null)
-                        closestObj = component.GetMostRecent().gameObject;
+                    InteractionVolumeUser ivu = Player.main.gameObject.GetComponent<InteractionVolumeUser>();
+                    if (ivu != null && ivu.GetMostRecent() != null)
+                        closestObj = ivu.GetMostRecent().gameObject;
                 }
                 if (closestObj)
                 {
@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
                     //AddDebug("closestObj " + closestObj.name);
                     //AddDebug("root " + root.name);
 
-                    LiveMixin lm = closestObj.GetComponent<LiveMixin>();
+                    LiveMixin lm = closestObj.FindAncestor<LiveMixin>();
 
                     if (lm && Knife.IsValidTarget(lm))
                     {
