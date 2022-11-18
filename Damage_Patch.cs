@@ -9,8 +9,9 @@ namespace Tweaks_Fixes
     class Damage_Patch
     {
         static public Dictionary<TechType, float> damageMult = new Dictionary<TechType, float>();
-        static HashSet<DealDamageOnImpact> ddoiHB = new HashSet<DealDamageOnImpact>();
-        
+        static HashSet<DealDamageOnImpact> hoverBikes = new HashSet<DealDamageOnImpact>();
+        static HashSet<DealDamageOnImpact> ddoiVanillaScript = new HashSet<DealDamageOnImpact>();
+
         static void SetBloodColor(GameObject go)
         {  
             ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
@@ -44,7 +45,7 @@ namespace Tweaks_Fixes
                 //if (tt == TechType.SeaTruck)
                 //    __instance.mirroredSelfDamageFraction = 1f;
                 if (__instance.GetComponent<Hoverbike>())
-                    ddoiHB.Add(__instance);
+                    hoverBikes.Add(__instance);
                     //__instance.mirroredSelfDamageFraction = .25f;
             }
             [HarmonyPrefix]
@@ -54,15 +55,16 @@ namespace Tweaks_Fixes
                 if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
                     return false;
 
-                if (ddoiHB.Contains(__instance))
+                if (hoverBikes.Contains(__instance) || ddoiVanillaScript.Contains(__instance))
                     return true;
 
+                ddoiVanillaScript.Add(__instance);
                 float damageMax = Mathf.Max(0f, Vector3.Dot(-collision.contacts[0].normal, __instance.prevVelocity));
                 float colMag = collision.relativeVelocity.magnitude;
                 //AddDebug(" colMag " + colMag);
                 //AddDebug(" speedMinimumForDamage " + __instance.speedMinimumForDamage);
                 if (colMag < __instance.speedMinimumForDamage)
-                    return false;
+                    return OnCollisionEnterFinished(__instance);
 
                 if (__instance.impactSound && __instance.timeLastImpactSound + .5f < Time.time)
                 {
@@ -75,14 +77,15 @@ namespace Tweaks_Fixes
                         GameObject entityRoot = UWE.Utils.GetEntityRoot(collision.gameObject);
                         if (entityRoot != null)
                             gameObject = entityRoot;
+
                         if (gameObject.GetComponent<Creature>() != null)
                         {
                             BehaviourType behaviourType = CreatureData.GetBehaviourType(gameObject);
                             smallFish = behaviourType == BehaviourType.SmallFish || behaviourType == BehaviourType.MediumFish;
                         }
-                        //__instance.impactSound.SetParameterValue(__instance.hitFishParamIndex, smallFish ? 1f : 0f);
+                        __instance.impactSound.SetParameterValue(__instance.hitFishParamIndex, smallFish ? 1f : 0f);
                     }
-                    //__instance.impactSound.SetParameterValue(__instance.velocityParamIndex, damageMult);
+                    __instance.impactSound.SetParameterValue(__instance.velocityParamIndex, damageMax);
                     __instance.impactSound.Play();
                     __instance.timeLastImpactSound = Time.time;
                 }
@@ -94,10 +97,10 @@ namespace Tweaks_Fixes
                         colTarget = entityRoot;
 
                     if (colTarget.Equals(Player.main.gameObject))
-                        return false;
+                        return OnCollisionEnterFinished(__instance);
                 }
                 if (!__instance.damageBases && UWE.Utils.GetComponentInHierarchy<Base>(collision.gameObject))
-                    return false;
+                    return OnCollisionEnterFinished(__instance);
 
                 LiveMixin targetLM = __instance.GetLiveMixin(collision.contacts[0].otherCollider.gameObject);
                 Vector3 position = collision.contacts[0].point;
@@ -124,12 +127,13 @@ namespace Tweaks_Fixes
                     }
                 }
                 if (!__instance.mirroredSelfDamage || colMag < __instance.speedMinimumForSelfDamage)
-                    return false;
+                    return OnCollisionEnterFinished(__instance);
 
                 LiveMixin myLM = __instance.GetLiveMixin(__instance.gameObject);
                 bool tooSmall = rb && rb.mass <= __instance.minimumMassForDamage;
                 if (__instance.mirroredSelfDamageFraction == 0f || !myLM || Time.time <= __instance.timeLastDamagedSelf + 1f || tooSmall)
-                    return false;
+                    return OnCollisionEnterFinished(__instance);
+
                 //float num3 = targetDamage * __instance.mirroredSelfDamageFraction;
                 float myDamage = colMag * Mathf.Clamp((1f + (targetMass - myMass) * 0.001f), 0f, damageMax);
                 if (__instance.capMirrorDamage != -1f)
@@ -137,6 +141,15 @@ namespace Tweaks_Fixes
                 myLM.TakeDamage(myDamage, position, DamageType.Collide, __instance.gameObject);
                 __instance.timeLastDamagedSelf = Time.time;
                 //AddDebug(__instance.name + " speedMinimumForDamage " + __instance.speedMinimumForDamage + " self damage " + myDamage);
+                ddoiVanillaScript.Remove(__instance);
+                return false;
+            }
+
+            //[HarmonyPostfix]
+            //[HarmonyPatch("OnCollisionEnter")]
+            static bool OnCollisionEnterFinished(DealDamageOnImpact dealDamageOnImpact)
+            {
+                ddoiVanillaScript.Remove(dealDamageOnImpact);
                 return false;
             }
         }
