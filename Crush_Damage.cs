@@ -13,20 +13,19 @@ namespace Tweaks_Fixes
 
         public static void CrushDamage()
         {
-            if (!Player.main.gameObject.activeInHierarchy)
+            if (!Player.main.gameObject.activeInHierarchy || !Player.main.IsSwimming())
                 return;
 
             float depth = Ocean.GetDepthOf(Player.main.gameObject);
             float crushDepth = Main.config.crushDepth + extraCrushDepth;
 
-            if (depth < crushDepth || !Player.main.IsSwimming())
+            if (depth < crushDepth)
                 return;
 
             float damage = (depth - crushDepth) * Main.config.crushDamageMult;
-            if (!Player.main.liveMixin)
-                return;
+            if (Player.main.liveMixin)
+                Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
             //AddDebug(" CrushDamageUpdate " + damage);
-            Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
         }
 
         [HarmonyPatch(typeof(Inventory))]

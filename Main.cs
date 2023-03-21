@@ -10,10 +10,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using SMLHelper.V2.Assets;
+using SMLHelper.V2.Crafting;
 using static ErrorMessage;
 //GameModeManager.GetOption<bool>(GameOption.Hunger)
 // bad grass LOD 213 -26 -541
-
+//uGUI.isLoading
 namespace Tweaks_Fixes
 {
     [QModCore]
@@ -29,6 +30,7 @@ namespace Tweaks_Fixes
         public static System.Random rndm = new System.Random();
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
+        public static bool visibleLockerInteriorModLoaded = false;
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
@@ -119,6 +121,16 @@ namespace Tweaks_Fixes
             if (go.GetComponentInParent<Player>())
                 return GetPlayerTemperature();
 
+            if (go.transform.parent && go.transform.parent.parent)
+            {
+                Fridge fridge = go.transform.parent.parent.GetComponent<Fridge>();
+                if (fridge && fridge.powerConsumer.IsPowered())
+                {
+                    //AddDebug("GetTemperature " + go.name + " in fridge");
+                    return -1f;
+                }
+            }
+
             IInteriorSpace currentInterior = go.GetComponentInParent<IInteriorSpace>();
             if (currentInterior != null)
                 return currentInterior.GetInsideTemperature();
@@ -202,20 +214,20 @@ namespace Tweaks_Fixes
             Creature creature = go.GetComponent<Creature>();
             Eatable eatable = go.GetComponent<Eatable>();
             LiveMixin liveMixin = go.GetComponent<LiveMixin>();
-            //if (creature && eatable && liveMixin && liveMixin.IsAlive())
-            //    return true;
-
-            return creature && eatable && liveMixin && liveMixin.IsAlive();
+            if (creature && eatable && liveMixin && liveMixin.IsAlive())
+                return true;
+            else
+                return false;
         }
 
         public static bool IsEatableFish(GameObject go)
         {
             Creature creature = go.GetComponent<Creature>();
             Eatable eatable = go.GetComponent<Eatable>();
-            //if (creature && eatable)
-            //    return true;
-
-            return creature && eatable;
+            if (creature && eatable)
+                return true;
+            else
+                return false;
         }
 
         public static void CookFish(GameObject go)
@@ -250,7 +262,6 @@ namespace Tweaks_Fixes
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
             CraftTree.fabricator = new CraftTree("Fabricator", CraftTree.FabricatorScheme());
             Seatruck_Patch.installedUpgrades = new HashSet<TechType>();
-            LargeWorldEntity_Patch.rock_01_d_disabled = false;
             fridges = new List<ItemsContainer>();
             UI_Patches.recyclotrons = new Dictionary<ItemsContainer, Recyclotron>();
             //Base_Patch.baseBuilt = new Dictionary<SubRoot, bool>();
@@ -474,7 +485,15 @@ namespace Tweaks_Fixes
             CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(21f, -39.5f, -364.3f), new Vector3(30f, 50f, 340f)));
             CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("a3f8c8e0-0a2c-4f9b-b585-8804d15bc04b", new Vector3(-412.3f, -100.79f, -388.2f), new Vector3(310f, 0f, 90f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-208f, -376f, -1332f), new Vector3(4f, 114.77f, 0f)));
-
+          
+            //RecipeData recipeData = new RecipeData();
+            //recipeData.Ingredients = new List<Ingredient>()
+            //{
+            //    new Ingredient(TechType.Titanium, 3),
+            //    new Ingredient(TechType.WiringKit, 1)
+            //};
+            //CraftDataHandler.SetTechData(TechType.CyclopsDecoy, recipeData);
+            //CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, TechType.CyclopsDecoy, new string[1] { "Decoy" });
         }
 
         [QModPostPatch]
@@ -485,6 +504,8 @@ namespace Tweaks_Fixes
             //languageCheck = Language.main.GetCurrentLanguage() == "English") || !config.translatableStrings[0].Equals("Burnt out ");
             //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
             baseLightSwitchLoaded = QModServices.Main.ModPresent("BaseLightSwitch");
+            visibleLockerInteriorModLoaded = QModServices.Main.ModPresent("lockerMod");
+
             //LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, config.translatableStrings[19]);
             //LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, config.translatableStrings[20]);
             //// vanilla desc just copies the name
@@ -521,6 +542,7 @@ namespace Tweaks_Fixes
                 if (tt != TechType.None)
                     Damage_Patch.damageMult.Add(tt, kv.Value);
             }
+
         }
     }
 }

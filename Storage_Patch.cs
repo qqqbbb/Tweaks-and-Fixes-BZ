@@ -338,11 +338,12 @@ namespace Tweaks_Fixes
                                 UnityEngine.Object.Destroy(collider);
                         }
                     }
-                    else if (techTag.type == TechType.Locker)
+                    else if (techTag.type == TechType.Locker && !Main.visibleLockerInteriorModLoaded)
                     {
                         LiveMixin lm = __instance.GetComponent<LiveMixin>();
                         if (lm)
                             UnityEngine.Object.Destroy(lm);
+
                         Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
                         if (doorRight)
                         { // parent is null

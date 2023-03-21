@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using static ErrorMessage;
 using System.Text;
+using System.Collections;
 
 namespace Tweaks_Fixes
 {
@@ -322,6 +323,58 @@ namespace Tweaks_Fixes
                     __instance.SetAsset(null);
                 }
             }
+        }
+
+        [HarmonyPatch(typeof(Aquarium), "IsAllowedToAdd")]
+        class Aquarium_IsAllowedToAdd_Patch
+        {
+            static void Postfix(Aquarium __instance, ref bool __result, Pickupable pickupable)
+            {
+                //AddDebug(" Aquarium IsAllowedToAdd " + pickupable.GetTechType() + " " + __result);
+                LiveMixin liveMixin = pickupable.GetComponent<LiveMixin>();
+                if (liveMixin && !liveMixin.IsAlive())
+                    __result = false;
+
+                //TechType tt = CraftData.GetTechType(pickupable.gameObject);
+                //if (tt == TechType.NootFish)
+                //{
+                //    AddDebug(" NootFish ");
+                //    __result = true;
+                //}
+ 
+            }
+
+        }
+
+
+        [HarmonyPatch(typeof(Constructable))]
+        class Constructable_Construct_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("NotifyConstructedChanged")]
+            public static void Postfix(Constructable __instance, bool constructed)
+            {
+                if (!constructed || uGUI.isLoading)
+                    return;
+                //Main.config.builderPlacingWhenFinishedBuilding = false;
+                //AddDebug(" NotifyConstructedChanged " + __instance.techType);
+                //AddDebug(" NotifyConstructedChanged isPlacing " + Builder.isPlacing);
+                if (!Main.config.builderPlacingWhenFinishedBuilding)
+                    Player.main.StartCoroutine(BuilderEnd(2));
+            }
+        }
+
+        static IEnumerator BuilderEnd(int waitFrames)
+        {
+            //AddDebug("BuilderEnd start ");
+            //yield return new WaitForSeconds(waitTime);
+            while (waitFrames > 0)
+            {
+                waitFrames--;
+                yield return null;
+            }
+            Builder.End();
+            //AddDebug("BuilderEnd end ");
         }
 
 

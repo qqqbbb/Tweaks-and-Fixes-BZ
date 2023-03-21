@@ -11,20 +11,12 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(LargeWorldEntity))]
     class LargeWorldEntity_Patch
     {
-        public static bool rock_01_d_disabled = false;
-
-        [HarmonyPrefix]
+        [HarmonyPostfix]
         [HarmonyPatch("Start")]
-        public static void StartPrefix(LargeWorldEntity __instance)
+        public static void StartPostfix(LargeWorldEntity __instance)
         {
-            //if (Vector3.Distance(Player.main.transform.position, __instance.transform.position) < 6)
-            //{
-            //    AddDebug(__instance.name + " close to player");
-            //    Main.Log(__instance.name + " close to player");
-            //}
             TechType tt = CraftData.GetTechType(__instance.gameObject);
-
-            if (tt == TechType.GenericJeweledDisk)
+            if(tt == TechType.GenericJeweledDisk)
             {
                 VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
                 surface.surfaceType = VFXSurfaceTypes.coral;
@@ -78,8 +70,8 @@ namespace Tweaks_Fixes
                     bc.isTrigger = true;
                 }
             }
-            else if (tt == TechType.TapePlant )
-            {// disable collision but allow scanningy
+            else if (tt == TechType.TapePlant)
+            {// disable collision but allow scanning
                 Transform tr = __instance.transform.GetChild(0);
                 CapsuleCollider cc = __instance.GetComponent<CapsuleCollider>();
                 GameObject go = new GameObject("collision");
@@ -122,14 +114,14 @@ namespace Tweaks_Fixes
                     //int y = (int)__instance.transform.position.y;
                     //int z = (int)__instance.transform.position.z;
                     //if (x == -133 && y == -373 && z == -1342)
-                    {
+                    //{
                         //AddDebug("treespires_fissure_edge_01_b_curved_inner ");
                         //__instance.transform.position = new Vector3(-88.5f, -448.4f, __instance.transform.position.z);
                         //Vector3 rot = __instance.transform.eulerAngles;
                         //__instance.transform.eulerAngles = new Vector3(rot.x, rot.y, 359f);
-                    }
+                    //}
                 }
-                if(__instance.name == "treespires_fissure_edge_01_b_straight(Clone)")
+                if (__instance.name == "treespires_fissure_edge_01_b_straight(Clone)")
                 {
                     int x = (int)__instance.transform.position.x;
                     int y = (int)__instance.transform.position.y;
@@ -142,27 +134,27 @@ namespace Tweaks_Fixes
                         __instance.transform.eulerAngles = new Vector3(rot.x, rot.y, 359f);
                     }
                 }
-                else if(__instance.name == "treespires_eroded_rock_01_b(Clone)")
+                else if (__instance.name == "treespires_eroded_rock_01_b(Clone)")
                 {
                     int x = (int)__instance.transform.position.x;
                     int y = (int)__instance.transform.position.y;
                     int z = (int)__instance.transform.position.z;
                     if (x == -94 && y == -450 && z == -1418)
-                    {// up scale to hide another hole near top
-                        Vector3 scale = __instance.transform.localScale; 
+                    {// upscale to hide another hole near top
+                        Vector3 scale = __instance.transform.localScale;
                         __instance.transform.localScale = new Vector3(scale.x, 0.95f, scale.z);
-                       Vector3 rot = __instance.transform.eulerAngles;
+                        Vector3 rot = __instance.transform.eulerAngles;
                         __instance.transform.eulerAngles = new Vector3(rot.x, rot.y, 348f);
                     }
                 }
-                else if(__instance.name == "treespires_eroded_rock_01_d(Clone)")
+                else if (__instance.name == "treespires_eroded_rock_01_d(Clone)")
                 {
                     int x = (int)__instance.transform.position.x;
                     int y = (int)__instance.transform.position.y;
                     int z = (int)__instance.transform.position.z;
                     if (x == -208 && y == -410 && z == -1500)
                         __instance.gameObject.SetActive(false);
-                    else if(x == -193 && y == -399 && z == -1469)
+                    else if (x == -193 && y == -399 && z == -1469)
                     {
                         __instance.transform.position = new Vector3(__instance.transform.position.x, -401f, __instance.transform.position.z);
                     }
@@ -182,33 +174,21 @@ namespace Tweaks_Fixes
                         __instance.transform.eulerAngles = new Vector3(rot.x, 177f, 338f);
                     }
                 }
+                else if (__instance.name == "_DELETED_ArcticKelp_Kelp_2(Clone)")
+                {
+                    //AddDebug("_DELETED_ArcticKelp_Kelp_2(Clone)");
+                    Transform tr = __instance.transform.Find("young_04_stem/Coral_reef_kelp_young_04_billboard");
+                    if (tr) // looks too different
+                        UnityEngine.Object.Destroy(tr.gameObject);
+                }
                 else if (__instance.name.Contains("talactite"))
                 {
                     VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
                     surface.surfaceType = VFXSurfaceTypes.rock;
                 }
-            }
-            //else if (tt == TechType.KelpRootPustule) // KelpRoot tt is none
-            //{ //  at awake parent may be null
-            //GameObject parent = __instance.transform.parent.gameObject;
-            //if (parent && parent.GetComponent<LargeWorldEntity>())
-            //{
-            //PrefabPlaceholder[] pphs = parent.GetComponentsInChildren<PrefabPlaceholder>();
-            //Pickupable[] ps = parent.GetComponentsInChildren<Pickupable>();
-            //if (pphs.Length > 0 && pphs.Length == ps.Length)
-            //    AttachFruitPlantToKelpRoot(parent);
-            //AddDebug("KelpRootPustule LargeWorldEntity Start PrefabPlaceholder " + pphs.Length + " Pickupable " + ps.Length);
-            //Main.Log("KelpRootPustule LargeWorldEntity Start PrefabPlaceholder " + pphs.Length + " Pickupable " + ps.Length);
-            //}
-            //}
-            //else if (tt == TechType.Boomerang || tt == TechType.CookedBoomerang)
-        }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("Start")]
-        public static void StartPostfix(LargeWorldEntity __instance)
-        {
-            //TechType tt = CraftData.GetTechType(__instance.gameObject);
+            }
+
             if (Main.config.alwaysBestLOD)
             {
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);

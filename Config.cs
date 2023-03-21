@@ -11,10 +11,6 @@ namespace Tweaks_Fixes
     [Menu("Tweaks and Fixes")]
     public class Config : ConfigFile
     {
-        //[Slider("Day/night cycle speed", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
-        //public float gameSpeed = 1f;
-        //[Slider("Day/night cycle speed 10x mult", 0, 4, DefaultValue = 1, Step = 1, Format = "{0:F0}", Tooltip = ""), OnChange(nameof(UpdateGameSpeed))]
-        //public int gameSpeedMult = 1;
         [Slider("Player speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your swimming, walking and running speed will be multiplied by this.")]
         public float playerSpeedMult = 1f;
         //[Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
@@ -67,7 +63,7 @@ namespace Tweaks_Fixes
         [Toggle("Do not spawn fragments for unlocked blueprints", Tooltip = "You have to reload your game after changing this.")]
         public bool dontSpawnKnownFragments = false;
 
-        [Slider("Crush depth", 50, 500, DefaultValue = 200, Step = 10, Format = "{0:F0}", Tooltip = "Depth below which player starts taking damage. Does not work if crush damage multiplier is 0.")]
+        [Slider("Crush depth", 50, 500, DefaultValue = 200, Step = 10, Format = "{0:F0}", Tooltip = "Below this depth player starts taking damage. Does not work if crush damage multiplier is 0.")]
         public int crushDepth = 200;
         [Slider("Crush damage multiplier", 0f, 1f, DefaultValue = 0f, Step = .01f, Format = "{0:R0}", Tooltip = "When it's not 0 every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.")]
         public float crushDamageMult = 0f;
@@ -180,9 +176,7 @@ namespace Tweaks_Fixes
         [Keybind("Move the same items key", Tooltip = "When you have a container open, hold down this key and click an item to move all items of the same type.")]
         public KeyCode transferSameItemsKey = KeyCode.LeftShift;
 
-        //public float playerCamRot = -1f;
         public int activeSlot = -1;
-        //public Dictionary<string, bool> escapePodSmokeOut = new Dictionary<string, bool>();
         public HashSet<TechType> notPickupableResources = new HashSet<TechType>
         {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}  };
         //public Dictionary<string, Dictionary<int, bool>> openedWreckDoors = new Dictionary<string, Dictionary<int, bool>>();
@@ -263,6 +257,7 @@ namespace Tweaks_Fixes
             { "ultraglidefins" },
             { "highcapacitytank" },
         };
+
         public float medKitHPperSecond = 50f;
         public HashSet<TechType> predatorExclusion = new HashSet<TechType> { TechType.Crash};
         public Dictionary<string, bool> iceFruitPickedState = new Dictionary<string, bool> ();
@@ -295,6 +290,11 @@ namespace Tweaks_Fixes
         public bool fixMelons = true;
         public bool fixCoral = true;
         public bool seaGlideMap = true;
+        public bool craftWithoutBattery = false;
+        public bool disableUseText = false;
+        public bool builderPlacingWhenFinishedBuilding = true;
+        public bool crushDamageScreenEffect = true;
+        //public bool crushDamageMoaning = true;
         //private void EatRawFishChangedEvent(ChoiceChangedEventArgs e)
         //{
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 

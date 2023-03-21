@@ -18,6 +18,17 @@ namespace Tweaks_Fixes
      //[HarmonyPatch(typeof(uGUI_PDA), "OnOpenPDA")]
         static GameObject previousTarget;
 
+        //[HarmonyPatch(typeof(Player), "OnTakeDamage")]
+        class Player_OnTakeDamage_Patch
+        {
+            static bool Prefix(Player __instance, DamageInfo damageInfo)
+            {
+                AddDebug("Player OnTakeDamage");
+
+                return false;
+            }
+        }
+
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
@@ -60,6 +71,7 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+          
                     //AddDebug("CreatureAggressionModifier " + GameModeManager.GetOption<float>(GameOption.CreatureAggressionModifier));
                     GameObject target = Player.main.guiHand.activeTarget;
                     if (!target)
@@ -68,8 +80,8 @@ namespace Tweaks_Fixes
                     }
                     if (target)
                     {
-                        AddDebug(target.name);
-                        AddDebug("parent " + target.transform.parent.name);
+                        //AddDebug(target.name);
+                        //AddDebug("parent " + target.transform.parent.name);
                     }
                     //VFXSurfaceTypes vfxSurfaceTypes = VFXSurfaceTypes.none;
                     //int layerMask = 1 << LayerID.TerrainCollider | 1 << LayerID.Default;
@@ -170,14 +182,22 @@ namespace Tweaks_Fixes
             }
         }
 
-        class uGUI_PDA_Patch
+        //[HarmonyPatch(typeof(CSVEntitySpawner))]
+        class CSVEntitySpawner_Patch
         {
             //[HarmonyPrefix]
-            //[HarmonyPatch("Update")]
-            static bool Prefix(uGUI_PDA __instance)
+            //[HarmonyPatch("GetPrefabForSlot")]
+            static bool GetPrefabForSlotPrefix(CSVEntitySpawner __instance)
             {
-                AddDebug("uGUI_PDA OnOpenPDA");
-                return false;
+                AddDebug("CSVEntitySpawner GetPrefabForSlot");
+                return true;
+            }
+            //[HarmonyPostfix]
+            //[HarmonyPatch("GetModifiedCreatureSpawnCount")]
+            static void GetModifiedCreatureSpawnCountPrefix(CSVEntitySpawner __instance)
+            {
+                AddDebug("CSVEntitySpawner GetModifiedCreatureSpawnCount");
+                //return true;
             }
         }
 

@@ -129,6 +129,20 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(EnergyMixin), "OnCraftEnd")]
+        public class EnergyMixin_OnCraftEnd_Patch
+        {
+            private static void Prefix(EnergyMixin __instance, TechType techType)
+            { // applies to tools and vehicles
+                //AddDebug("EnergyMixin OnCraftEnd " + techType);
+                Main.config.craftWithoutBattery = true;
+                if (!Main.config.craftWithoutBattery || techType == TechType.MapRoomCamera || techType == TechType.FlashlightHelmet || techType == TechType.TeleportationTool || techType == TechType.SpyPenguin || techType == TechType.SpyPenguinRemote)
+                    return;
+
+                __instance.defaultBattery = TechType.None;
+            }
+        }
+
 
     }
 }

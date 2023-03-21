@@ -32,10 +32,10 @@ namespace Tweaks_Fixes
                     return false;
                 }
                 bool underwater = __instance.player.transform.position.y < Ocean.GetOceanLevel() || __instance.player.IsUnderwaterForSwimming();
-                bool movinUnderwater = !Main.config.useRealTempForColdMeter && underwater && (__instance.player.movementSpeed > Mathf.Epsilon || __instance.player.IsRidingCreature());
+                bool movingUnderwater = !Main.config.useRealTempForColdMeter && underwater && (__instance.player.movementSpeed > Mathf.Epsilon || __instance.player.IsRidingCreature());
                 //float temp = Main.bodyTemperature.CalculateEffectiveAmbientTemperature();
                 bool heat = !Main.config.useRealTempForColdMeter && (HeatSource.GetHeatImpactAtPosition(__instance.transform.position) > 0f || __instance.player.GetCurrentHeatVolume());
-                bool immune = movinUnderwater || heat || __instance.player.cinematicModeActive || Main.bodyTemperature.CalculateEffectiveAmbientTemperature() > Main.config.getWarmTemp;
+                bool immune = movingUnderwater || heat || __instance.player.cinematicModeActive || Main.bodyTemperature.CalculateEffectiveAmbientTemperature() > Main.config.getWarmTemp;
                 bool piloting = __instance.player.IsPiloting();
                 if (Main.config.useRealTempForColdMeter && __instance.player.inHovercraft)
                     piloting = false;

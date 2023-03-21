@@ -206,11 +206,15 @@ namespace Tweaks_Fixes
                     __instance.NotifyAllAttachedDamageReceivers(__instance.damageInfo);
                     if (__instance.shielded)
                         return killed;
-
+                    //Main.config.crushDamageMoaning = false;
+                    //bool skipCrushDamageSound = !Main.config.crushDamageMoaning && type == DamageType.Pressure;
+                    //AddDebug("skipCrushDamageSound " + skipCrushDamageSound);
                     if (damage > 0f && damage >= __instance.minDamageForSound && type != DamageType.Radiation)
                     {
+                        //AddDebug("DamageSound " );
                         if (__instance.damageClip)
                             __instance.damageClip.Play();
+
                         if (__instance.damageSound)
                             Utils.PlayFMODAsset(__instance.damageSound, __instance.damageInfo.position);
                     }
@@ -248,6 +252,20 @@ namespace Tweaks_Fixes
                 }
                 __result = killed;
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(DamageFX), "AddHudDamage")]
+        class DamageFX_AddHudDamage_Patch
+        {
+            public static bool Prefix(DamageFX __instance, float damageScalar, Vector3 damageSource, DamageInfo damageInfo, bool isUnderwater)
+            {
+                //Main.config.crushDamageScreenEffect = false;
+                //AddDebug("AddHudDamage " + damageInfo.type);
+                if (!Main.config.crushDamageScreenEffect && damageInfo.type == DamageType.Pressure)
+                    return false;
+
+                return true;
             }
         }
 

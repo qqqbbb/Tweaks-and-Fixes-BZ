@@ -130,6 +130,7 @@ namespace Tweaks_Fixes
                     //Inventory.main.quickSlots.DeselectImmediate();
                     fixedFish.Add(__instance);
                     UWE.CoroutineHost.StartCoroutine(FixDeadFish());
+                    return;
                 }
                 equippedTool = __instance;
                 Knife knife = __instance as Knife;

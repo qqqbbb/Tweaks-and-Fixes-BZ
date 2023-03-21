@@ -157,14 +157,10 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("OnKill")]
             static void OnKillPostfix(CreatureDeath __instance)
             {
-                //TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //if (tt != TechType.Peeper)
-                //    return;
-                //LODGroup lod = __instance.GetComponentInChildren<LODGroup>(true);
-                //lod.enabled = false;
-                //SkinnedMeshRenderer[] renderers = __instance.GetComponentsInChildren<SkinnedMeshRenderer>(true);
-                //AddDebug("Peeper OnKill " + renderers.Length);
-                //renderers[0].enabled = false;
+                AddDebug("OnKill ");
+                AquariumFish aquariumFish = __instance.GetComponent<AquariumFish>();
+                if (aquariumFish)
+                    UnityEngine.Object.Destroy(aquariumFish);
             }
         }
 

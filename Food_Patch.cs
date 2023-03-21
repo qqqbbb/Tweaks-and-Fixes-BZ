@@ -14,7 +14,6 @@ namespace Tweaks_Fixes
         //static float updateHungerInterval { get { return Main.config.hungerUpdateInterval / DayNightCycle.main.dayNightSpeed; } }
         static float hungerUpdateTime = 0f;
         static float snowBallMeltRate = 0.05f;
-        //static float waterFreezeRate = 1f;
 
         public static bool IsWater(Eatable eatable)
         {
@@ -76,8 +75,8 @@ namespace Tweaks_Fixes
             float temp = Main.GetTemperature(eatable.gameObject);
             //TechType tt = CraftData.GetTechType(eatable.gameObject);
             //if (tt == TechType.BigFilteredWater)
-                //AddDebug(eatable.name + " CheckWater " + temp);
-                //AddDebug(eatable.name + " CheckWater " + eatable.timeDecayStart);
+            //AddDebug(eatable.name + " CheckWater " + temp);
+            //AddDebug(eatable.name + " CheckWater " + eatable.timeDecayStart);
             if (temp < 0f)
             {
                 //AddDebug(" freeze " + eatable.name);
@@ -198,7 +197,7 @@ namespace Tweaks_Fixes
             float threshold1 = Main.config.newHungerSystem ? 0f : 20f;
             float threshold2 = Main.config.newHungerSystem ? -50f : 10f;
             if (GameModeManager.GetOption<bool>(GameOption.ShowHungerAlerts))
-            { 
+            {
                 __instance.UpdateWarningSounds(__instance.foodWarningSounds, __instance.food, oldFood, threshold1, threshold2);
                 __instance.UpdateWarningSounds(__instance.waterWarningSounds, __instance.water, oldWater, threshold1, threshold2);
             }
@@ -416,7 +415,7 @@ namespace Tweaks_Fixes
                 FMODAsset useSound = __instance.player.GetUseSound(TechData.GetSoundType(techType));
                 if (eatable.IsRotten())
                     useSound = __instance.ateRottenFoodSound;
-            
+
                 if (useSound)
                     Utils.PlayFMODAsset(useSound, __instance.player.transform.position);
 
@@ -457,10 +456,11 @@ namespace Tweaks_Fixes
             }
 
         }
-
+        
         [HarmonyPatch(typeof(Eatable))]
         class Eatable_patch
         {
+            /*
             //[HarmonyPrefix]
             //[HarmonyPatch("StartDespawnInvoke")]
             static bool StartDespawnInvokePrefix(Eatable __instance)
@@ -468,7 +468,7 @@ namespace Tweaks_Fixes
                 __instance.InvokeRepeating("IterateDespawn", 1f, 1f);
                 return false;
             }
-
+            */
             [HarmonyPrefix]
             [HarmonyPatch("Awake")]
             static bool AwakePrefix(Eatable __instance)
@@ -488,9 +488,9 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
-            
+
             [HarmonyPostfix]
-            [HarmonyPatch( "Awake")]
+            [HarmonyPatch("Awake")]
             public static void AwakePostfix(Eatable __instance)
             {
                 //AddDebug("Eatable awake " + __instance.gameObject.name);
@@ -540,7 +540,7 @@ namespace Tweaks_Fixes
                 //{
                 //    __result = 0f;
                 //}
-             }
+            }
 
             [HarmonyPostfix]
             [HarmonyPatch("GetFoodValue")]
@@ -569,7 +569,7 @@ namespace Tweaks_Fixes
                     CheckFood(__instance);
                     //return false;
                 }
-                else if(__instance.GetComponent<SnowBall>())
+                else if (__instance.GetComponent<SnowBall>())
                 {
                     CheckSnowball(__instance);
                     return false;
@@ -590,20 +590,6 @@ namespace Tweaks_Fixes
                     __result = "";
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("UnpauseDecay")]
-            public static void GetWaterValuePostfix(Eatable __instance)
-            {
-                if (IsWater(__instance))
-                {
-                    //if (__result > __instance.waterValue)
-                    //    __result = __instance.waterValue;
-                    //else if (__result < 0f)
-                    //    __result = 0f;
-                    //__result = __instance.waterValue - __instance.timeDecayPause;
-                }
-            }
-
             [HarmonyPostfix]
             [HarmonyPatch("GetDecayValue")]
             public static void GetDecayValuePostfix(Eatable __instance, ref float __result)
@@ -619,7 +605,7 @@ namespace Tweaks_Fixes
 
 
         }
-
+         
         [HarmonyPatch(typeof(Fridge))]
         class Fridge_patch
         {
@@ -633,7 +619,7 @@ namespace Tweaks_Fixes
                 Eatable eatable = item.item.GetComponent<Eatable>();
                 bool water = Main.config.waterFreezeRate > 0f && IsWater(eatable);
                 if (eatable == null || water || !eatable.decomposes || !__instance.powerConsumer.IsPowered())
-                return false;
+                    return false;
 
                 eatable.PauseDecay();
                 return false;
@@ -654,9 +640,10 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-           
+
+
         //[HarmonyPatch(typeof(Inventory), "ConsumeResourcesForRecipe")]
-            class Inventory_ConsumeResourcesForRecipe_patch
+        class Inventory_ConsumeResourcesForRecipe_patch
         {
             public static void Postfix(Inventory __instance, TechType techType)
             {
@@ -709,7 +696,7 @@ namespace Tweaks_Fixes
         {
             //public static void Postfix(uGUI_CraftingMenu __instance, uGUI_CraftNode sender)
             //{
-                //if (sender.action == TreeAction.Craft)
+            //if (sender.action == TreeAction.Craft)
             //    AddDebug(" uGUI_CraftingMenu Craft " + sender.techType0);
             //    Main.Log(" uGUI_CraftingMenu  action " + sender.action);
             //    Main.Log(" uGUI_CraftingMenu techType0 " + sender.techType0);

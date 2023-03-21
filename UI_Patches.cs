@@ -106,7 +106,7 @@ namespace Tweaks_Fixes
                 if (__instance.storageContainer.container.allowedTech == null)
                 {
                     //AddDebug("Aquarium allowedTech == null ");
-                    __instance.storageContainer.container.allowedTech = new HashSet<TechType> { TechType.SeaMonkeyBaby, TechType.PenguinBaby, TechType.Bladderfish, TechType.Boomerang, TechType.ArcticPeeper,  TechType.Hoopfish, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.NootFish, TechType.Spinefish, TechType.SpinnerFish, TechType.Symbiote, TechType.Triops };
+                    __instance.storageContainer.container.allowedTech = new HashSet<TechType> {TechType.Bladderfish, TechType.Boomerang, TechType.ArcticPeeper,  TechType.Hoopfish, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.NootFish, TechType.Spinefish, TechType.SpinnerFish, TechType.Symbiote, TechType.Triops};
                 }
             }
         }
@@ -291,19 +291,20 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Inventory), "GetAllItemActions")]
+        [HarmonyPatch(typeof(Inventory), "GetAllItemActions")]
         class Inventory_GetAllItemActions_Patch
         {
-            static bool Prefix(Inventory __instance, InventoryItem item, ref ItemAction __result)
+            static void Postfix(Inventory __instance, InventoryItem item, ref ItemAction __result)
             {
                 //AddDebug("GetAllItemActions " + item.item.GetTechName() + " " + __result);
+                if (Main.config.cantUseMedkitUnderwater && item.item.GetTechType() == TechType.FirstAidKit)
+                {
+                    __result = ItemAction.Assign;
+                    if (Inventory.CanDropItemHere(item.item))
+                        __result |= ItemAction.Drop;
 
-                return false;
-            }
-            static void Postfix(Inventory __instance, InventoryItem item, ItemAction __result)
-            {
-                //AddDebug("GetAllItemActions " + item.item.GetTechName() + " " + __result);
-
+                    //AddDebug("GetAllItemActions FirstAidKit !!! " + __result);
+                }
             }
         }
 
@@ -381,7 +382,7 @@ namespace Tweaks_Fixes
                     InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
                     Pickupable pickupable = heldItem?.item;
                     PlayerTool playerTool = pickupable != null ? pickupable.GetComponent<PlayerTool>() : null;
-                    bool flag = playerTool != null && playerTool is DropTool;
+                    bool dropTool = playerTool != null && playerTool is DropTool;
                     EnergyMixin energyMixin = null;
                     if (playerTool != null)
                     {
@@ -389,13 +390,14 @@ namespace Tweaks_Fixes
                         energyMixin = playerTool.GetComponent<EnergyMixin>();
                     }
                     ItemAction action = ItemAction.None;
-                    if (playerTool == null | flag && heldItem != null)
+                    if (playerTool == null | dropTool && heldItem != null)
                     {
                         ItemAction allItemActions = Inventory.main.GetAllItemActions(heldItem);
                         if ((allItemActions & ItemAction.Eat) != ItemAction.None)
                             action = ItemAction.Eat;
                         else if ((allItemActions & ItemAction.Use) != ItemAction.None)
                             action = ItemAction.Use;
+
                         if (action == ItemAction.Eat)
                         {
                             Plantable component1 = pickupable.GetComponent<Plantable>();
@@ -405,8 +407,12 @@ namespace Tweaks_Fixes
                         }
                         if (action == ItemAction.None && (allItemActions & ItemAction.Drop) != ItemAction.None)
                             action = ItemAction.Drop;
+
                         if (action != ItemAction.None)
+                        {
+                            //AddDebug("HandReticle action " + action);
                             HandReticle.main.SetText(HandReticle.TextType.Use, GUIHand.GetActionString(action, pickupable), true, GameInput.Button.RightHand);
+                        }
                     }
                     if (energyMixin != null && energyMixin.allowBatteryReplacement)
                     {
@@ -421,6 +427,8 @@ namespace Tweaks_Fixes
                     }
                     else if (!string.IsNullOrEmpty(text))
                         HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
+
+      
                     if (AvatarInputHandler.main.IsEnabled() && !__instance.IsPDAInUse())
                     {
                         if (__instance.grabMode == GUIHand.GrabMode.None)
@@ -450,7 +458,7 @@ namespace Tweaks_Fixes
                             if (scanTarget.isValid && PDAScanner.CanScan(scanTarget) == PDAScanner.Result.Scan)
                                 uGUI_ScannerIcon.main.Show();
                         }
-                        if (playerTool != null && (!flag || action == ItemAction.Drop || action == ItemAction.None))
+                        if (playerTool != null && (!dropTool || action == ItemAction.Drop || action == ItemAction.None))
                         {
                             if (__instance.GetInput(button2, GUIHand.InputState.Down))
                             {
@@ -1238,6 +1246,20 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("uGUI_InputGroup OnDeselect");
                 textInput = false;
+            }
+        }
+
+        [HarmonyPatch(typeof(HandReticle), "SetTextRaw")]
+        class HandReticle_SetTextRaw_Patch
+        {
+            static bool Prefix(HandReticle __instance, HandReticle.TextType type, string text)
+            {
+                //AddDebug("SetTextRaw " + type + " " + text);
+                Main.config.disableUseText = true;
+                if (Main.config.disableUseText && (type == HandReticle.TextType.Use || type == HandReticle.TextType.UseSubscript))
+                    return false;
+                
+                return true;
             }
         }
 

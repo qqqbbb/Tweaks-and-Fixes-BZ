@@ -15,7 +15,7 @@ namespace Tweaks_Fixes
         public static void AttachFruitPlant(GameObject go)
         { // FruitPlant will be saved
             PickPrefab[] pickPrefabs = go.GetComponentsInChildren<PickPrefab>(true);
-            if (pickPrefabs.Length == 0)
+            if (pickPrefabs == null || pickPrefabs.Length == 0)
                 return;
 
             FruitPlant fp = go.EnsureComponent<FruitPlant>();
