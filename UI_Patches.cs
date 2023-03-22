@@ -291,22 +291,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Inventory), "GetAllItemActions")]
-        class Inventory_GetAllItemActions_Patch
-        {
-            static void Postfix(Inventory __instance, InventoryItem item, ref ItemAction __result)
-            {
-                //AddDebug("GetAllItemActions " + item.item.GetTechName() + " " + __result);
-                if (Main.config.cantUseMedkitUnderwater && item.item.GetTechType() == TechType.FirstAidKit)
-                {
-                    __result = ItemAction.Assign;
-                    if (Inventory.CanDropItemHere(item.item))
-                        __result |= ItemAction.Drop;
-
-                    //AddDebug("GetAllItemActions FirstAidKit !!! " + __result);
-                }
-            }
-        }
 
         [HarmonyPatch(typeof(GUIHand))]
         class GUIHand_Patch
@@ -1255,7 +1239,7 @@ namespace Tweaks_Fixes
             static bool Prefix(HandReticle __instance, HandReticle.TextType type, string text)
             {
                 //AddDebug("SetTextRaw " + type + " " + text);
-                Main.config.disableUseText = true;
+                //Main.config.disableUseText = true;
                 if (Main.config.disableUseText && (type == HandReticle.TextType.Use || type == HandReticle.TextType.UseSubscript))
                     return false;
                 

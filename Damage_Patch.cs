@@ -265,7 +265,13 @@ namespace Tweaks_Fixes
                 if (!Main.config.crushDamageScreenEffect && damageInfo.type == DamageType.Pressure)
                     return false;
 
-                return true;
+                if (Main.config.damageImpactEffect)
+                    __instance.CreateImpactEffect(damageScalar, damageSource, damageInfo.type, isUnderwater);
+
+                if (Main.config.damageScreenFX)
+                    __instance.PlayScreenFX(damageInfo);
+
+                return false;
             }
         }
 

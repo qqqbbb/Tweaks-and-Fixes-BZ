@@ -171,10 +171,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Inventory), "GetItemAction")]
-        class Inventory_GetItemAction_Patch
+        [HarmonyPatch(typeof(Inventory))]
+        class Inventory_Patch
         {
-            static void Postfix(Inventory __instance, ref ItemAction __result, InventoryItem item, int button)
+            [HarmonyPostfix]
+            [HarmonyPatch("GetItemAction")]
+            static void GetItemActionPostfix(Inventory __instance, ref ItemAction __result, InventoryItem item, int button)
             {
                 //AddDebug("GetItemAction button " + button + " " + item.item.name + " " + __result);
                 Pickupable pickupable = item.item;
@@ -187,12 +189,26 @@ namespace Tweaks_Fixes
                     else if (Food_Patch.IsWater(eatable) && eatable.GetWaterValue() < 0.5f)
                         __result = ItemAction.None;
                 }
-                else if (__result == ItemAction.Use && Main.config.cantUseMedkitUnderwater && Player.main.IsUnderwater() && pickupable.GetTechType() == TechType.FirstAidKit)
+                else if (__result == ItemAction.Use && Main.config.cantUseMedkitUnderwater && Player.main.IsUnderwaterForSwimming() && pickupable.GetTechType() == TechType.FirstAidKit)
                 {
+                    //AddDebug("cantUseMedkitUnderwater");
                     __result = ItemAction.None;
                 }
             }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
+            static void ExecuteItemActionPrefix(Inventory __instance, ref ItemAction action, InventoryItem item)
+            {
+                //AddDebug(item.item.name + " ExecuteItemAction " + action);
+                if (Main.config.cantUseMedkitUnderwater && action == ItemAction.Use && item.item.GetTechType() == TechType.FirstAidKit && Player.main.IsUnderwaterForSwimming())
+                {
+                    //AddDebug("ExecuteItemAction FirstAidKit ");
+                    action = ItemAction.None;
+                }
+            }
         }
+
 
         //[HarmonyPatch(typeof(TooltipFactory), "ItemActions")]
         class TooltipFactory_ItemActions_Patch

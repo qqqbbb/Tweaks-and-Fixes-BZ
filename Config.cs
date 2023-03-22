@@ -112,7 +112,10 @@ namespace Tweaks_Fixes
         public bool disableHints = false;
         [Toggle("Realistic oxygen consumption", Tooltip = "Vanilla game oxygen consumption has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth between 100 and 0 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be vanilla max oxygen consumption and will increase as you dive deeper.")]
         public bool realOxygenCons = false;
-
+        [Toggle("Player damage impact screen effects", Tooltip = "This toggles cracks on your swimming mask when you take damage.")]
+        public bool damageImpactEffect = true;
+        [Toggle("Player damage shader screen effects", Tooltip = "This toggles shader screen effects when you take damage.")]
+        public bool damageScreenFX = true;
         [Toggle("Drop held tool when taking damage", Tooltip = "Chance to drop your tool is proportional to amount of damage taken. If you take 30 damage, there is 30% chance you will drop your tool.")]
         public bool dropHeldTool = false;
 
@@ -294,7 +297,7 @@ namespace Tweaks_Fixes
         public bool disableUseText = false;
         public bool builderPlacingWhenFinishedBuilding = true;
         public bool crushDamageScreenEffect = true;
-        //public bool crushDamageMoaning = true;
+        public bool newStorageUI = true;
         //private void EatRawFishChangedEvent(ChoiceChangedEventArgs e)
         //{
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 

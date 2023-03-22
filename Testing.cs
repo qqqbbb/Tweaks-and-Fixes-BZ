@@ -18,24 +18,15 @@ namespace Tweaks_Fixes
      //[HarmonyPatch(typeof(uGUI_PDA), "OnOpenPDA")]
         static GameObject previousTarget;
 
-        //[HarmonyPatch(typeof(Player), "OnTakeDamage")]
-        class Player_OnTakeDamage_Patch
-        {
-            static bool Prefix(Player __instance, DamageInfo damageInfo)
-            {
-                AddDebug("Player OnTakeDamage");
 
-                return false;
-            }
-        }
 
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("IsPiloting " + __instance.IsPiloting());
-                //AddDebug("CreatureAggressionModifier " + GameOption.CreatureAggressionModifier);
+                //AddDebug("IsUnderwaterForSwimming " + __instance.IsUnderwaterForSwimming());
+                //AddDebug("IsSwimming " + __instance.IsSwimming());
                 //AddDebug("IsUnderwater " + Player.main.IsUnderwater());
                 //AddDebug("GetPlayerTemperature " + (int)Main.GetPlayerTemperature());
                 //AddDebug("ambientTemperature " + (int)Player_Patches.ambientTemperature);

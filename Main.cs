@@ -13,7 +13,6 @@ using SMLHelper.V2.Assets;
 using SMLHelper.V2.Crafting;
 using static ErrorMessage;
 //GameModeManager.GetOption<bool>(GameOption.Hunger)
-// bad grass LOD 213 -26 -541
 //uGUI.isLoading
 namespace Tweaks_Fixes
 {
