@@ -239,7 +239,7 @@ namespace Tweaks_Fixes
         public static ColoredLabel GetSeaTruckLabel(GameObject seatruck, StorageContainer container)
         {
             //AddDebug("GetSeaTruckLabel");
-            ColoredLabel[] labels = Main.GetComponentsInDirectChildren<ColoredLabel>(seatruck);
+            ColoredLabel[] labels = Util.GetComponentsInDirectChildren<ColoredLabel>(seatruck);
             foreach (ColoredLabel l in labels)
             {
                 if (l.name == "Label" && container.name == "StorageContainer (2)")
@@ -483,7 +483,7 @@ namespace Tweaks_Fixes
                 if (c && !c.constructed)
                     return false;
 
-                GameObject parent = Main.GetParent(__instance.gameObject);
+                GameObject parent = Util.GetParent(__instance.gameObject);
 
                 //GameObject parent = __instance.transform.parent.gameObject;
                 ColoredLabel label = null;

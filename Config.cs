@@ -95,6 +95,12 @@ namespace Tweaks_Fixes
         public float fishSpeedMult = 1f;
         [Slider("Other creatures speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Swimming speed of creatures that you can't catch will be multiplied by this.")]
         public float creatureSpeedMult = 1f;
+
+        [Slider("Creature flee chance percent", 0, 100, DefaultValue = 100, Step = 1, Format = "{0:F0}", Tooltip = "Creature flee chance percent when it's under attack and its flee damage threshold is reached.")]
+        public int CreatureFleeChance = 100;
+        [Toggle("Creature flee chance percent depends on its health", Tooltip = "Only creatures's health will be used to decide if it should flee when under attack. Creature with 90% health has 10% chance to flee. Creature with 10% health has 90% chance to flee. This setting overrides both \"Creature flee chance percent\" and CreatureFleeUseDamageThreshold.")]
+        public bool CreatureFleeChanceBasedOnHealth = false;
+        public bool CreatureFleeUseDamageThreshold = true;
         //[Slider("Egg hatching period multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Time it takes a creature egg to hatch in AC will be multiplied by this.")]
         //public float eggHatchTimeMult = 1f;
         //[Slider("Plant growth time multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Time it takes a plant to grow will be multiplied by this.")]
@@ -118,19 +124,11 @@ namespace Tweaks_Fixes
         public bool damageScreenFX = true;
         [Toggle("Drop held tool when taking damage", Tooltip = "Chance to drop your tool is proportional to amount of damage taken. If you take 30 damage, there is 30% chance you will drop your tool.")]
         public bool dropHeldTool = false;
-
-        //[Toggle("Predators less likely to flee", Tooltip = "Predators don't flee when their health is above 50%. When it's not, chance to flee is proportional to their health. The more health they have the less likely they are to flee.")]
-        //public bool predatorsDontFlee = false;
-        //[Toggle("Every creature respawns", Tooltip = "By default big creatures never respawn if killed by player.")]
-        //public bool creaturesRespawn = false;
-        [Choice("Creatures respawn if killed by player", Tooltip = "By default big creatures and leviathans never respawn if killed by player.")]
-        public CreatureRespawn creatureRespawn;
-        //public bool creaturesRespawn = false;
-        [Slider("Fish respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes small fish to respawn after it was killed or caught. If it's 0, default (6 hours) value will be used. Game has to be reloaded after changing this.")]
+        [Slider("Fish respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes small fish to respawn after it was killed or caught. If it's 0, default value of 6 hours will be used. Game has to be reloaded after changing this.")]
         public int fishRespawnTime = 0;
-        [Slider("Big creatures respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a creature that you can't catch to respawn after it was killed. If it's 0, default (12 hours) value will be used. Game has to be reloaded after changing this.")]
+        [Slider("Big creature respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a creature that you can't catch to respawn after it was killed. If it's 0, default value of 12 hours will be used. Game has to be reloaded after changing this.")]
         public int creatureRespawnTime = 0;
-        [Slider("Leviathan respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a leviathan to respawn after it was killed. If it's 0, default (1 day) value will be used. Game has to be reloaded after changing this.")]
+        [Slider("Leviathan respawn time", 0, 50, DefaultValue = 0, Step = 1, Format = "{0:F0}", Tooltip = "Time in days it takes a leviathan to respawn after it was killed. If it's 0, default value of 1 day will be used. Game has to be reloaded after changing this.")]
         public int leviathanRespawnTime = 0;
         //[Slider("flare light intensity", 0.1f, 1f, DefaultValue = 1f, Step = .01f, Format = "{0:R0}", Tooltip = "You have to reequip your flare after changing this.")]
         //public float flareIntensity = 1f;
@@ -287,7 +285,7 @@ namespace Tweaks_Fixes
         public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
         public enum LoseItemsOnDeath { Vanilla, All, None }
         public enum EmptyVehicleCanBeAttacked { Yes, No, Only_if_lights_on }
-        public enum CreatureRespawn { Vanilla, Big_creatures_only, Leviathans_only, Big_creatures_and_leviathans }
+        //public enum CreatureRespawn { Vanilla, Big_creatures_only, Leviathans_only, Big_creatures_and_leviathans }
         public bool silentReactor = false;
         public bool randomPlantRotation = true;
         public bool fixMelons = true;
@@ -298,6 +296,15 @@ namespace Tweaks_Fixes
         public bool builderPlacingWhenFinishedBuilding = true;
         public bool crushDamageScreenEffect = true;
         public bool newStorageUI = true;
+
+        public bool fishRespawn = true;
+        public bool fishRespawnIfKilledByPlayer = true;
+        public bool creaturesRespawn = true;
+        public bool creaturesRespawnIfKilledByPlayer = false;
+        public bool leviathansRespawn = false;
+        public bool leviathansRespawnIfKilledByPlayer = false;
+        public bool disableGravityForExosuit = false;
+        
         //private void EatRawFishChangedEvent(ChoiceChangedEventArgs e)
         //{
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 
@@ -326,6 +333,8 @@ namespace Tweaks_Fixes
         "Low-power conduction unit. Can be used to cook fish.", // 20 SmallStove desc
         "Increases the Seatruck's speed when hauling two or more modules.", // 21 SeaTruckUpgradeHorsePower vanilla desc
         "Reduces vehicle energy consumption by 20% percent.", // 22 SeaTruckUpgradeEnergyEfficiency desc
+        "Swivel left", // 23
+        "Swivel right" // 24
         }; // edit UI_Patches.Getstrings after adding new strings
        
 

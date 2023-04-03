@@ -126,7 +126,7 @@ namespace Tweaks_Fixes
                         __result = false;
                         return false;
                     }
-                    if (!Main.IsPlayerInVehicle())
+                    if (!Util.IsPlayerInVehicle())
                     {
                         if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Only_if_lights_on && !IsLightOn(target))
                         {
@@ -402,7 +402,7 @@ namespace Tweaks_Fixes
                 if (__instance.hasEyes)
                 {
                     TechType techType = CraftData.GetTechType(__instance.gameObject);
-                    Main.Log(techType + " eyeFOV " + __instance.eyeFOV);
+                    Util.Log(techType + " eyeFOV " + __instance.eyeFOV);
                 }
 
                 //AddDebug("Creature Start " + techType);
@@ -431,7 +431,7 @@ namespace Tweaks_Fixes
                 //AddDebug(" AggressiveToPilotingVehicle UpdateAggression" + __instance.name);
                 Player main = Player.main;
                 //if (main == null || main.GetMode() != Player.Mode.LockedPiloting)
-                if (main == null || !Main.IsPlayerInVehicle())
+                if (main == null || !Util.IsPlayerInVehicle())
                     return false;
 
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
@@ -486,7 +486,7 @@ namespace Tweaks_Fixes
                 if (aggrMult == 0f || !IsVehicle(target))
                     return false;
                 
-                if (Main.IsPlayerInVehicle())
+                if (Util.IsPlayerInVehicle())
                     return true;
                 else if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Only_if_lights_on && IsLightOn(target))
                     return true;

@@ -33,270 +33,6 @@ namespace Tweaks_Fixes
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
-        public static Component CopyComponent(Component original, GameObject destination)
-        {
-            System.Type type = original.GetType();
-            Component copy = destination.AddComponent(type);
-            // Copied fields can be restricted with BindingFlags
-            System.Reflection.FieldInfo[] fields = type.GetFields();
-            foreach (System.Reflection.FieldInfo field in fields)
-            {
-                field.SetValue(copy, field.GetValue(original));
-            }
-            return copy;
-        }
-
-        public static T CopyComponent<T>(T original, GameObject destination) where T : Component
-        {
-            System.Type type = original.GetType();
-            var dst = destination.GetComponent(type) as T;
-            if (!dst) dst = destination.AddComponent(type) as T;
-            var fields = type.GetFields();
-            foreach (var field in fields)
-            {
-                if (field.IsStatic) continue;
-                field.SetValue(dst, field.GetValue(original));
-            }
-            var props = type.GetProperties();
-            foreach (var prop in props)
-            {
-                if (!prop.CanWrite || !prop.CanWrite || prop.Name == "name") continue;
-                prop.SetValue(dst, prop.GetValue(original, null), null);
-            }
-            return dst as T;
-        }
-
-        public static T[] GetComponentsInDirectChildren<T>(Component parent, bool includeInactive = false) where T : Component
-        {
-            List<T> tmpList = new List<T>();
-            foreach (Transform transform in parent.transform)
-            {
-                if (includeInactive || transform.gameObject.activeInHierarchy)
-                    tmpList.AddRange(transform.GetComponents<T>());
-            }
-            return tmpList.ToArray();
-        }
-
-        public static T[] GetComponentsInDirectChildren<T>(GameObject parent, bool includeInactive = false) where T : Component
-        {
-            List<T> tmpList = new List<T>();
-            foreach (Transform transform in parent.transform)
-            {
-                if (includeInactive || transform.gameObject.activeInHierarchy)
-                {
-                    T[] components = transform.GetComponents<T>();
-                    if (components.Length > 0)
-                        tmpList.AddRange(components);
-                }
-            }
-            return tmpList.ToArray();
-        }
-
-        public static GameObject GetParent(GameObject go)
-        {
-            //if (go.name.Contains("(Clone)"))
-            if (go.GetComponent<PrefabIdentifier>())
-            {
-                //AddDebug("name " + go.name);
-                return go;
-            }
-            Transform t = go.transform;
-            while (t.parent != null)
-            {
-                //if (t.parent.name.Contains("(Clone)"))
-                if (t.parent.GetComponent<PrefabIdentifier>())
-                {
-                    //AddDebug("parent.name " + t.parent.name);
-                    return t.parent.gameObject;
-                }
-                t = t.parent.transform;
-            }
-            return null;
-        }
-
-        public static float GetTemperature(GameObject go)
-        {
-            //AddDebug("GetTemperature " + go.name);
-            if (go.GetComponentInParent<Player>())
-                return GetPlayerTemperature();
-
-            if (go.transform.parent && go.transform.parent.parent)
-            {
-                Fridge fridge = go.transform.parent.parent.GetComponent<Fridge>();
-                if (fridge && fridge.powerConsumer.IsPowered())
-                {
-                    //AddDebug("GetTemperature " + go.name + " in fridge");
-                    return -1f;
-                }
-            }
-
-            IInteriorSpace currentInterior = go.GetComponentInParent<IInteriorSpace>();
-            if (currentInterior != null)
-                return currentInterior.GetInsideTemperature();
-
-            if (go.transform.position.y < Ocean.GetOceanLevel())
-                return WaterTemperatureSimulation.main.GetTemperature(go.transform.position);
-            else
-                return WeatherManager.main.GetFeelsLikeTemperature();
-        }
-
-        public static float GetPlayerTemperature()
-        {
-            //AddDebug("GetPlayerTemperature ");
-            //IInteriorSpace currentInterior = Player.main.GetComponentInParent<IInteriorSpace>();
-            //if (currentInterior != null)
-            //    return currentInterior.GetInsideTemperature();
-            if (Player.main.inExosuit)
-            {
-                if (config.useRealTempForColdMeter && Player.main.currentMountedVehicle.IsPowered())
-                    return config.vehicleTemp;
-                else if (!config.useRealTempForColdMeter)
-                    return config.vehicleTemp;
-            }
-            else if (Player.main.inHovercraft && !config.useRealTempForColdMeter)
-            {
-                return config.vehicleTemp;
-            }
-            else if(Player.main._currentInterior != null && !Player.main._currentInterior.Equals(null) && Player.main._currentInterior is SeaTruckSegment)
-            {
-                SeaTruckSegment sts = Player.main._currentInterior as SeaTruckSegment;
-                //AddDebug("SeaTruck IsPowered " + sts.relay.IsPowered());
-                if (sts.relay.IsPowered())
-                    return config.vehicleTemp;
-            }
-            return Player_Patches.ambientTemperature;
-        }
-
-        public static float NormalizeTo01range(int value, int min, int max)
-        {
-            float fl;
-            int oldRange = max - min;
-
-            if (oldRange == 0)
-                fl = 0f;
-            else
-                fl = ((float)value - (float)min) / (float)oldRange;
-
-            return fl;
-        }
-
-        public static float NormalizeTo01range(float value, float min, float max)
-        {
-            float fl;
-            float oldRange = max - min;
-
-            if (oldRange == 0)
-                fl = 0f;
-            else
-                fl = ((float)value - (float)min) / (float)oldRange;
-
-            return fl;
-        }
-
-        public static float NormalizeToRange(float value, float oldMin, float oldMax, float newMin, float newMax)
-        {
-            float oldRange = oldMax - oldMin;
-            float newValue;
-
-            if (oldRange == 0)
-                newValue = newMin;
-            else
-            {
-                float newRange = newMax - newMin;
-                newValue = ((value - oldMin) * newRange) / oldRange + newMin;
-            }
-            return newValue;
-        }
-
-        public static bool IsEatableFishAlive(GameObject go)
-        {
-            Creature creature = go.GetComponent<Creature>();
-            Eatable eatable = go.GetComponent<Eatable>();
-            LiveMixin liveMixin = go.GetComponent<LiveMixin>();
-            if (creature && eatable && liveMixin && liveMixin.IsAlive())
-                return true;
-            else
-                return false;
-        }
-
-        public static bool IsEatableFish(GameObject go)
-        {
-            Creature creature = go.GetComponent<Creature>();
-            Eatable eatable = go.GetComponent<Eatable>();
-            if (creature && eatable)
-                return true;
-            else
-                return false;
-        }
-
-        public static void CookFish(GameObject go)
-        {
-            //int currentSlot = Inventory.main.quickSlots.desiredSlot;
-            //AddDebug("currentSlot " + currentSlot);
-            Inventory.main.quickSlots.DeselectImmediate();
-            //Inventory.main._container.DestroyItem(tt);
-            //Inventory.main.ConsumeResourcesForRecipe(tt);
-            TechType processed = TechData.GetProcessed(CraftData.GetTechType(go));
-            if (processed != TechType.None)
-            { // cooked fish cant be in quickslot
-              //AddDebug("CookFish " + processed);
-              //UWE.CoroutineHost.StartCoroutine(Main.AddToInventory(processed));
-                CraftData.AddToInventory(processed);
-                //Inventory.main.quickSlots.desiredSlot
-                UnityEngine.Object.Destroy(go);
-                //Inventory.main.quickSlots.SelectInternal(int slotID);
-            }
-        }
-
-        public static void CleanUp()
-        {
-            //loadingDone = false;
-            canBreathe = false;
-            //AddDebug("CleanUp");
-            //Log("CleanUp !!!");
-            QuickSlots_Patch.invChanged = true;
-            //Base_Patch.bcls = new HashSet<BaseCellLighting>();
-            Crush_Damage.extraCrushDepth = 0;
-            //crafterOpen = false;
-            Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
-            CraftTree.fabricator = new CraftTree("Fabricator", CraftTree.FabricatorScheme());
-            Seatruck_Patch.installedUpgrades = new HashSet<TechType>();
-            fridges = new List<ItemsContainer>();
-            UI_Patches.recyclotrons = new Dictionary<ItemsContainer, Recyclotron>();
-            //Base_Patch.baseBuilt = new Dictionary<SubRoot, bool>();
-            Tools_Patch.fixedFish = new List<PlayerTool>();
-            config.Load();
-        }
-
-        public static void Message(string str)
-        {
-            int count = main.messages.Count;
-
-            if (count == 0)
-            {
-                AddDebug(str);
-            }
-            else
-            {
-                _Message message = main.messages[main.messages.Count - 1];
-                message.messageText = str;
-                message.entry.text = str;
-            }
-        }
-
-        public static void Log(string str, QModManager.Utility.Logger.Level lvl = QModManager.Utility.Logger.Level.Debug)
-        {
-            QModManager.Utility.Logger.Log(lvl, str);
-        }
-
-        public static bool IsPlayerInVehicle()
-        {
-            if (Player.main._currentInterior != null && !Player.main._currentInterior.Equals(null) && Player.main._currentInterior is SeaTruckSegment)
-                return true;
-
-            return Player.main.inExosuit || Player.main.inHovercraft;
-        }
-
         //[HarmonyPatch(typeof(IngameMenu), "QuitGameAsync")]
         internal class IngameMenu_QuitGameAsync_Patch
         {
@@ -321,6 +57,26 @@ namespace Tweaks_Fixes
 
                 }
             }
+        }
+
+        public static void CleanUp()
+        {
+            //loadingDone = false;
+            canBreathe = false;
+            //AddDebug("CleanUp");
+            //Log("CleanUp !!!");
+            QuickSlots_Patch.invChanged = true;
+            //Base_Patch.bcls = new HashSet<BaseCellLighting>();
+            Crush_Damage.extraCrushDepth = 0;
+            //crafterOpen = false;
+            Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
+            CraftTree.fabricator = new CraftTree("Fabricator", CraftTree.FabricatorScheme());
+            Seatruck_Patch.installedUpgrades = new HashSet<TechType>();
+            fridges = new List<ItemsContainer>();
+            UI_Patches.recyclotrons = new Dictionary<ItemsContainer, Recyclotron>();
+            //Base_Patch.baseBuilt = new Dictionary<SubRoot, bool>();
+            Tools_Patch.fixedFish = new List<PlayerTool>();
+            config.Load();
         }
 
         [HarmonyPatch(typeof(Player), "Start")]
@@ -351,49 +107,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static IEnumerator PlaySound(FMODAsset sound, float delay)
-        {
-            yield return new WaitForSeconds(delay);
-            //AddDebug("PlaySound " + sound.name);
-            Utils.PlayFMODAsset(sound, Player.main.transform);
-        }
-
-        static IEnumerator SelectEquippedItem()
-        { // need this for seaglide
-            while (!uGUI.main.hud.active)
-                yield return null;
-            yield return new WaitForSeconds(.5f);
-            if (config.activeSlot != -1)
-            {
-                //Inventory.main.quickSlots.SelectImmediate(config.activeSlot);
-                //Inventory.main.quickSlots.DeselectImmediate();
-                Inventory.main.quickSlots.Select(config.activeSlot);
-            }
-        }
-
-        static public IEnumerator AddToInventory(TechType techType)
-        {
-            GameObject gameObject = null;
-            //AddDebug("AddToInventory " + techType);
-            TaskResult<GameObject> result = new TaskResult<GameObject>();
-            yield return CraftData.InstantiateFromPrefabAsync(techType, (IOut<GameObject>)result);
-            gameObject = result.Get();
-            result = (TaskResult<GameObject>)null;
-            if (gameObject != null)
-            {
-                //addedToInv = gameObject;
-                //Eatable eatable = gameObject.GetComponent<Eatable>();
-                //if (eatable != null)
-                //    eatable.SetDecomposes(true); gameObject.EnsureComponent<EcoTarget>().SetTargetType(EcoTargetType.DeadMeat);
-                Pickupable pickupable = gameObject.GetComponent<Pickupable>();
-                if (pickupable)
-                {
-                    Inventory.main.ForcePickup(pickupable);
-                    //AddDebug("ForcePickup " + pickupable.name);
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(WaitScreen), "Hide")]
         internal class WaitScreen_Hide_Patch
         { // fires after game loads
@@ -403,7 +116,7 @@ namespace Tweaks_Fixes
                 //if (uGUI.isLoading)
                 {
                     //AddDebug(" WaitScreen Hide  !!!");
-                    UWE.CoroutineHost.StartCoroutine(SelectEquippedItem());
+                    UWE.CoroutineHost.StartCoroutine(Util.SelectEquippedItem());
                     KnownTech.Add(TechType.SnowBall, false, false);
                     //loadingDone = true;
                 }

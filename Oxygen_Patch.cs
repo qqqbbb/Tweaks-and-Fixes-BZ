@@ -19,7 +19,7 @@ namespace Tweaks_Fixes
         {
             void OnTriggerExit(Collider other)
             {
-                if (other.gameObject.FindAncestor<Player>().Equals(Player.main))
+                if (other && other.gameObject.GetComponentInParent<Player>())
                 {
                     Main.canBreathe = false;
                     //AddDebug("OnTriggerExit ");
@@ -136,7 +136,7 @@ namespace Tweaks_Fixes
         { // OnTriggerExit does not fire when you pick up pipe
             public static void Postfix(OxygenArea __instance, Collider other)
             {
-                if (other.gameObject.FindAncestor<Player>().Equals(Player.main))
+                if (other && other.gameObject.GetComponentInParent<Player>())
                 {
                     Main.canBreathe = true;
                     //AddDebug("OnTriggerStay ");

@@ -40,6 +40,11 @@ namespace Tweaks_Fixes
         static public string slot2Button = string.Empty;
         static public string slot1Plus2Button = string.Empty;
         static public string exosuitLightsButton = string.Empty;
+        static public string moveRightButton = string.Empty;
+        static public string moveLeftButton = string.Empty;
+        static public string swivelText = string.Empty;
+
+        
 
         static void SetTooltips()
         {
@@ -56,10 +61,20 @@ namespace Tweaks_Fixes
         {
             //AddDebug("GetStrings");
 
-            if (Main.config.translatableStrings.Count < 23)
+            if (Main.config.translatableStrings.Count < 25)
             {
-                Main.config.translatableStrings = new List<string>
-        {"Burnt out ", "Lit ", "Increases the Seatruck engine's horsepower and energy consumption by 10%. More than 1 can be used simultaneously.", " frozen", "Increases your safe diving depth by ", " meters.", "mass ", "Throw", "Light and throw", "Light", ": min ", ", max ", "Need a knife to break it", "Need a knife to break it free", " Hold ", " and press ", " to change torpedo ", ", Change torpedo ", "Break it free", "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.", "Low-power conduction unit. Can be used to cook fish.", "Increases the Seatruck's speed when hauling two or more modules.", "Reduces vehicle energy consumption by 20% percent.",  };
+                if (Main.config.translatableStrings.Count == 23)
+                {
+                    Main.config.translatableStrings.Add("Swivel left");
+                    Main.config.translatableStrings.Add("Swivel right");
+                    //AddDebug("add new strings");
+                    //foreach (var s in oldList)
+                    //    Main.logger.LogInfo("translatableStrings " + s);
+                }
+                else
+                    Main.config.translatableStrings = new List<string>
+        {"Burnt out ", "Lit ", "Increases the Seatruck engine's horsepower and energy consumption by 10%. More than 1 can be used simultaneously.", " frozen", "Increases your safe diving depth by ", " meters.", "mass ", "Throw", "Light and throw", "Light", ": min ", ", max ", "Need a knife to break it", "Need a knife to break it free", " Hold ", " and press ", " to change torpedo ", ", Change torpedo ", "Break it free", "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.", "Low-power conduction unit. Can be used to cook fish.", "Increases the Seatruck's speed when hauling two or more modules.", "Reduces vehicle energy consumption by 20% percent.", "Swivel left", "Swivel right" };
+
                 Main.config.Save();
             }
             SetTooltips();
@@ -68,10 +83,15 @@ namespace Tweaks_Fixes
             altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
             rightHandButton = uGUI.FormatButton(GameInput.Button.RightHand);
             leftHandButton = uGUI.FormatButton(GameInput.Button.LeftHand);
+            moveLeftButton = uGUI.FormatButton(GameInput.Button.MoveLeft);
+            moveRightButton = uGUI.FormatButton(GameInput.Button.MoveRight);
+
             fishDropString = TooltipFactory.stringDrop + " (" + rightHandButton + ")";
             fishEatString = TooltipFactory.stringEat + " (" + altToolButton + ")";
             lightFlareString = Main.config.translatableStrings[9] + " (" + altToolButton + ")";
             throwFlareString = Main.config.translatableStrings[7] + " (" + rightHandButton + ")";
+
+            swivelText = Main.config.translatableStrings[23] + " (" + moveLeftButton + ")  " + Main.config.translatableStrings[24] + " (" + moveRightButton + ")";
             lightAndThrowFlareString = Main.config.translatableStrings[8] + " (" + rightHandButton + ")";
             beaconToolString = TooltipFactory.stringDrop + " (" + rightHandButton + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
             beaconPickString = "(" + leftHandButton + ")\n" + Language.main.Get("BeaconLabelEdit");
@@ -609,7 +629,7 @@ namespace Tweaks_Fixes
                 }
                 InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
                 bool canEatFish = !GameModeManager.GetOption<bool>(GameOption.VegetarianDiet) && GameModeManager.GetOption<bool>(GameOption.Hunger) || GameModeManager.GetOption<bool>(GameOption.Thirst);
-                if (canEatFish && heldItem != null && Main.IsEatableFish(heldItem.item.gameObject))
+                if (canEatFish && heldItem != null && Util.IsEatableFish(heldItem.item.gameObject))
                 {
                     string text = string.Empty;
                     ItemAction allItemActions = Inventory.main.GetAllItemActions(heldItem);
@@ -826,7 +846,7 @@ namespace Tweaks_Fixes
                     else if (flare.flareActivateTime > 0f)
                         TooltipFactory.WriteTitle(sb, Main.config.translatableStrings[1]);
                 }
-                fishTooltip = Main.IsEatableFish(obj);
+                fishTooltip = Util.IsEatableFish(obj);
             }
 
             [HarmonyPostfix]
@@ -861,7 +881,7 @@ namespace Tweaks_Fixes
                 {
                     sb.Clear();
                     StringBuilder sb_ = new StringBuilder(Language.main.Get(techType));
-                    float frozenPercent = Main.NormalizeToRange(eatable.timeDecayStart, 0f, eatable.waterValue, 0f, 100f);
+                    float frozenPercent = Util.NormalizeToRange(eatable.timeDecayStart, 0f, eatable.waterValue, 0f, 100f);
                     sb_.Append(" ");
                     Mathf.Clamp(frozenPercent, frozenPercent, 100f);
                     sb_.Append(Mathf.RoundToInt(frozenPercent));
@@ -1239,7 +1259,6 @@ namespace Tweaks_Fixes
             static bool Prefix(HandReticle __instance, HandReticle.TextType type, string text)
             {
                 //AddDebug("SetTextRaw " + type + " " + text);
-                //Main.config.disableUseText = true;
                 if (Main.config.disableUseText && (type == HandReticle.TextType.Use || type == HandReticle.TextType.UseSubscript))
                     return false;
                 

@@ -117,7 +117,7 @@ namespace Tweaks_Fixes
                 //AddDebug("OnRemoveItem " + item.item.GetTechName());
                 if (crafting)
                 {
-                    if (Main.config.foodTweaks && Main.IsEatableFish(item.item.gameObject))
+                    if (Main.config.foodTweaks && Util.IsEatableFish(item.item.gameObject))
                     {
                         Eatable eatable = item.item.GetComponent<Eatable>();
                         timeDecayStart = eatable.timeDecayStart;

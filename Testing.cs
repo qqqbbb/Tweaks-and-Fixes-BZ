@@ -15,9 +15,39 @@ namespace Tweaks_Fixes
     class Testing
     {// purpleVent -29 -79 -861
      // crypto -90 -7 -340
-     //[HarmonyPatch(typeof(uGUI_PDA), "OnOpenPDA")]
         static GameObject previousTarget;
 
+
+        //[HarmonyPatch(typeof(UnderwaterMotor))]
+        class SupplyCrate_Patch
+        {
+            //[HarmonyPrefix]
+            //[HarmonyPatch(typeof(UnderwaterMotor), "OnCollisionEnter")]
+            static bool StopAttackPostfix(UnderwaterMotor __instance, Collision collision)
+            {
+                AddDebug("OnCollisionEnter " + collision.collider.name);
+                Rigidbody rb = __instance.rb;
+                MovementCollisionData movementCollisionData = new MovementCollisionData();
+                movementCollisionData.impactVelocity = rb.velocity - __instance.previousVelocity;
+                VFXSurfaceTypes vfxSurfaceTypes = Utils.GetObjectSurfaceType(collision.gameObject);
+                if (vfxSurfaceTypes == VFXSurfaceTypes.none)
+                    vfxSurfaceTypes = Utils.GetTerrainSurfaceType(collision.contacts[0].point, collision.contacts[0].normal);
+                movementCollisionData.surfaceType = vfxSurfaceTypes;
+                AddDebug("vfxSurfaceTypes " + vfxSurfaceTypes);
+                __instance.SendMessage("OnMovementCollision", movementCollisionData, SendMessageOptions.DontRequireReceiver);
+                __instance.previousVelocity = rb.velocity;
+                __instance.recentlyCollided = true;
+                return false;
+
+            }
+            //[HarmonyPostfix]
+            //[HarmonyPatch(typeof(AttackLastTarget), "CanAttackTarget")]
+            static void CanAttackTargetPostfix(AttackLastTarget __instance, GameObject target, ref bool __result)
+            {
+                if (target && target == Player.mainObject)
+                    AddDebug("AttackLastTarget CanAttackTarget " + __result);
+            }
+        }
 
 
         //[HarmonyPatch(typeof(Player), "Update")]
@@ -25,8 +55,8 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("IsUnderwaterForSwimming " + __instance.IsUnderwaterForSwimming());
-                //AddDebug("IsSwimming " + __instance.IsSwimming());
+                //AddDebug("canBreathe " + Main.canBreathe);
+                //AddDebug(" " + LargeWorld.main.GetBiome(__instance.transform.position));
                 //AddDebug("IsUnderwater " + Player.main.IsUnderwater());
                 //AddDebug("GetPlayerTemperature " + (int)Main.GetPlayerTemperature());
                 //AddDebug("ambientTemperature " + (int)Player_Patches.ambientTemperature);
@@ -56,6 +86,7 @@ namespace Tweaks_Fixes
                     int z = Mathf.RoundToInt(Player.main.transform.position.z);
                     AddDebug(x + " " + y + " " + z);
                     AddDebug("" + Player.main.GetBiomeString());
+                    AddDebug(" " + LargeWorld.main.GetBiome(__instance.transform.position));
                     //Inventory.main.container.Resize(8,8);   GetPlayerBiome()
                     //HandReticle.main.SetInteractText(nameof(startingFood) + " " + dict[i]);
                 }
@@ -273,14 +304,14 @@ namespace Tweaks_Fixes
                 __instance.skyApplied = sky;
                 if (sky == null)
                     return false;
-                Main.Log("ApplySkybox " + __instance.name + " " + __instance.transform.position.x);
+                Util.Log("ApplySkybox " + __instance.name + " " + __instance.transform.position.x);
                 for (int index = 0; index < __instance.renderers.Length; ++index)
                 {
                     Renderer renderer = __instance.renderers[index];
                     if (renderer)
                     {
                         sky.ApplyFast(renderer, 0);
-                        Main.Log("ApplyFast " + __instance.name + " " + __instance.transform.position.x);
+                        Util.Log("ApplyFast " + __instance.name + " " + __instance.transform.position.x);
                     }
                 }
                 sky.RegisterSkyApplier(__instance);
@@ -302,7 +333,7 @@ namespace Tweaks_Fixes
                 {
                     __instance.OnEnvironmentChanged(SkyApplier.GetEnvironment(__instance.gameObject, __instance.anchorSky));
                     if(__instance.customSkyPrefab)
-                    Main.Log("OnEnvironmentChanged " + __instance.name + " " + __instance.transform.position.x + " " + __instance.customSkyPrefab.name);
+                        Util.Log("OnEnvironmentChanged " + __instance.name + " " + __instance.transform.position.x + " " + __instance.customSkyPrefab.name);
                     //Main.Log("OnEnvironmentChanged " + __instance.name + " " + __instance.anchorSky);
                 }
                 if (__instance.emissiveFromPower)
@@ -310,7 +341,7 @@ namespace Tweaks_Fixes
                     __instance.cellLighting = __instance.GetComponentInParent<BaseCellLighting>();
                     if (__instance.cellLighting)
                     {
-                        Main.Log("RegisterSkyApplier " + __instance.name + " " + __instance.transform.position.x);
+                        Util.Log("RegisterSkyApplier " + __instance.name + " " + __instance.transform.position.x);
                         __instance.cellLighting.RegisterSkyApplier(__instance);
                     }
                 }

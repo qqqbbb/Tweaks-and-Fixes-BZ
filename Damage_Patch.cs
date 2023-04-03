@@ -365,14 +365,14 @@ namespace Tweaks_Fixes
                     {
                         GameObject fish = Inventory.main.quickSlots.heldItem.item.gameObject;
                         //TechType tt = CraftData.GetTechType(fish);
-                        if (Main.IsEatableFish(fish))
+                        if (Util.IsEatableFish(fish))
                         {
                             if (fishToCook == fish)
                             {
                                 if (damageTicks == damageTicksToCook)
                                 { 
                                     fishToCook = null;
-                                    Main.CookFish(fish);
+                                    Util.CookFish(fish);
                                 }
                                 else
                                     damageTicks++;

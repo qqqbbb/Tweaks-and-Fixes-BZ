@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
                 UnityEngine.Object.Destroy(eatable.gameObject);
                 return;
             }
-            float temp = Main.GetTemperature(eatable.gameObject);
+            float temp = Util.GetTemperature(eatable.gameObject);
             //AddDebug(eatable.name + " temperature " + temp);
             if (temp > 0)
             {
@@ -72,7 +72,7 @@ namespace Tweaks_Fixes
 
         public static void CheckWater(Eatable eatable)
         {   // __instance.timeDecayStart stores decay value
-            float temp = Main.GetTemperature(eatable.gameObject);
+            float temp = Util.GetTemperature(eatable.gameObject);
             //TechType tt = CraftData.GetTechType(eatable.gameObject);
             //if (tt == TechType.BigFilteredWater)
             //AddDebug(eatable.name + " CheckWater " + temp);
@@ -112,7 +112,7 @@ namespace Tweaks_Fixes
         public static void CheckFood(Eatable eatable)
         {
             //AddDebug(" CheckFood " + eatable.name);
-            float temp = Main.GetTemperature(eatable.gameObject);
+            float temp = Util.GetTemperature(eatable.gameObject);
             if (temp < 0f)
                 eatable.PauseDecay();
             else
@@ -236,8 +236,8 @@ namespace Tweaks_Fixes
                     if (heldTool)
                     {
                         GameObject go = heldTool.gameObject;
-                        if (Main.IsEatableFishAlive(go))
-                            Main.CookFish(go);
+                        if (Util.IsCreatureAlive(go) && Util.IsEatableFish(go))
+                            Util.CookFish(go);
                     }
                 }
             }
@@ -294,7 +294,7 @@ namespace Tweaks_Fixes
                 //AddDebug("charges " + eatable.charges);
                 //AddDebug("food " + food);
                 //AddDebug("water " + water);
-                if (Main.IsEatableFish(useObj))
+                if (Util.IsEatableFish(useObj))
                 {
                     if (food > 0)
                     {
@@ -516,7 +516,7 @@ namespace Tweaks_Fixes
                 }
                 if (Main.config.foodTweaks)
                 {
-                    if (Main.IsEatableFish(__instance.gameObject) && __instance.foodValue > 0)
+                    if (Util.IsEatableFish(__instance.gameObject) && __instance.foodValue > 0)
                     {
                         __instance.waterValue = __instance.foodValue * .5f;
                     }
@@ -666,8 +666,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(CrafterLogic __instance, TechType techType)
             {
-                //TechType tt = item.item.GetTechType();
-                Main.Log("CrafterLogic ConsumeResources " + techType);
+                Util.Log("CrafterLogic ConsumeResources " + techType);
             }
         }
 
@@ -676,8 +675,7 @@ namespace Tweaks_Fixes
         {
             public static void Prefix(Crafter __instance, TechType techType)
             {
-                //TechType tt = item.item.GetTechType();
-                Main.Log("Crafter OnCraftingBegin " + techType);
+                Util.Log("Crafter OnCraftingBegin " + techType);
             }
         }
 
@@ -686,8 +684,7 @@ namespace Tweaks_Fixes
         {
             public static void Prefix(Crafter __instance, TechType techType)
             {
-                //TechType tt = item.item.GetTechType();
-                Main.Log("Crafter Craft " + techType);
+                Util.Log("Crafter Craft " + techType);
             }
         }
 

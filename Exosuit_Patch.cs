@@ -484,7 +484,7 @@ namespace Tweaks_Fixes
 
                 if ((movingUp | sprinting) & powered && __instance.IsUnderwater())
                 {
-                    __instance.thrustPower = Main.NormalizeTo01range(charge, 0f, capacity);// my
+                    __instance.thrustPower = Util.NormalizeTo01range(charge, 0f, capacity);// my
                     //__instance.thrustPower = Mathf.Clamp01(__instance.thrustPower - Time.deltaTime * __instance.thrustConsumption * verticalJetConsumption);
                     if (movingUp && (__instance.onGround || Time.time - __instance.timeOnGround <= 1f) && !__instance.jetDownLastFrame)
                         __instance.ApplyJumpForce();
@@ -498,7 +498,7 @@ namespace Tweaks_Fixes
                     __instance.jetsActive = false;
                     __instance.horizontalJetsActive = false;
                     __instance.verticalJetsActive = false;
-                    __instance.thrustPower = Main.NormalizeTo01range(charge, 0f, capacity);// my
+                    __instance.thrustPower = Util.NormalizeTo01range(charge, 0f, capacity);// my
                     //__instance.thrustPower = Mathf.Clamp01(__instance.thrustPower + Time.deltaTime * __instance.thrustConsumption * num2);
                 }
                 __instance.jetDownLastFrame = movingUp;
@@ -838,62 +838,14 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        //[HarmonyPostfix]
-        //[HarmonyPatch("OnUpgradeModuleChange")]
-        public static void OnUpgradeModuleChangePostfix(Exosuit __instance, int slotID, TechType techType, bool added)
-        { // runs before Exosuit.Start
-            if (!exosuitStarted || uGUI.isLoading)
-                return;
-
-            //AddDebug("OnUpgradeModuleChange " + techType + " " + added + " " + slotID);
-
-            if (!added)
+        [HarmonyPostfix]
+        [HarmonyPatch("OnPilotModeBegin")]
+        public static void OnPilotModeBeginPostfix(Exosuit __instance)
+        {
+            if (Main.config.disableGravityForExosuit)
             {
-                if (slotID == 0)
-                {
-                    leftArm = Language.main.Get(TechType.ExosuitClawArmModule);
-                    leftArm = leftArm.Replace(exosuitName, "");
-                    leftArm = leftArm.TrimStart();
-                    leftArm = leftArm[0].ToString().ToUpper() + leftArm.Substring(1);
-                }
-                else if (slotID == 1)
-                {
-                    rightArm = Language.main.Get(TechType.ExosuitClawArmModule);
-                    rightArm = rightArm.Replace(exosuitName, "");
-                    rightArm = rightArm.TrimStart();
-                    rightArm = rightArm[0].ToString().ToUpper() + rightArm.Substring(1);
-                }
+                Util.FreezeObject(__instance.gameObject, false);
             }
-            else if (added)
-            {
-                if (slotID == 0)
-                {
-                    if (techType == TechType.ExosuitTorpedoArmModule)
-                        leftArm = GetTorpedoName(__instance, 0);
-                    else
-                    {
-                        leftArm = Language.main.Get(techType);
-                        leftArm = leftArm.Replace(exosuitName, "");
-                        leftArm = leftArm.TrimStart();
-                        leftArm = leftArm[0].ToString().ToUpper() + leftArm.Substring(1);
-                    }
-                }
-                else if (slotID == 1)
-                {
-                    if (techType == TechType.ExosuitTorpedoArmModule)
-                        rightArm = GetTorpedoName(__instance, 1);
-                    else
-                    {
-                        rightArm = Language.main.Get(techType);
-                        rightArm = rightArm.Replace(exosuitName, "");
-                        rightArm = rightArm.TrimStart();
-                        rightArm = rightArm[0].ToString().ToUpper() + rightArm.Substring(1);
-                    }
-                }
-            }
-            armNamesChanged = true;
-            //AddDebug("OnUpgradeModuleChange currentLeftArmType " + __instance.currentLeftArmType);
-            //AddDebug("OnUpgradeModuleChange currentRightArmType " + __instance.currentRightArmType);
         }
 
         [HarmonyPostfix]
@@ -918,6 +870,10 @@ namespace Tweaks_Fixes
         public static void OnPilotModeEndPostfix(Exosuit __instance)
         {
             //AddDebug("OnPilotModeEnd");
+            if (Main.config.disableGravityForExosuit)
+            {
+                Util.FreezeObject(__instance.gameObject, true);
+            }
             selectedTorpedoLeft = null;
             selectedTorpedoRight = null;
             //torpedoStorageLeft = null;
@@ -1144,13 +1100,24 @@ namespace Tweaks_Fixes
         [HarmonyPatch("GetTemperature")]
         public static bool GetTemperaturePrefix(Vehicle __instance, ref float __result)
         { // fix thermometer values wnen above water
-            if (Player.main.inExosuit && Player.main.currentMountedVehicle.Equals(__instance))
+            if (Player.main.inExosuit && Player.main.currentMountedVehicle == __instance)
             {
                 //BodyTemperature bt = Player.main.GetComponent<BodyTemperature>();
                 __result = Player_Patches.ambientTemperature;
                 return false;
             }
             return true;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch("OnProtoDeserialize")]
+        static void OnProtoDeserializePostfix(Vehicle __instance)
+        {
+            //AddDebug("Vehicle OnProtoDeserialize ");
+            if (Main.config.disableGravityForExosuit && __instance is Exosuit && Player.main.currentMountedVehicle != __instance)
+            {
+                Util.FreezeObject(__instance.gameObject, true);
+            }
         }
 
         //[HarmonyPrefix]
@@ -1244,6 +1211,111 @@ namespace Tweaks_Fixes
             if (techType == TechType.ExosuitTorpedoArmModule)
                 UWE.CoroutineHost.StartCoroutine(OnTorpedoCraftEnd(__instance));
 
+            return false;
+        }
+    }
+
+
+
+    [HarmonyPatch(typeof(ExosuitClawArm))]
+    class ExosuitClawArm_Patch
+    {
+        [HarmonyPostfix]
+        [HarmonyPatch("IExosuitArm.GetInteractableRoot")]
+        static void GetInteractableRootPostfix(ExosuitClawArm __instance, GameObject target, ref GameObject __result)
+        {
+            //AddDebug("ExosuitClawArm GetInteractableRoot Postfix target " + target.name);
+            if (__result == null && target.GetComponent<SupplyCrate>())
+                __result = target.gameObject;
+        }
+        [HarmonyPrefix]
+        [HarmonyPatch("TryUse", new Type[] { typeof(float) }, new[] { ArgumentType.Out })]
+        static bool TryUsePrefix(ExosuitClawArm __instance, ref float cooldownDuration, ref bool __result)
+        { // open supply crates
+            if (Time.time - __instance.timeUsed >= __instance.cooldownTime)
+            {
+                Pickupable pickupable = null;
+                PickPrefab pickPrefab = null;
+                SupplyCrate supplyCrate = null;
+                __result = false;
+                bool playAnim = false;
+                GameObject target = __instance.exosuit.GetActiveTarget();
+                if (target)
+                {
+                    pickupable = target.GetComponent<Pickupable>();
+                    pickPrefab = target.GetComponent<PickPrefab>();
+                    supplyCrate = target.GetComponent<SupplyCrate>();
+                }
+                if (pickupable != null && pickupable.isPickupable)
+                {
+                    if (__instance.exosuit.storageContainer.container.HasRoomFor(pickupable))
+                    {
+                        __instance.animator.SetTrigger("use_tool");
+                        __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
+                        __result = true;
+                        return false;
+                    }
+                    else
+                        ErrorMessage.AddMessage(Language.main.Get(ExosuitClawArm.noRoomNotification));
+                }
+                else if (pickPrefab)
+                {
+                    __instance.animator.SetTrigger("use_tool");
+                    __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
+                    __result = true;
+                    return false;
+                }
+                else if (supplyCrate)
+                {
+                    if (supplyCrate.sealedComp && supplyCrate.sealedComp.IsSealed())
+                        return false;
+
+                    if (!supplyCrate.open)
+                    {
+                        supplyCrate.ToggleOpenState();
+                        playAnim = true;
+                    }
+                    else if (supplyCrate.open)
+                    {
+                        if (supplyCrate.itemInside)
+                        {
+                            if (__instance.exosuit.storageContainer.container.HasRoomFor(supplyCrate.itemInside))
+                            {
+                                ItemsContainer container = __instance.exosuit.storageContainer.container;
+                                supplyCrate.itemInside.Initialize();
+                                InventoryItem inventoryItem = new InventoryItem(supplyCrate.itemInside);
+                                container.UnsafeAdd(inventoryItem);
+                                Utils.PlayFMODAsset(__instance.pickupSounds.GetPickupSound(TechData.GetSoundType(supplyCrate.itemInside.GetTechType())), __instance.front, 5f);
+                                supplyCrate.itemInside = null;
+                                playAnim = true;
+                            }
+                            else
+                            {
+                                ErrorMessage.AddMessage(Language.main.Get(ExosuitClawArm.noRoomNotification));
+                                return false;
+                            }
+                        }
+                    }
+                    if (playAnim)
+                    {
+                        __instance.animator.SetTrigger("use_tool");
+                        __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
+                        //supplyCrate.OnHandClick(null);
+                        __result = true;
+                    }
+                    return false;
+                }
+                else
+                {
+                    __instance.animator.SetTrigger("bash");
+                    __instance.cooldownTime = cooldownDuration = __instance.cooldownPunch;
+                    __instance.fxControl.Play(0);
+                    __result = true;
+                    return false;
+                }
+            }
+            cooldownDuration = 0f;
+            __result = false;
             return false;
         }
     }

@@ -9,68 +9,71 @@ namespace Tweaks_Fixes
     {
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
 
-        //[HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
-        class FleeOnDamage_OnTakeDamage_Postfix_Patch
-        {
-            public static void Postfix(FleeOnDamage __instance, DamageInfo damageInfo)
-            { //
-                if (damageInfo.dealer.Equals(Player.main.gameObject))
-                { // these 2 are the same
-                    AddDebug(" moveTo " + __instance.moveTo);
-                    AddDebug(" originalTargetPosition " + __instance.swimBehaviour.originalTargetPosition);
-                }
-
-                __instance.moveTo = __instance.swimBehaviour.originalTargetPosition * damageInfo.damage;
-
-                //__instance.timeToFlee = Time.time;
-                //if (damageInfo.type == DamageType.Heat)
-                //{
-                //TechType techType = CraftData.GetTechType(__instance.gameObject);
-                //string name = Language.main.Get(techType);
-                //float magnitude = (__instance.transform.position - Player.main.transform.position).magnitude;
-                //if (damageInfo.damage == 0 && magnitude < 5)
-                //{
-                //    LiveMixin liveMixin = __instance.creature.liveMixin;
-                //AddDebug(name + " maxHealth " + liveMixin.maxHealth + " Health " + liveMixin.health);
-                //}
-            }
-        }
 
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
-        internal class FleeOnDamage_OnTakeDamage_Prefix_Patch
+        class FleeOnDamage_OnTakeDamage_Postfix_Patch
         {
-            private static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
+            public static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
             {
-                LiveMixin liveMixin = __instance.creature.liveMixin;
-                AggressiveWhenSeeTarget awst = __instance.GetComponent<AggressiveWhenSeeTarget>();
-                if (liveMixin && awst && liveMixin.IsAlive())
-                { //  && damageInfo.dealer == Player.main
-                    //if (damageInfo.dealer)
-                    //  Main.Message("damage dealer " + damageInfo.dealer.name);
-                    int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
-                    //int halfMaxHealth = Mathf.RoundToInt(liveMixin.maxHealth * .5f);
-                    int rnd = Main.rndm.Next(1, maxHealth);
-                    float aggrMult = GameModeManager.GetCreatureAggressionModifier();
-                    int health = Mathf.RoundToInt(liveMixin.health * aggrMult);
-                    //if (health > halfMaxHealth || rnd < health)
-                    if (health > rnd)
-                    {
-                        damageInfo.damage = 0f;
-                        //Main.Message("health " + liveMixin.health + " rnd100 " + rnd100);
-                    }
-                    if (aggrMult == 0f)
-                        damageInfo.damage = 0f;
+                if (Main.config.CreatureFleeChance == 100 && !Main.config.CreatureFleeChanceBasedOnHealth && Main.config.CreatureFleeUseDamageThreshold)
+                    return true;
 
+                if (!__instance.enabled || __instance.frozen)
                     return false;
+
+                float damage = damageInfo.damage;
+                bool doFlee = false;
+                LiveMixin liveMixin = __instance.creature.liveMixin;
+                if (Main.config.CreatureFleeChanceBasedOnHealth && liveMixin && liveMixin.IsAlive())
+                {
+                    int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
+                    int rnd1 = Main.rndm.Next(0, maxHealth + 1);
+                    int health = Mathf.RoundToInt(liveMixin.health);
+                    //if (__instance.gameObject == Testing.goToTest)
+                    //AddDebug(__instance.name + " max Health " + maxHealth + " Health " + health);
+                    if (health < rnd1)
+                    {
+                        //if (__instance.gameObject == Testing.goToTest)
+                        //    AddDebug(__instance.name + " health low ");
+
+                        doFlee = true;
+                    }
                 }
-                return true;
+                else
+                {
+                    if (damageInfo.type == DamageType.Electrical)
+                        damage *= 35f;
+                    __instance.accumulatedDamage += damage;
+                    //if (__instance.gameObject == Testing.goToTest)
+                        //AddDebug(__instance.name + " accumulatedDamage " + __instance.accumulatedDamage + " damageThreshold " + __instance.damageThreshold);
+
+                    __instance.lastDamagePosition = damageInfo.position;
+                    if (Main.config.CreatureFleeUseDamageThreshold && __instance.accumulatedDamage <= __instance.damageThreshold)
+                        return false;
+
+                    int rnd = Main.rndm.Next(1, 101);
+                    if (Main.config.CreatureFleeChance >= rnd)
+                        doFlee = true;
+                }
+                if (doFlee)
+                {
+                    //if (__instance.gameObject == Testing.goToTest)
+                        //AddDebug(__instance.name + " Flee " + __instance.fleeDuration);
+
+                    __instance.timeToFlee = Time.time + __instance.fleeDuration;
+                    __instance.creature.Scared.Add(1f);
+                    __instance.creature.TryStartAction(__instance);
+                }
+                return false;
             }
         }
 
         [HarmonyPatch(typeof(Creature), "Start")]
         public static class Creature_Start_Patch
         {
-            public static void Postfix(Creature __instance)
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(Creature __instance)
             {
                 VFXSurface vFXSurface = __instance.GetComponent<VFXSurface>();
                 if (vFXSurface == null)
@@ -90,6 +93,19 @@ namespace Tweaks_Fixes
                     CreatureDeath cd = __instance.GetComponent<CreatureDeath>();
                     if (cd)
                         cd.respawnOnlyIfKilledByCreature = false;
+                }
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("IsInFieldOfView")]
+            public static void IsInFieldOfViewPrefix(Creature __instance, GameObject go, ref bool __result)
+            {
+                __result = false;
+                if (go != null)
+                { // when casting ray from creature to player terrain may not be loaded. Cast from player instead
+                    Vector3 dir = go.transform.position - __instance.transform.position;
+                    Vector3 rhs = __instance.eyesOnTop ? __instance.transform.up : __instance.transform.forward;
+                    if ((Mathf.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(dir.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(go.transform.position, __instance.transform.position,  Voxeland.GetTerrainLayerMask()))
+                        __result = true;
                 }
             }
         }
@@ -113,38 +129,40 @@ namespace Tweaks_Fixes
             {
                 if (__instance.GetComponent<Pickupable>()) // fish
                 {
+                    __instance.respawn = Main.config.fishRespawn;
+                    __instance.respawnOnlyIfKilledByCreature = !Main.config.fishRespawnIfKilledByPlayer;
                     if (Main.config.fishRespawnTime > 0)
                         __instance.respawnInterval = Main.config.fishRespawnTime * 1200f;
                 }
                 else
                 {
                     LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
-                    if (liveMixin)
+
+                    if (!liveMixin)
+                        return;
+
+                    if (liveMixin.maxHealth >= 5000f) // Leviathan
                     {
-                        if (liveMixin.maxHealth >= 5000f) // Leviathan
-                        {
-                            if (Main.config.leviathanRespawnTime > 0)
-                                __instance.respawnInterval = Main.config.leviathanRespawnTime * 1200f;
-
-                            if (Main.config.creatureRespawn == Config.CreatureRespawn.Leviathans_only || Main.config.creatureRespawn == Config.CreatureRespawn.Big_creatures_and_leviathans)
-                                __instance.respawnOnlyIfKilledByCreature = false;
-                        }
-                        else
-                        {
-                            if (Main.config.creatureRespawnTime > 0)
-                                __instance.respawnInterval = Main.config.creatureRespawnTime * 1200f;
-
-                            if (Main.config.creatureRespawn == Config.CreatureRespawn.Big_creatures_and_leviathans || Main.config.creatureRespawn == Config.CreatureRespawn.Big_creatures_only)
-                                __instance.respawnOnlyIfKilledByCreature = false;
-                        }
+                        __instance.respawn = Main.config.leviathansRespawn;
+                        __instance.respawnOnlyIfKilledByCreature = !Main.config.leviathansRespawnIfKilledByPlayer;
+                        if (Main.config.leviathanRespawnTime > 0)
+                            __instance.respawnInterval = Main.config.leviathanRespawnTime * 1200f;
+                    }
+                    else
+                    {
+                        __instance.respawn = Main.config.creaturesRespawn;
+                        __instance.respawnOnlyIfKilledByCreature = !Main.config.creaturesRespawnIfKilledByPlayer;
+                        if (Main.config.creatureRespawnTime > 0)
+                             __instance.respawnInterval = Main.config.creatureRespawnTime * 1200f;
                     }
                 }
             }
             [HarmonyPostfix]
             [HarmonyPatch("OnTakeDamage")]
-            static void OnTakeDamagePostfix(CreatureDeath __instance)
+            static void OnTakeDamagePostfix(CreatureDeath __instance, DamageInfo damageInfo)
             {
-                if (!Main.config.heatBladeCooks)
+                //AddDebug("OnTakeDamage " + damageInfo.dealer.name);
+                if (!Main.config.heatBladeCooks && damageInfo.type == DamageType.Heat && damageInfo.dealer == Player.mainObject)
                     __instance.lastDamageWasHeat = false;
             }
             //[HarmonyPrefix]
@@ -170,7 +188,7 @@ namespace Tweaks_Fixes
             public static void Postfix(Pickupable __instance, ref bool __result)
             {
                 //__result = __instance.isPickupable && Time.time - __instance.timeDropped > 1.0 && Player.main.HasInventoryRoom(__instance);
-                if (Main.config.noFishCatching && Main.IsEatableFishAlive(__instance.gameObject))
+                if (Main.config.noFishCatching && Util.IsCreatureAlive(__instance.gameObject) && Util.IsEatableFish(__instance.gameObject))
                 {
                     __result = false;
                     if (Player.main._currentWaterPark)
@@ -206,7 +224,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SwimToInternal")]
             public static void Prefix(SwimBehaviour __instance, ref float velocity)
             {
-                if (Main.IsEatableFish(__instance.gameObject))
+                if (Util.IsEatableFish(__instance.gameObject))
                 {
                     velocity *= Main.config.fishSpeedMult;
                 }

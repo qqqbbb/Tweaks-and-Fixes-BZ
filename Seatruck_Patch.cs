@@ -20,14 +20,14 @@ namespace Tweaks_Fixes
 
         public static void DoStuff(GameObject seaTruckAquarium)
         {
-            Main.Log("DoStuff " );
+            Util.Log("DoStuff " );
             if (wcpGO == null || seaTruckAquarium == null)
                 return;
 
             WaterClipProxy wcp = wcpGO.GetComponent<WaterClipProxy>();
             if (wcp)
             {
-                Main.Log("DoStuff get WaterClipProxy " + wcp.transform.parent.name);
+                Util.Log("DoStuff get WaterClipProxy " + wcp.transform.parent.name);
                 AddDebug("DoStuff get WaterClipProxy parent " + wcp.transform.parent.name);
                 AddDebug("DoStuff get WaterClipProxy " + wcp.name);
                 MeshFilter meshFilter = wcpGO.GetComponent<MeshFilter>();
@@ -39,12 +39,12 @@ namespace Tweaks_Fixes
                 if (meshFilter && meshRenderer)
                 {
                     AddDebug("add components ");
-                    Main.Log("DoStuff add components " + wcp.name);
+                    Util.Log("DoStuff add components " + wcp.name);
                     GameObject go = new GameObject("WaterClipProxy");
                     go.transform.SetParent(seaTruckAquarium.transform);
-                    WaterClipProxy wcpCopy = Main.CopyComponent(wcp, go) as WaterClipProxy;
+                    WaterClipProxy wcpCopy = Util.CopyComponent(wcp, go) as WaterClipProxy;
                     //Main.CopyComponent(meshFilter, go);
-                    MeshFilter mfCopy = Main.CopyComponent(meshFilter, go) as MeshFilter;
+                    MeshFilter mfCopy = Util.CopyComponent(meshFilter, go) as MeshFilter;
                     //Main.CopyComponent(meshRenderer, go);
                     //MeshRenderer mrCopy = Main.CopyComponent(meshFilter, go) as MeshRenderer;
                     wcp.waterSurface = WaterSurface.Get();
@@ -108,15 +108,15 @@ namespace Tweaks_Fixes
                         //AddDebug("parent " + __instance.transform.parent.name);
                         if (__instance.isMainCab)
                         {
-                            __instance.StartCoroutine(Main.PlaySound(__instance.exitSound, .5f));
+                            __instance.StartCoroutine(Util.PlaySound(__instance.exitSound, .5f));
                             if (stopPilotSound)
-                                __instance.StartCoroutine(Main.PlaySound(stopPilotSound, .5f));
+                                __instance.StartCoroutine(Util.PlaySound(stopPilotSound, .5f));
                         }
                         else if(CraftData.GetTechType(__instance.gameObject) == TechType.SeaTruckDockingModule)
                         {
-                            __instance.StartCoroutine(Main.PlaySound(__instance.exitSound, 1.5f));
+                            __instance.StartCoroutine(Util.PlaySound(__instance.exitSound, 1.5f));
                             if (stopPilotSound)
-                                __instance.StartCoroutine(Main.PlaySound(stopPilotSound, 1.5f));
+                                __instance.StartCoroutine(Util.PlaySound(stopPilotSound, 1.5f));
                         }
                         else
                         {
@@ -155,9 +155,9 @@ namespace Tweaks_Fixes
                 //AddDebug("isRearConnected " + __instance.isRearConnected);
                 if (__instance.isMainCab && !__instance.isRearConnected)
                 {
-                    __instance.StartCoroutine(Main.PlaySound(__instance.exitSound, .5f));
+                    __instance.StartCoroutine(Util.PlaySound(__instance.exitSound, .5f));
                     if (stopPilotSound)
-                        __instance.StartCoroutine(Main.PlaySound(stopPilotSound, .5f));
+                        __instance.StartCoroutine(Util.PlaySound(stopPilotSound, .5f));
                 }
             }
 
@@ -243,7 +243,7 @@ namespace Tweaks_Fixes
                     return;
 
                 //AddDebug(__instance.name + " lights " + (LightingController.LightingState)targetState);
-                Light[] lights = Main.GetComponentsInDirectChildren<Light>(__instance, true);
+                Light[] lights = Util.GetComponentsInDirectChildren<Light>(__instance, true);
                 if ((LightingController.LightingState)targetState == LightingController.LightingState.Damaged)
                 {
                     foreach (Light light in lights)

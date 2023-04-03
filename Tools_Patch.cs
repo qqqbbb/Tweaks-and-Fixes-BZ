@@ -124,7 +124,7 @@ namespace Tweaks_Fixes
             public static void OnDrawPostfix(PlayerTool __instance)
             {
                 //AddDebug("OnDraw " + __instance.name);
-                if (Main.IsEatableFish(__instance.gameObject) && !fixedFish.Contains(__instance) && !__instance.GetComponent<LiveMixin>().IsAlive())
+                if (Util.IsEatableFish(__instance.gameObject) && !fixedFish.Contains(__instance) && !__instance.GetComponent<LiveMixin>().IsAlive())
                 {
                     //AddDebug("OnDraw " + __instance.name);
                     //Inventory.main.quickSlots.DeselectImmediate();

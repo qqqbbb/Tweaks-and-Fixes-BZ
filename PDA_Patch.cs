@@ -25,7 +25,7 @@ namespace Tweaks_Fixes
             {
                 pda.transform.position = pos + .156f * cameraTr.forward;
                 Vector3 pdaLocalPos = pda.transform.localPosition;
-                float posZ = Main.NormalizeToRange(cameraTr.forward.y, 0f, 1f, .16f, .22f);
+                float posZ = Util.NormalizeToRange(cameraTr.forward.y, 0f, 1f, .16f, .22f);
                 //float aValue;
                 //float normal = Mathf.InverseLerp(0f, 1f, cameraTr.forward.y);
                 Vector3 pdaLookForwardPos = new Vector3(pdaLocalPos.x, pdaLocalPos.y, .16f);
