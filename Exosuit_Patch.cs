@@ -572,12 +572,12 @@ namespace Tweaks_Fixes
             {
                 bool flag2 = false;
                 bool flag3 = false;
-                if (!Mathf.Approximately(__instance.aimTargetLeft.transform.localPosition.y, 0f))
+                if (!Util.Approximately(__instance.aimTargetLeft.transform.localPosition.y, 0f))
                     __instance.aimTargetLeft.transform.localPosition = new Vector3(__instance.aimTargetLeft.transform.localPosition.x, Mathf.MoveTowards(__instance.aimTargetLeft.transform.localPosition.y, 0f, Time.deltaTime * 50f), __instance.aimTargetLeft.transform.localPosition.z);
                 else
                     flag2 = true;
 
-                if (!Mathf.Approximately(__instance.aimTargetRight.transform.localPosition.y, 0f))
+                if (!Util.Approximately(__instance.aimTargetRight.transform.localPosition.y, 0f))
                     __instance.aimTargetRight.transform.localPosition = new Vector3(__instance.aimTargetRight.transform.localPosition.x, Mathf.MoveTowards(__instance.aimTargetRight.transform.localPosition.y, 0f, Time.deltaTime * 50f), __instance.aimTargetRight.transform.localPosition.z);
                 else
                     flag3 = true;
@@ -657,7 +657,7 @@ namespace Tweaks_Fixes
                         direction += Vector3.up * Mathf.Clamp(forward.y, -0.75f, 0.75f);
                     }
                     Vector3 acceleration = horThrustAcc * direction * thrustPower;
-                    acceleration *= Main.config.vehicleSpeedMult;
+                    acceleration *= Main.config.exosuitSpeedMult;
                     if (__instance.powersliding)
                         acceleration *= 4f; // my
 
@@ -667,7 +667,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("verticalJetsActive");
                     Vector3 acceleration = Vector3.up * vertThrustAcc * thrustPower;
-                    acceleration *= Main.config.vehicleSpeedMult;  // my
+                    acceleration *= Main.config.exosuitSpeedMult;  // my
                     __instance.useRigidbody.AddForce(acceleration, ForceMode.Acceleration);
                 }
             }
@@ -946,6 +946,7 @@ namespace Tweaks_Fixes
             }
             if (!(vehicle.moveOnLand | (vehicle.transform.position.y < Ocean.GetOceanLevel() && vehicle.transform.position.y < vehicle.worldForces.waterDepth && !vehicle.forceWalkMotorMode)) || !vehicle.movementEnabled)
                 return;
+
             if (vehicle.controlSheme == Vehicle.ControlSheme.Submersible)
             {
                 Vector3 vector3_1 = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
@@ -983,7 +984,7 @@ namespace Tweaks_Fixes
                 Vector3 vector3_4 = new Vector3(0.0f, vector3_1.y, 0f);
                 vector3_4.y *= vehicle.verticalForce * Time.deltaTime;
                 Vector3 acceleration = num * vector * Time.deltaTime + vector3_4;
-                acceleration *= Main.config.vehicleSpeedMult;
+                acceleration *= Main.config.exosuitSpeedMult;
                 vehicle.OverrideAcceleration(ref acceleration);
                 for (int index = 0; index < vehicle.accelerationModifiers.Length; ++index)
                     vehicle.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
@@ -1087,7 +1088,7 @@ namespace Tweaks_Fixes
                 if (__instance.wasAboveWater)
                     acceleration *= 1.33f;
 
-                acceleration *= Main.config.vehicleSpeedMult;
+                acceleration *= Main.config.exosuitSpeedMult;
                 __instance.OverrideAcceleration(ref acceleration);
                 for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
                     __instance.accelerationModifiers[index].ModifyAcceleration(ref acceleration);

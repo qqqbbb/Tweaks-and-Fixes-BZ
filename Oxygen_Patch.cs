@@ -21,7 +21,7 @@ namespace Tweaks_Fixes
             {
                 if (other && other.gameObject.GetComponentInParent<Player>())
                 {
-                    Main.canBreathe = false;
+                    //Main.canBreathe = false;
                     //AddDebug("OnTriggerExit ");
                 }
             }
@@ -43,7 +43,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(OxygenPipe), "UpdatePipe")]
+        //[HarmonyPatch(typeof(OxygenPipe), "UpdatePipe")]
         class OxygenPipe_UpdatePipe_Patch
         {
             public static void Postfix(OxygenPipe __instance)
@@ -56,12 +56,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(OxygenPipe), "OnPickedUp")]
+        //[HarmonyPatch(typeof(OxygenPipe), "OnPickedUp")]
         class OxygenPipe_OnPickedUp_Patch
         {
             public static void Postfix(OxygenPipe __instance)
             {
-                Main.canBreathe = false;
+                //Main.canBreathe = false;
                 //AddDebug("OnPickedUp ");
             }
         }
@@ -74,7 +74,7 @@ namespace Tweaks_Fixes
                 {
                     //extraBreathPeriod += extraBreathPeriodDefault;
                     bubbleEndTime = Time.time + extraBreathPeriod;
-                    Main.canBreathe = true;
+                    //Main.canBreathe = true;
                     //AddDebug("Bubble hit player " );
                 }
             }
@@ -131,14 +131,14 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(OxygenArea), "OnTriggerStay")]
+        //[HarmonyPatch(typeof(OxygenArea), "OnTriggerStay")]
         class OxygenArea_OnTriggerStay_Patch
         { // OnTriggerExit does not fire when you pick up pipe
             public static void Postfix(OxygenArea __instance, Collider other)
             {
                 if (other && other.gameObject.GetComponentInParent<Player>())
                 {
-                    Main.canBreathe = true;
+                    //Main.canBreathe = true;
                     //AddDebug("OnTriggerStay ");
                 }
             }
@@ -150,15 +150,15 @@ namespace Tweaks_Fixes
             public static void Postfix(Player __instance, ref bool __result)
             {
 
-                if (Main.canBreathe)
+                //if (Main.canBreathe)
                 {
                     if (bubbleEndTime > 0 && Time.time > bubbleEndTime)
                     {
                         bubbleEndTime = 0f;
-                        Main.canBreathe = false;
+                        //Main.canBreathe = false;
                         //AddDebug("bubbleEndTime ");
                     }
-                    __result = Main.canBreathe;
+                    //__result = Main.canBreathe;
                 }
             }
         }
@@ -175,7 +175,6 @@ namespace Tweaks_Fixes
 
                 //AddDebug("GetOxygenPerBreath breathingInterval " + breathingInterval);
                 //AddDebug("GetOxygenPerBreath  " + __result);
-
                 return false;
             }
         }
@@ -183,6 +182,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Player), "GetBreathPeriod")]
         class Player_GetBreathPeriod_Patch
         {
+            private const float breathPeriodMax = 3f;
+
             static bool Prefix(Player __instance, ref float __result)
             {
                 //AddDebug("depthLevel " + (int)__instance.depthLevel);
@@ -193,14 +194,14 @@ namespace Tweaks_Fixes
                 if (Player.main._currentInterior != null || __instance.inExosuit || __instance.currentWaterPark || Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
                 {
                     //AddDebug("safe BreathPeriod " );
-                    __result = 3f;
+                    __result = breathPeriodMax;
                     return false;
                 }
                 float depth = Mathf.Abs(__instance.depthLevel);
                 float mult = 1.5f / Main.config.crushDepth;
-                __result = 3f - depth * mult;
+                __result = breathPeriodMax - depth * mult;
                 // __result is negative when depth is 2x deeper than crushDepth
-                __result = Mathf.Clamp(__result, 0.1f, 3f);
+                __result = Mathf.Clamp(__result, 0.1f, breathPeriodMax);
                 return false;
             }
         }

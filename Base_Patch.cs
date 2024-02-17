@@ -216,7 +216,7 @@ namespace Tweaks_Fixes
                     __instance.shieldIntensity = Mathf.MoveTowards(__instance.shieldIntensity, __instance.shieldGoToIntensity, Time.deltaTime *.5f);
                     __instance.shieldFX.material.SetFloat(ShaderPropertyID._Intensity, __instance.shieldIntensity);
                     __instance.shieldFX.material.SetFloat(ShaderPropertyID._ImpactIntensity, __instance.shieldImpactIntensity);
-                    if (Mathf.Approximately(__instance.shieldIntensity, 0f) && __instance.shieldGoToIntensity == 0f)
+                    if (Util.Approximately(__instance.shieldIntensity, 0f) && __instance.shieldGoToIntensity == 0f)
                         __instance.shieldFX.gameObject.SetActive(false);
                 }
                 __instance.UpdateSubModules();

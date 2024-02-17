@@ -34,23 +34,195 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(DealDamageOnImpact))]
         class DealDamageOnImpact_Patch
-        { // seatruck mirroredSelfDamageFraction .12 hoverbike mirroredSelfDamageFraction 1
+        { // seatruck mirroredSelfDamageFraction .12, hoverbike mirroredSelfDamageFraction 1, exosuit mirroredSelfDamage false
             static Rigidbody prevColTarget;
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Start")]
             static void StartPostfix(DealDamageOnImpact __instance)
             {
                 //AddDebug(" DealDamageOnImpact Start " + __instance.name);
-                //TechType tt = CraftData.GetTechType(__instance.gameObject);
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //AddDebug(" DealDamageOnImpact Start " + tt);
                 //if (tt == TechType.SeaTruck)
                 //    __instance.mirroredSelfDamageFraction = 1f;
-                if (__instance.GetComponent<Hoverbike>())
-                    hoverBikes.Add(__instance);
-                    //__instance.mirroredSelfDamageFraction = .25f;
+                //if (__instance.GetComponent<Hoverbike>())
+                //    hoverBikes.Add(__instance);
+                //__instance.mirroredSelfDamageFraction = .25f;
             }
             [HarmonyPrefix]
             [HarmonyPatch("OnCollisionEnter")]
-            static bool OnCollisionEnterPrefix(DealDamageOnImpact __instance, Collision collision)
+            public static bool OnCollisionEnterPrefix(DealDamageOnImpact __instance, Collision collision)
+            {
+                if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
+                    return false;
+
+                bool terrain = collision.gameObject.GetComponent<TerrainChunkPieceCollider>();
+                GameObject colTarget = collision.gameObject;
+                if (!terrain)
+                    colTarget = Util.GetEntityRoot(collision.gameObject);
+
+                if (collision.gameObject.GetComponentInParent<Player>())
+                {
+                    if (!__instance.allowDamageToPlayer)
+                    {
+                        //AddDebug(__instance.name + " collided with player");
+                        return false;
+                    }
+                    colTarget = Player.mainObject;
+                }
+                //if (colTarget)
+                //    AddDebug(__instance.name + " OnCollisionEnter " + colTarget.name);
+                //else
+                //    AddDebug(__instance.name + " OnCollisionEnter colTarget null ");
+
+                // collision.contacts generates garbage
+                ContactPoint contactPoint = collision.GetContact(0);
+                Vector3 impactPoint = contactPoint.point;
+                float damageMult = Mathf.Max(0f, Vector3.Dot(-contactPoint.normal, __instance.prevVelocity));
+
+                damageMult = Mathf.Clamp(damageMult, 0f, 10f);
+ 
+                Rigidbody otherRB = collision.rigidbody;
+                float myMass = __instance.GetComponent<Rigidbody>().mass;
+                float massRatioInv;
+                float massRatio;
+                if (terrain)
+                {
+                    massRatio = .01f;
+                    massRatioInv = 100f;
+                }
+                else
+                {
+                    if (otherRB)
+                    {
+                        massRatio = myMass / otherRB.mass;
+                        massRatioInv = otherRB.mass / myMass;
+                        //AddDebug("myMass " + myMass + " other mass " + otherRB.mass);
+                    }
+                    else
+                    {
+                        Bounds otherBounds = Util.GetAABB(colTarget);
+                        Bounds myBounds = Util.GetAABB(__instance.gameObject);
+                        massRatioInv = otherBounds.size.magnitude / myBounds.size.magnitude;
+                        massRatio = myBounds.size.magnitude / otherBounds.size.magnitude;
+                        //AddDebug("myBounds " + myBounds.size.magnitude + " otherBounds " + otherBounds.size.magnitude);
+                    }
+                }
+                TechType myTT = CraftData.GetTechType(__instance.gameObject);
+                TechType otherTT = CraftData.GetTechType(colTarget);
+
+                bool vehicle = myTT == TechType.SeaTruck || myTT == TechType.Exosuit || myTT == TechType.SeaTruckAquariumModule || myTT == TechType.SeaTruckDockingModule || myTT == TechType.SeaTruckFabricatorModule || myTT == TechType.SeaTruckSleeperModule || myTT == TechType.SeaTruckStorageModule || myTT == TechType.SeaTruckTeleportationModule || myTT == TechType.Hoverbike;
+
+                bool otherVehicle = otherTT == TechType.SeaTruck || otherTT == TechType.Exosuit || otherTT == TechType.SeaTruckAquariumModule || otherTT == TechType.SeaTruckDockingModule || otherTT == TechType.SeaTruckFabricatorModule || otherTT == TechType.SeaTruckSleeperModule || otherTT == TechType.SeaTruckStorageModule || otherTT == TechType.SeaTruckTeleportationModule || otherTT == TechType.Hoverbike;
+
+                DealDamageOnImpact otherDDOI = colTarget.GetComponent<DealDamageOnImpact>();
+
+                bool canDealDamage = true;
+                if (vehicle && !Main.config.vehiclesDealDamageOnImpact)
+                    canDealDamage = false;
+                if (otherVehicle && !Main.config.vehiclesTakeDamageOnImpact)
+                    canDealDamage = false;
+                if (otherDDOI && damageMult < otherDDOI.speedMinimumForDamage)
+                    canDealDamage = false;
+                if (damageMult < __instance.speedMinimumForDamage)
+                    canDealDamage = false;
+
+                if (__instance.impactSound && __instance.timeLastImpactSound + 0.5 < Time.time)
+                {
+                    if (__instance.checkForFishHitSound)
+                    {
+                        bool fish = false;
+                        GameObject gameObject = collision.gameObject;
+                        GameObject entityRoot = UWE.Utils.GetEntityRoot(collision.gameObject);
+                        if (entityRoot != null)
+                            gameObject = entityRoot;
+                        if (gameObject.GetComponent<Creature>() != null)
+                        {
+                            BehaviourType behaviourType = CreatureData.GetBehaviourType(gameObject);
+                            fish = behaviourType == BehaviourType.SmallFish || behaviourType == BehaviourType.MediumFish;
+                        }
+                        __instance.impactSound.SetParameterValue(__instance.hitFishParamIndex, fish ? 1f : 0f);
+                    }
+                    __instance.impactSound.SetParameterValue(__instance.velocityParamIndex, damageMult);
+                    __instance.impactSound.Play();
+                    __instance.timeLastImpactSound = Time.time;
+                }
+
+                if (canDealDamage && Time.time > __instance.timeLastDamage + 1f)
+                {
+                    LiveMixin otherLM = __instance.GetLiveMixin(colTarget);
+                    if (otherLM)
+                    {
+                        //AddDebug("damageMult " + damageMult);
+                        //AddDebug("massRatio " + massRatio);
+                        //AddDebug(otherLM.name + " max HP " + otherLM.maxHealth + " HP " + (int)otherLM.health);
+                        if (otherLM.health > 0 && damageMult > 0)
+                        {
+                            VFXSurfaceTypes mySurfaceType = VFXSurfaceTypes.none;
+                            if (vehicle)
+                                mySurfaceType = VFXSurfaceTypes.metal;
+                            else
+                                mySurfaceType = Util.GetObjectSurfaceType(__instance.gameObject);
+
+                            float massRatioClamped = Mathf.Clamp(massRatio, 0, damageMult);
+                            massRatioClamped = Util.NormalizeToRange(massRatioClamped, 0f, 10f, 1f, 2f);
+                            if (mySurfaceType == VFXSurfaceTypes.metal || mySurfaceType == VFXSurfaceTypes.glass || mySurfaceType == VFXSurfaceTypes.rock)
+                                massRatioClamped *= 2f;
+
+                            float damage = damageMult * massRatioClamped;
+                            //AddDebug(__instance.name + " damage " + (int)damage);
+                            //AddDebug(__instance.name + " speedMinimumForDamage " + __instance.speedMinimumForDamage);
+                            otherLM.TakeDamage(damage, impactPoint, DamageType.Collide, __instance.gameObject);
+                            __instance.timeLastDamage = Time.time;
+                        }
+                    }
+                }
+            
+                bool canTakeDamage = true;
+                if (vehicle && !Main.config.vehiclesTakeDamageOnImpact)
+                    canTakeDamage = false;
+                if (otherVehicle && !Main.config.vehiclesDealDamageOnImpact)
+                    canTakeDamage = false;
+                if (damageMult < __instance.speedMinimumForSelfDamage)
+                    canTakeDamage = false;
+                if (myTT == TechType.Exosuit && !Main.config.exosuitTakesDamageFromCollisions)
+                    canTakeDamage = false;
+
+                LiveMixin myLM = __instance.GetLiveMixin(__instance.gameObject);
+                bool tooSmall = otherRB && otherRB.mass <= __instance.minimumMassForDamage;
+
+                if (!canTakeDamage || damageMult <= 0 || __instance.mirroredSelfDamageFraction == 0f || !myLM || Time.time < __instance.timeLastDamagedSelf + 1f || tooSmall)
+                    return false;
+
+                if (terrain && myTT == TechType.Exosuit && !Main.config.exosuitTakesDamageWhenCollidingWithTerrain)
+                    return false;
+                //float myDamage = colMag * Mathf.Clamp((1f + massRatio * 0.001f), 0f, damageMult);
+                VFXSurfaceTypes surfaceType = VFXSurfaceTypes.none;
+                if (terrain)
+                    surfaceType = Utils.GetTerrainSurfaceType(impactPoint, contactPoint.normal);
+                else
+                    surfaceType = Util.GetObjectSurfaceType(colTarget);
+
+                //AddDebug(colTarget.name + " surface " + surfaceType);
+                float massRatioInvClamped = Mathf.Clamp(massRatioInv, 0, damageMult);
+                massRatioInvClamped = Util.NormalizeToRange(massRatioInvClamped, 0f, 10f, 1f, 2f);
+                if (terrain || surfaceType == VFXSurfaceTypes.glass || surfaceType == VFXSurfaceTypes.metal || surfaceType == VFXSurfaceTypes.rock)
+                    massRatioInvClamped *= 2f;
+
+                float myDamage = damageMult * massRatioInvClamped;
+                //AddDebug(__instance.name + " maxHealth " + myLM.maxHealth + " health " + (int)myLM.health);
+                if (__instance.capMirrorDamage != -1f)
+                    myDamage = Mathf.Min(__instance.capMirrorDamage, myDamage);
+
+                myLM.TakeDamage(myDamage, impactPoint, DamageType.Collide, __instance.gameObject);
+                //AddDebug(__instance.name + " myDamage " + (int)myDamage);
+                //AddDebug(__instance.name + " speedMinimumForSelfDamage " + __instance.speedMinimumForSelfDamage);
+                __instance.timeLastDamagedSelf = Time.time;
+                return false;
+            }
+
+
+            static bool OnCollisionEnterPrefix_old(DealDamageOnImpact __instance, Collision collision)
             {
                 if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
                     return false;
@@ -309,7 +481,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("Vehicle takes damage"); 
                     //__result *= Main.config.vehicleDamageMult;
-                    if (__result > 0 && sts && type == DamageType.Normal)
+                    if (__result > 0 && type == DamageType.Normal)
                     { // play sfx when predators attack truck
                         SeaTruckSegment cabin = SeaTruckSegment.GetHead(sts);
                         if (cabin && cabin.isMainCab)

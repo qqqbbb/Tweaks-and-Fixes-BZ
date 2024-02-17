@@ -666,7 +666,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(CrafterLogic __instance, TechType techType)
             {
-                Util.Log("CrafterLogic ConsumeResources " + techType);
+                //Util.Log("CrafterLogic ConsumeResources " + techType);
             }
         }
 
@@ -675,7 +675,7 @@ namespace Tweaks_Fixes
         {
             public static void Prefix(Crafter __instance, TechType techType)
             {
-                Util.Log("Crafter OnCraftingBegin " + techType);
+                //Util.Log("Crafter OnCraftingBegin " + techType);
             }
         }
 
@@ -684,7 +684,7 @@ namespace Tweaks_Fixes
         {
             public static void Prefix(Crafter __instance, TechType techType)
             {
-                Util.Log("Crafter Craft " + techType);
+                //Util.Log("Crafter Craft " + techType);
             }
         }
 

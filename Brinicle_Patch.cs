@@ -3,7 +3,6 @@ using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
 using static ErrorMessage;
-using SMLHelper.V2.Assets;
 
 namespace Tweaks_Fixes
 {   //  47 -14 -28

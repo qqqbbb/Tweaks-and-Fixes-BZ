@@ -18,43 +18,6 @@ namespace Tweaks_Fixes
         static string uiTextSub = string.Empty;
         static FMODAsset stopPilotSound;
 
-        public static void DoStuff(GameObject seaTruckAquarium)
-        {
-            Util.Log("DoStuff " );
-            if (wcpGO == null || seaTruckAquarium == null)
-                return;
-
-            WaterClipProxy wcp = wcpGO.GetComponent<WaterClipProxy>();
-            if (wcp)
-            {
-                Util.Log("DoStuff get WaterClipProxy " + wcp.transform.parent.name);
-                AddDebug("DoStuff get WaterClipProxy parent " + wcp.transform.parent.name);
-                AddDebug("DoStuff get WaterClipProxy " + wcp.name);
-                MeshFilter meshFilter = wcpGO.GetComponent<MeshFilter>();
-                if (!meshFilter)
-                    AddDebug("no meshFilter ");
-                MeshRenderer meshRenderer = wcpGO.GetComponent<MeshRenderer>();
-                if (!meshRenderer)
-                    AddDebug("no meshRenderer ");
-                if (meshFilter && meshRenderer)
-                {
-                    AddDebug("add components ");
-                    Util.Log("DoStuff add components " + wcp.name);
-                    GameObject go = new GameObject("WaterClipProxy");
-                    go.transform.SetParent(seaTruckAquarium.transform);
-                    WaterClipProxy wcpCopy = Util.CopyComponent(wcp, go) as WaterClipProxy;
-                    //Main.CopyComponent(meshFilter, go);
-                    MeshFilter mfCopy = Util.CopyComponent(meshFilter, go) as MeshFilter;
-                    //Main.CopyComponent(meshRenderer, go);
-                    //MeshRenderer mrCopy = Main.CopyComponent(meshFilter, go) as MeshRenderer;
-                    wcp.waterSurface = WaterSurface.Get();
-                    UWE.CoroutineHost.StartCoroutine(wcp.LoadAsync());
-                }
-            }
-        
-
-    }
-
         public static void GetUpgradesNames(bool defenseSelected = false)
         {
             string lightToggle = LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.RightHand);

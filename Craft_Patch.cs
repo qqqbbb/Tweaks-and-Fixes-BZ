@@ -135,7 +135,6 @@ namespace Tweaks_Fixes
             private static void Prefix(EnergyMixin __instance, TechType techType)
             { // applies to tools and vehicles
                 //AddDebug("EnergyMixin OnCraftEnd " + techType);
-                Main.config.craftWithoutBattery = true;
                 if (!Main.config.craftWithoutBattery || techType == TechType.MapRoomCamera || techType == TechType.FlashlightHelmet || techType == TechType.TeleportationTool || techType == TechType.SpyPenguin || techType == TechType.SpyPenguinRemote)
                     return;
 

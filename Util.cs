@@ -1,9 +1,4 @@
 ﻿using HarmonyLib;
-using QModManager.API;
-using QModManager.API.ModLoading;
-using SMLHelper.V2.Assets;
-using SMLHelper.V2.Crafting;
-using SMLHelper.V2.Handlers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -179,6 +174,11 @@ namespace Tweaks_Fixes
             return Player_Patches.ambientTemperature;
         }
 
+        public static bool IsVehicle(GameObject go)
+        {
+            return go.GetComponent<Vehicle>() || go.GetComponent<SeaTruckSegment>() || go.GetComponent<Hoverbike>();
+        }
+
         public static float GetTemperature(GameObject go)
         {
             //AddDebug("GetTemperature " + go.name);
@@ -231,11 +231,6 @@ namespace Tweaks_Fixes
                 return true;
 
             return Player.main.inExosuit || Player.main.inHovercraft;
-        }
-
-        public static void Log(string str, QModManager.Utility.Logger.Level lvl = QModManager.Utility.Logger.Level.Debug)
-        {
-            QModManager.Utility.Logger.Log(lvl, str);
         }
 
         public static void Message(string str)
@@ -314,5 +309,63 @@ namespace Tweaks_Fixes
                 Inventory.main.quickSlots.Select(Main.config.activeSlot);
             }
         }
+
+        public static VFXSurfaceTypes GetObjectSurfaceType(GameObject obj)
+        {
+            VFXSurfaceTypes result = VFXSurfaceTypes.none;
+            if (obj)
+            {
+                VFXSurface vfxSurface = obj.GetComponent<VFXSurface>();
+                if (vfxSurface)
+                {
+                    result = vfxSurface.surfaceType;
+                    //AddDebug(" VFXSurface " + component.name);
+                    //AddDebug(" VFXSurface parent " + component.transform.parent.name);
+                    //AddDebug(" VFXSurface parent parent " + component.transform.parent.parent.name);
+                }
+                else
+                    vfxSurface = obj.FindAncestor<VFXSurface>();
+
+                if (vfxSurface)
+                    result = vfxSurface.surfaceType;
+            }
+            return result;
+        }
+
+        public static Bounds GetAABB(GameObject go)
+        {
+            FixedBounds fb = go.GetComponent<FixedBounds>();
+            Bounds bounds = fb == null ? UWE.Utils.GetEncapsulatedAABB(go) : fb.bounds;
+            return bounds;
+        }
+
+        public static bool GetTarget(Vector3 startPos, Vector3 dir, float distance, out RaycastHit hitInfo)
+        {
+            //return Physics.Raycast(startPos, dir, out hitInfo, distance, Voxeland.GetTerrainLayerMask(), QueryTriggerInteraction.Ignore);
+            return Physics.Raycast(startPos, dir, out hitInfo, distance);
+        }
+
+        public static bool GetPlayerTarget(float distance, out RaycastHit hitInfo)
+        {
+            Vector3 startPos = Player.mainObject.transform.position;
+            Vector3 dir = MainCamera.camera.transform.forward;
+            int layerMask = ~(1 << LayerMask.NameToLayer("Player"));
+            return Physics.Raycast(startPos, dir, out hitInfo, distance, layerMask, QueryTriggerInteraction.Ignore);
+            //return Physics.Raycast(startPos, dir, out hitInfo, distance);
+        }
+
+        public static GameObject GetEntityRoot(GameObject go)
+        {
+            PrefabIdentifier prefabIdentifier = go.GetComponent<PrefabIdentifier>();
+            if (prefabIdentifier == null)
+                prefabIdentifier = go.GetComponentInParent<PrefabIdentifier>();
+            return prefabIdentifier != null ? prefabIdentifier.gameObject : null;
+        }
+
+        public static bool Approximately(float a, float b, float tolerance = 0.00001f)
+        { // Mathf.Approximately does not work when compare to 0
+            return (Mathf.Abs(a - b) < tolerance);
+        }
+
     }
 }

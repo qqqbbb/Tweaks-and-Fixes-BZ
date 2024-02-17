@@ -1,28 +1,36 @@
 ﻿
 using HarmonyLib;
-using QModManager.API.ModLoading;
-using QModManager.API;
 using System.Reflection;
 using System;
-using SMLHelper.V2.Handlers;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
-using SMLHelper.V2.Assets;
-using SMLHelper.V2.Crafting;
 using static ErrorMessage;
+using Nautilus.Handlers;
+using Nautilus.Assets;
+using Nautilus.Utility;
+using Nautilus.Assets.PrefabTemplates;
+using Nautilus.Assets.Gadgets;
+using BepInEx;
+using BepInEx.Logging;
+using BepInEx.Bootstrap;
+
 //GameModeManager.GetOption<bool>(GameOption.Hunger)
-//uGUI.isLoading
+//uGUI.isLoading 
 namespace Tweaks_Fixes
 {
-    [QModCore]
-    public class Main
+    [BepInPlugin(GUID, MODNAME, VERSION)]
+    public class Main : BaseUnityPlugin
     {
+        private const string
+            MODNAME = "Tweaks and Fixes",
+            GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
+            VERSION = "2.0.0";
         public static Survival survival;
         public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
-        public static bool canBreathe = false;
+        //public static bool canBreathe = false;
         //!uGUI.isLoading
         //public static bool loadingDone = false;
         //public static bool languageCheck = false;
@@ -62,7 +70,7 @@ namespace Tweaks_Fixes
         public static void CleanUp()
         {
             //loadingDone = false;
-            canBreathe = false;
+            //canBreathe = false;
             //AddDebug("CleanUp");
             //Log("CleanUp !!!");
             QuickSlots_Patch.invChanged = true;
@@ -70,7 +78,7 @@ namespace Tweaks_Fixes
             Crush_Damage.extraCrushDepth = 0;
             //crafterOpen = false;
             Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
-            CraftTree.fabricator = new CraftTree("Fabricator", CraftTree.FabricatorScheme());
+            //CraftTree.fabricator = new CraftTree("Fabricator", CraftTree.FabricatorScheme());
             Seatruck_Patch.installedUpgrades = new HashSet<TechType>();
             fridges = new List<ItemsContainer>();
             UI_Patches.recyclotrons = new Dictionary<ItemsContainer, Recyclotron>();
@@ -185,19 +193,21 @@ namespace Tweaks_Fixes
             //config.crushDepth += Crush_Damage.extraCrushDepth;
         }
 
-        [QModPatch]
-        public static void Load()
+        private void Start()
         {
-            config.Load();
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
-            IngameMenuHandler.RegisterOnSaveEvent(SaveData);
-            IngameMenuHandler.RegisterOnQuitEvent(CleanUp);
-            CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
-            CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(21f, -39.5f, -364.3f), new Vector3(30f, 50f, 340f)));
-            CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("a3f8c8e0-0a2c-4f9b-b585-8804d15bc04b", new Vector3(-412.3f, -100.79f, -388.2f), new Vector3(310f, 0f, 90f)));
+            //config.Load();
+            Console.WriteLine("Tweaks Start ");
+            //Assembly assembly = Assembly.GetExecutingAssembly();
+            //new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
+            Harmony harmony = new Harmony(GUID);
+            harmony.PatchAll();
+            Setup();
+            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
+            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(21f, -39.5f, -364.3f), new Vector3(30f, 50f, 340f)));
+            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("a3f8c8e0-0a2c-4f9b-b585-8804d15bc04b", new Vector3(-412.3f, -100.79f, -388.2f), new Vector3(310f, 0f, 90f)));
+
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-208f, -376f, -1332f), new Vector3(4f, 114.77f, 0f)));
-          
+
             //RecipeData recipeData = new RecipeData();
             //recipeData.Ingredients = new List<Ingredient>()
             //{
@@ -208,16 +218,15 @@ namespace Tweaks_Fixes
             //CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, TechType.CyclopsDecoy, new string[1] { "Decoy" });
         }
 
-        [QModPostPatch]
-        public static void PostPatch()
+        public static void Setup()
         {
             //Log("PostPatch GetCurrentLanguage " + Language.main.GetCurrentLanguage());
             //Log("translatableStrings.Count " + config.translatableStrings.Count);
             //languageCheck = Language.main.GetCurrentLanguage() == "English") || !config.translatableStrings[0].Equals("Burnt out ");
             //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
-            baseLightSwitchLoaded = QModServices.Main.ModPresent("BaseLightSwitch");
-            visibleLockerInteriorModLoaded = QModServices.Main.ModPresent("lockerMod");
-
+            SaveUtils.RegisterOnSaveEvent(SaveData);
+            SaveUtils.RegisterOnQuitEvent(CleanUp);
+            GetLoadedMods();
             //LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, config.translatableStrings[19]);
             //LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, config.translatableStrings[20]);
             //// vanilla desc just copies the name
@@ -256,5 +265,21 @@ namespace Tweaks_Fixes
             }
 
         }
+
+        public static void GetLoadedMods()
+        {
+            //logger.LogInfo("Chainloader.PluginInfos Count " + Chainloader.PluginInfos.Count);
+            //AddDebug("Chainloader.PluginInfos Count " + Chainloader.PluginInfos.Count);
+            foreach (var plugin in Chainloader.PluginInfos)
+            {
+                var metadata = plugin.Value.Metadata;
+                //logger.LogInfo("loaded Mod " + metadata.GUID);
+                if (metadata.GUID.Equals("VisibleLockerInterior"))
+                    baseLightSwitchLoaded = true;
+                else if (metadata.GUID.Equals("lockerMod"));
+                    visibleLockerInteriorModLoaded = true;
+            }
+        }
+
     }
 }

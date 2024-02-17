@@ -104,7 +104,7 @@ namespace Tweaks_Fixes
                 { // when casting ray from creature to player terrain may not be loaded. Cast from player instead
                     Vector3 dir = go.transform.position - __instance.transform.position;
                     Vector3 rhs = __instance.eyesOnTop ? __instance.transform.up : __instance.transform.forward;
-                    if ((Mathf.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(dir.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(go.transform.position, __instance.transform.position,  Voxeland.GetTerrainLayerMask()))
+                    if ((Util.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(dir.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(go.transform.position, __instance.transform.position,  Voxeland.GetTerrainLayerMask()))
                         __result = true;
                 }
             }
@@ -175,7 +175,7 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("OnKill")]
             static void OnKillPostfix(CreatureDeath __instance)
             {
-                AddDebug("OnKill ");
+                //AddDebug("OnKill ");
                 AquariumFish aquariumFish = __instance.GetComponent<AquariumFish>();
                 if (aquariumFish)
                     UnityEngine.Object.Destroy(aquariumFish);
@@ -338,5 +338,16 @@ namespace Tweaks_Fixes
                 //Main.Message(name + " Stop Perform ");
             }
         }
+
+        [HarmonyPatch(typeof(WaterParkCreature), "GetCanBreed")]
+        class GWaterParkCreature_GetCanBreed_patch
+        {
+            public static void Postfix(WaterParkCreature __instance, ref bool __result)
+            {
+                if (!Main.config.waterparkCreaturesBreed)
+                    __result = false;
+            }
+        }
+
     }
 }

@@ -1,9 +1,7 @@
 ﻿
 using HarmonyLib;
-using QModManager.API.ModLoading;
 using System.Reflection;
 using System;
-using SMLHelper.V2.Handlers;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,34 +16,90 @@ namespace Tweaks_Fixes
         static GameObject previousTarget;
 
 
-        //[HarmonyPatch(typeof(UnderwaterMotor))]
+        //[HarmonyPatch(typeof(DamageVolume))]
         class SupplyCrate_Patch
         {
             //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(UnderwaterMotor), "OnCollisionEnter")]
-            static bool StopAttackPostfix(UnderwaterMotor __instance, Collision collision)
+            //[HarmonyPatch("DealDamage")]
+            static bool StopAttackPostfix(DamageVolume __instance, int multiplier)
             {
-                AddDebug("OnCollisionEnter " + collision.collider.name);
-                Rigidbody rb = __instance.rb;
-                MovementCollisionData movementCollisionData = new MovementCollisionData();
-                movementCollisionData.impactVelocity = rb.velocity - __instance.previousVelocity;
-                VFXSurfaceTypes vfxSurfaceTypes = Utils.GetObjectSurfaceType(collision.gameObject);
-                if (vfxSurfaceTypes == VFXSurfaceTypes.none)
-                    vfxSurfaceTypes = Utils.GetTerrainSurfaceType(collision.contacts[0].point, collision.contacts[0].normal);
-                movementCollisionData.surfaceType = vfxSurfaceTypes;
-                AddDebug("vfxSurfaceTypes " + vfxSurfaceTypes);
-                __instance.SendMessage("OnMovementCollision", movementCollisionData, SendMessageOptions.DontRequireReceiver);
-                __instance.previousVelocity = rb.velocity;
-                __instance.recentlyCollided = true;
-                return false;
+                //AddDebug(__instance.name + " DamageVolume DealDamage ");
+                if (multiplier <= 0)
+                    return false;
 
+                Vector3 position = __instance.tr.position;
+                Matrix4x4 worldToLocalMatrix = __instance.tr.worldToLocalMatrix;
+                int num = UWE.Utils.OverlapSphereIntoSharedBuffer(position, DamageVolume.GetMaxRadius(__instance.tr, __instance.radius));
+                for (int index = 0; index < num; ++index)
+                {
+                    GameObject gameObject = UWE.Utils.sharedColliderBuffer[index].gameObject;
+                    if (gameObject != __instance.gameObject)
+                    {
+                        LiveMixin lm = Utils.FindAncestorWithComponent<LiveMixin>(gameObject);
+                        if (lm != null && DamageVolume.liveMixins.Add(lm))
+                        {
+                            float damageScalar = DamageVolume.GetDamageScalar(worldToLocalMatrix, __instance.radius, __instance.hemisphere, lm.transform.position);
+                            lm.TakeDamage(__instance.maxDamage * damageScalar * multiplier, position, __instance.type);
+                            AddDebug(__instance.name + " DamageVolume Deal " + __instance.type + " Damage to " + lm.name);
+                        }
+                    }
+                }
+                DamageVolume.liveMixins.Clear();
+                return false;
             }
-            //[HarmonyPostfix]
-            //[HarmonyPatch(typeof(AttackLastTarget), "CanAttackTarget")]
-            static void CanAttackTargetPostfix(AttackLastTarget __instance, GameObject target, ref bool __result)
+        }
+
+
+        //[HarmonyPatch(typeof(AtmosphereVolume))]
+        class AtmosphereVolume_Patch
+        {
+            //[HarmonyPrefix]
+            //[HarmonyPatch("OnTriggerEnter")]
+            static void OnTriggerEnterPostfix(AtmosphereVolume __instance, Collider c)
             {
-                if (target && target == Player.mainObject)
-                    AddDebug("AttackLastTarget CanAttackTarget " + __result);
+                GameObject myRoot = Util.GetEntityRoot(__instance.gameObject);
+                GameObject root = Util.GetEntityRoot(c.gameObject);
+                int posX = (int)myRoot.transform.position.x;
+                int posY = (int)myRoot.transform.position.y;
+                int posZ = (int)myRoot.transform.position.z;
+                //if (posX == -25 && posY == -82 && posZ == -859)
+                if (c.gameObject == Player.mainObject)
+                    //AddDebug(myRoot.name + " AtmosphereVolume OnTriggerEnter " + root.name);
+                    AddDebug(__instance.name + " AtmosphereVolume OnTriggerEnter ");
+                    //Util.Log(myRoot.name + " AtmosphereVolume OnTriggerEnter " + root.name);
+            }
+            //[HarmonyPrefix]
+            //[HarmonyPatch("OnTriggerExit")]
+            static void OnTriggerExitPostfix(AtmosphereVolume __instance, Collider c)
+            {
+                GameObject myRoot = Util.GetEntityRoot(__instance.gameObject);
+                GameObject root = Util.GetEntityRoot(c.gameObject);
+                int posX = (int)myRoot.transform.position.x;
+                int posY = (int)myRoot.transform.position.y;
+                int posZ = (int)myRoot.transform.position.z;
+                //if (posX == -25 && posY == -82 && posZ == -859)
+                if (c.gameObject == Player.mainObject)
+                    //AddDebug(myRoot.name + " AtmosphereVolume OnTriggerExit " + root.name);
+                    AddDebug(__instance.name + " AtmosphereVolume OnTriggerExit ");
+            }
+        }
+
+        static List<string> massList = new List<string>();
+
+        static IEnumerator PrintMass(TechType techType)
+        {
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType, false);
+            yield return request;
+            GameObject go = request.GetResult();
+            if (go)
+            {
+                Rigidbody rb = go.GetComponent<Rigidbody>();
+                if (rb)
+                {
+                    string name = Language.main.Get(techType);
+                    string s = techType + ", " + name + ", mass " + rb.mass;
+                    massList.Add(s);
+                }
             }
         }
 
@@ -55,7 +109,6 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("canBreathe " + Main.canBreathe);
                 //AddDebug(" " + LargeWorld.main.GetBiome(__instance.transform.position));
                 //AddDebug("IsUnderwater " + Player.main.IsUnderwater());
                 //AddDebug("GetPlayerTemperature " + (int)Main.GetPlayerTemperature());
@@ -93,24 +146,18 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-          
-                    //AddDebug("CreatureAggressionModifier " + GameModeManager.GetOption<float>(GameOption.CreatureAggressionModifier));
-                    GameObject target = Player.main.guiHand.activeTarget;
-                    if (!target)
+                    //List<string> techTypes = new List<string>();
+                    //foreach (TechType tt in Enum.GetValues(typeof(TechType)))
                     {
-                        Targeting.GetTarget(Player.main.gameObject, 5f, out target, out float targetDist);
+                        //Player.main.StartCoroutine(PrintMass(tt));
+                        //string name = Language.main.Get(tt);
+                        //techTypes.Add(tt.ToString() + "  " + name);
                     }
-                    if (target)
-                    {
-                        //AddDebug(target.name);
-                        //AddDebug("parent " + target.transform.parent.name);
-                    }
-                    //VFXSurfaceTypes vfxSurfaceTypes = VFXSurfaceTypes.none;
-                    //int layerMask = 1 << LayerID.TerrainCollider | 1 << LayerID.Default;
-                    //RaycastHit hitInfo;
-                    //if (Physics.Raycast(MainCamera.camera.transform.position, MainCamera.camera.transform.forward, out hitInfo, 3f, layerMask) && hitInfo.collider.gameObject.layer == LayerID.TerrainCollider)
-                    //    vfxSurfaceTypes = Utils.GetTerrainSurfaceType(hitInfo.point, hitInfo.normal);
-                    //AddDebug("vfxSurfaceTypes " + vfxSurfaceTypes);
+                    //techTypes.Sort();
+                    //foreach (var s in techTypes)
+                    //    Util.Log(s);
+
+                    //PrintTerrainSurfaceType();
                     //TechType tt = TechType.IceBubble;
                     //string classid = CraftData.GetClassIdForTechType(tt);
                     //CoroutineTask<GameObject> result = AddressablesUtility.InstantiateAsync("PrefabInstance/Bubble", position: Player.main.transform.position);
@@ -129,7 +176,15 @@ namespace Tweaks_Fixes
                     //else
                     //    survival.food++;
                 }
-
+                else if (Input.GetKeyDown(KeyCode.V))
+                {
+                    printTarget();
+                    //Survival survival = Player.main.GetComponent<Survival>();
+                    //if (Input.GetKey(KeyCode.LeftShift))
+                    //    __instance.liveMixin.health--;
+                    //else
+                    //    __instance.liveMixin.health++;
+                }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
                     //Survival survival = Player.main.GetComponent<Survival>();
@@ -138,7 +193,6 @@ namespace Tweaks_Fixes
                     //else
                     //    __instance.liveMixin.health++;
                 }
-
                 else if (Input.GetKeyDown(KeyCode.Z))
                 {
                     GameObject target = Player.main.guiHand.activeTarget;
@@ -202,6 +256,66 @@ namespace Tweaks_Fixes
 
                 }
             }
+
+            static void PrintTerrainSurfaceType()
+            {
+                VFXSurfaceTypes vfxSurfaceTypes = VFXSurfaceTypes.none;
+                int layerMask = 1 << LayerID.TerrainCollider | 1 << LayerID.Default;
+                RaycastHit hitInfo;
+                if (Physics.Raycast(MainCamera.camera.transform.position, MainCamera.camera.transform.forward, out hitInfo, 111f, layerMask) && hitInfo.collider.gameObject.layer == LayerID.TerrainCollider)
+                    vfxSurfaceTypes = Utils.GetTerrainSurfaceType(hitInfo.point, hitInfo.normal);
+                AddDebug("vfxSurfaceTypes " + vfxSurfaceTypes);
+            }
+        }
+
+
+        public static void printTarget()
+        {
+            GameObject target = Player.main.guiHand.activeTarget;
+            RaycastHit hitInfo = new RaycastHit();
+            if (!target)
+                Util.GetPlayerTarget(111f, out hitInfo);
+                //Targeting.GetTarget(Player.main.gameObject, 11f, out target, out float targetDist);
+            if (hitInfo.collider)
+                target = hitInfo.collider.gameObject;
+
+            if (!target)
+                return;
+
+            VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
+            TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
+            if (tcpc)
+            {
+                vfxSurfaceType = Utils.GetTerrainSurfaceType(hitInfo.point, hitInfo.normal);
+                AddDebug("Terrain surface type  " + vfxSurfaceType);
+                return;
+            }
+            if (target)
+                vfxSurfaceType = Util.GetObjectSurfaceType(target);
+
+            LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
+            if (lwe)
+            {
+                target = lwe.gameObject;
+                int posX = (int)lwe.transform.position.x;
+                int posY = (int)lwe.transform.position.y;
+                int posZ = (int)lwe.transform.position.z;
+                AddDebug(" position " + posX + " " + posY + " " + posZ);
+                AddDebug(" cellLevel " + lwe.cellLevel);
+                if (vfxSurfaceType != VFXSurfaceTypes.none)
+                    AddDebug("vfxSurfaceType  " + vfxSurfaceType);
+
+                LiveMixin lm = lwe.GetComponent<LiveMixin>();
+                if (lm)
+                    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
+            }
+            AddDebug(target.gameObject.name);
+            //AddDebug("parent " + target.transform.parent.gameObject.name);
+            //if (target.transform.parent.parent)
+            //    AddDebug("parent parent " + target.transform.parent.parent.gameObject.name);
+            TechType techType = CraftData.GetTechType(target);
+            if (techType != TechType.None)
+                AddDebug("TechType  " + techType);
         }
 
         //[HarmonyPatch(typeof(CSVEntitySpawner))]
@@ -304,14 +418,14 @@ namespace Tweaks_Fixes
                 __instance.skyApplied = sky;
                 if (sky == null)
                     return false;
-                Util.Log("ApplySkybox " + __instance.name + " " + __instance.transform.position.x);
+                //Util.Log("ApplySkybox " + __instance.name + " " + __instance.transform.position.x);
                 for (int index = 0; index < __instance.renderers.Length; ++index)
                 {
                     Renderer renderer = __instance.renderers[index];
                     if (renderer)
                     {
                         sky.ApplyFast(renderer, 0);
-                        Util.Log("ApplyFast " + __instance.name + " " + __instance.transform.position.x);
+                        //Util.Log("ApplyFast " + __instance.name + " " + __instance.transform.position.x);
                     }
                 }
                 sky.RegisterSkyApplier(__instance);
@@ -332,8 +446,8 @@ namespace Tweaks_Fixes
                 if (!__instance.environmentSky)
                 {
                     __instance.OnEnvironmentChanged(SkyApplier.GetEnvironment(__instance.gameObject, __instance.anchorSky));
-                    if(__instance.customSkyPrefab)
-                        Util.Log("OnEnvironmentChanged " + __instance.name + " " + __instance.transform.position.x + " " + __instance.customSkyPrefab.name);
+                    //if(__instance.customSkyPrefab)
+                        //Util.Log("OnEnvironmentChanged " + __instance.name + " " + __instance.transform.position.x + " " + __instance.customSkyPrefab.name);
                     //Main.Log("OnEnvironmentChanged " + __instance.name + " " + __instance.anchorSky);
                 }
                 if (__instance.emissiveFromPower)
@@ -341,7 +455,7 @@ namespace Tweaks_Fixes
                     __instance.cellLighting = __instance.GetComponentInParent<BaseCellLighting>();
                     if (__instance.cellLighting)
                     {
-                        Util.Log("RegisterSkyApplier " + __instance.name + " " + __instance.transform.position.x);
+                        //Util.Log("RegisterSkyApplier " + __instance.name + " " + __instance.transform.position.x);
                         __instance.cellLighting.RegisterSkyApplier(__instance);
                     }
                 }

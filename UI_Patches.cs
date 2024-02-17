@@ -5,7 +5,7 @@ using UnityEngine;
 using HarmonyLib;
 using System.Text;
 using static ErrorMessage;
-using SMLHelper.V2.Handlers;
+using Nautilus.Handlers;
 
 namespace Tweaks_Fixes
 {
@@ -126,7 +126,7 @@ namespace Tweaks_Fixes
                 if (__instance.storageContainer.container.allowedTech == null)
                 {
                     //AddDebug("Aquarium allowedTech == null ");
-                    __instance.storageContainer.container.allowedTech = new HashSet<TechType> {TechType.Bladderfish, TechType.Boomerang, TechType.ArcticPeeper,  TechType.Hoopfish, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.NootFish, TechType.Spinefish, TechType.SpinnerFish, TechType.Symbiote, TechType.Triops};
+                    __instance.storageContainer.container.allowedTech = new HashSet<TechType> {TechType.Bladderfish, TechType.Boomerang, TechType.ArcticPeeper,  TechType.Hoopfish, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.Spinefish, TechType.SpinnerFish, TechType.Symbiote, TechType.Triops};
                 }
             }
         }
@@ -1266,6 +1266,17 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(uGUI_EncyclopediaTab), "DisplayEntry")]
+        public static class uGUI_EncyclopediaTab_Patch
+        {
+            public static void Postfix(uGUI_EncyclopediaTab __instance) => __instance.contentScrollRect.verticalNormalizedPosition = 1f;
+        }
+
+        [HarmonyPatch(typeof(StartScreen), "TryToShowDisclaimer")]
+        public static class StartScreenPatch
+        {
+            public static bool Prefix(StartScreen __instance) => false;
+        }
 
     }
 }

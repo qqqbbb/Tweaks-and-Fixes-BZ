@@ -13,10 +13,6 @@ namespace Tweaks_Fixes
         //static HashSet<SubRoot> cyclops = new HashSet<SubRoot>();
         //static Dictionary<AttackCyclops, AggressiveWhenSeeTarget> attackCyclopsAWST = new Dictionary<AttackCyclops, AggressiveWhenSeeTarget>();
         
-        public static bool IsVehicle(GameObject go)
-        {
-            return go.GetComponent<Vehicle>() || go.GetComponent<SeaTruckSegment>() || go.GetComponent<Hoverbike>();
-        }
 
         public static bool IsVehiclePowered(GameObject go)
         {
@@ -119,7 +115,7 @@ namespace Tweaks_Fixes
                         return false;
                     }
                 }
-                if (IsVehicle(target))
+                if (Util.IsVehicle(target))
                 {
                     if (aggrMult == 0 )
                     {
@@ -177,7 +173,7 @@ namespace Tweaks_Fixes
                     __result = false;
                     return false;
                 }
-                if (!Mathf.Approximately(__instance.minimumVelocity, 0f))
+                if (!Util.Approximately(__instance.minimumVelocity, 0f))
                 {
                     Rigidbody rb = target.GetComponentInChildren<Rigidbody>();
                     if (rb && rb.velocity.magnitude <= __instance.minimumVelocity)
@@ -367,7 +363,7 @@ namespace Tweaks_Fixes
                     //AddDebug(tt + " aggr " + __instance.creature.Aggression.Value + " req aggr " + __instance.requiredAggression);
                     float aggrMult = GameModeManager.GetCreatureAggressionModifier();
                     float aggr = aggrMult > 1f ? aggrMult : 1f;
-                    if (EcoRegionManager.main != null && (Mathf.Approximately(__instance.requiredAggression, 0f) || __instance.creature.Aggression.Value * aggr >= __instance.requiredAggression))
+                    if (EcoRegionManager.main != null && (Util.Approximately(__instance.requiredAggression, 0f) || __instance.creature.Aggression.Value * aggr >= __instance.requiredAggression))
                     {
                         AggressiveWhenSeeTarget awst = __instance.GetComponent<AggressiveWhenSeeTarget>();
                         if (awst)
@@ -402,7 +398,7 @@ namespace Tweaks_Fixes
                 if (__instance.hasEyes)
                 {
                     TechType techType = CraftData.GetTechType(__instance.gameObject);
-                    Util.Log(techType + " eyeFOV " + __instance.eyeFOV);
+                    //Util.Log(techType + " eyeFOV " + __instance.eyeFOV);
                 }
 
                 //AddDebug("Creature Start " + techType);
@@ -483,7 +479,7 @@ namespace Tweaks_Fixes
             public static bool IsValidVehicle(GameObject target)
             {
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
-                if (aggrMult == 0f || !IsVehicle(target))
+                if (aggrMult == 0f || !Util.IsVehicle(target))
                     return false;
                 
                 if (Util.IsPlayerInVehicle())
@@ -511,7 +507,7 @@ namespace Tweaks_Fixes
                     __result = target.Equals(__instance.lastTarget.target);
                     return false;
                 }
-                if (__instance.canBiteVehicle && IsVehicle(target) && IsValidVehicle(target))
+                if (__instance.canBiteVehicle && Util.IsVehicle(target) && IsValidVehicle(target))
                 {
                     __result = true;
                     return false;

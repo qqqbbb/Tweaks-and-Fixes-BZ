@@ -1,10 +1,11 @@
-﻿using SMLHelper.V2.Json;
-using SMLHelper.V2.Options.Attributes;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using SMLHelper.V2.Handlers;
-using SMLHelper.V2.Interfaces;
-using SMLHelper.V2.Options;
+using Nautilus.Json;
+using Nautilus.Options.Attributes;
+using Nautilus.Commands;
+using Nautilus.Handlers;
+using Nautilus.Options;
+
 
 namespace Tweaks_Fixes
 { 
@@ -18,7 +19,7 @@ namespace Tweaks_Fixes
         //[Slider("Vehicle damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage your vehicles take will be multiplied by this.")]
         //public float vehicleDamageMult = 1f;
         [Slider("Prawn suit speed multiplier", .5f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your prawn suit speed will be multiplied by this.")]
-        public float vehicleSpeedMult = 1f;
+        public float exosuitSpeedMult = 1f;
         [Slider("Seatruck speed multiplier", .5f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your seatruck speed will be multiplied by this.")]
         public float seatruckSpeedMult = 1f;
         [Slider("Snowfox speed multiplier", .5f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your snowfox speed will be multiplied by this.")]
@@ -40,7 +41,7 @@ namespace Tweaks_Fixes
         public float buildTimeMult = 1f;
         [Toggle("Player movement tweaks", Tooltip = "Player vertical, backward, sideways movement speed is halved. Any diving suit reduces your speed by 10% on land and in water. Fins reduce your speed by 10% on land. Lightweight high capacity tank reduces your speed by 5%. Every other tank reduces your speed by 10% on both land and water. Camera now does not bob up and down when swimming. You can sprint only if moving forward. Seaglide works only if moving forward. When swimming while your PDA is open your movement speed is halved. When swimming while holding a tool in your hand your movement speed is reduced to 70%.")]
         public bool playerMoveTweaks = false;
-        [Toggle("Only ambient tempterature makes player warm", Tooltip = "In vanilla game when you are underwater you get warm if moving and get cold when not. When out of water some areas (caves, your unpowered base) make you warm regardless of ambient tempterature. With this on you get warm only if ambient temperature is above getWarmTemp setting.")]
+        [Toggle("Only ambient tempterature makes player warm", Tooltip = "In vanilla game when you are underwater you get warm if moving and get cold when not. When out of water some areas (caves, your unpowered base) make you warm regardless of ambient tempterature. With this on you get warm only if ambient temperature is above getWarmTemp setting in the config file.")]
         public bool useRealTempForColdMeter = false;
         [Slider("Inventory weight multiplier in water", 0f, 1f, DefaultValue = 0f, Step = .001f, Format = "{0:R0}", Tooltip = "When it's not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.")]
         public float invMultWater = 0f;
@@ -105,6 +106,8 @@ namespace Tweaks_Fixes
         //public float eggHatchTimeMult = 1f;
         //[Slider("Plant growth time multiplier", .1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Time it takes a plant to grow will be multiplied by this.")]
         //public float plantGrowthTimeMult = 1f;
+        [Toggle("Creatures im alien comtainment can breed", Tooltip = "")]
+        public bool waterparkCreaturesBreed = true;
         [Slider("Knife attack range multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
         public float knifeRangeMult = 1f;
         [Slider("Knife damage multiplier", 1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Applies to knife and heatblade. You have to reequip your knife after changing this.")]
@@ -116,7 +119,7 @@ namespace Tweaks_Fixes
         public bool noBreakingWithHand = false;
         [Toggle("Disable tutorial messages", Tooltip = "Disable messages that tell you how controls work.")]
         public bool disableHints = false;
-        [Toggle("Realistic oxygen consumption", Tooltip = "Vanilla game oxygen consumption has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth between 100 and 0 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be vanilla max oxygen consumption and will increase as you dive deeper.")]
+        [Toggle("Realistic oxygen consumption", Tooltip = "Vanilla oxygen consumption without rebreather has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth between 100 and 0 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be vanilla max oxygen consumption and will increase as you dive deeper.")]
         public bool realOxygenCons = false;
         [Toggle("Player damage impact screen effects", Tooltip = "This toggles cracks on your swimming mask when you take damage.")]
         public bool damageImpactEffect = true;
@@ -304,7 +307,12 @@ namespace Tweaks_Fixes
         public bool leviathansRespawn = false;
         public bool leviathansRespawnIfKilledByPlayer = false;
         public bool disableGravityForExosuit = false;
+        public bool vehiclesDealDamageOnImpact = true;
+        public bool vehiclesTakeDamageOnImpact = true;
+        public bool exosuitTakesDamageFromCollisions = false;
+        public bool exosuitTakesDamageWhenCollidingWithTerrain = false;
         
+
         //private void EatRawFishChangedEvent(ChoiceChangedEventArgs e)
         //{
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 
