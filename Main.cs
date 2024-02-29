@@ -15,6 +15,7 @@ using Nautilus.Assets.Gadgets;
 using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Bootstrap;
+using System.Runtime.CompilerServices;
 
 //GameModeManager.GetOption<bool>(GameOption.Hunger)
 //uGUI.isLoading 
@@ -26,7 +27,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.0.0";
+            VERSION = "2.1.0";
         public static Survival survival;
         public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
@@ -38,6 +39,7 @@ namespace Tweaks_Fixes
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
         public static bool visibleLockerInteriorModLoaded = false;
+        public static ManualLogSource logger; 
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
 
@@ -182,7 +184,7 @@ namespace Tweaks_Fixes
                 if (mc)
                 {
                     //AddDebug(" save seaglide");
-                    config.seaGlideMap = mc.mapActive;
+                    config.seaglideMap = mc.mapActive;
                 }
             }
             //if (heldItem.item.GetTechType() == TechType.Seaglide)
@@ -202,6 +204,7 @@ namespace Tweaks_Fixes
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
             Setup();
+
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(21f, -39.5f, -364.3f), new Vector3(30f, 50f, 340f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("a3f8c8e0-0a2c-4f9b-b585-8804d15bc04b", new Vector3(-412.3f, -100.79f, -388.2f), new Vector3(310f, 0f, 90f)));
@@ -218,12 +221,13 @@ namespace Tweaks_Fixes
             //CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, TechType.CyclopsDecoy, new string[1] { "Decoy" });
         }
 
-        public static void Setup()
+        public void Setup()
         {
             //Log("PostPatch GetCurrentLanguage " + Language.main.GetCurrentLanguage());
             //Log("translatableStrings.Count " + config.translatableStrings.Count);
-            //languageCheck = Language.main.GetCurrentLanguage() == "English") || !config.translatableStrings[0].Equals("Burnt out ");
+            //languageCheck = Language.main.GetCurrentLanguage() == "English") || !config.translatableStrings[0] == "Burnt out ");
             //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
+            logger = this.Logger;
             SaveUtils.RegisterOnSaveEvent(SaveData);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             GetLoadedMods();
@@ -274,9 +278,9 @@ namespace Tweaks_Fixes
             {
                 var metadata = plugin.Value.Metadata;
                 //logger.LogInfo("loaded Mod " + metadata.GUID);
-                if (metadata.GUID.Equals("VisibleLockerInterior"))
+                if (metadata.GUID == "Cookie_BaseLightSwitch")
                     baseLightSwitchLoaded = true;
-                else if (metadata.GUID.Equals("lockerMod"));
+                else if (metadata.GUID == "VisibleLockerInterior")
                     visibleLockerInteriorModLoaded = true;
             }
         }

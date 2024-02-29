@@ -486,6 +486,11 @@ namespace Tweaks_Fixes
                     }
                     return false;
                 }
+                if (Main.config.saladGoesBad)
+                {
+                    if (CraftData.GetTechType(__instance.gameObject) == TechType.SpicyFruitSalad)
+                        __instance.decomposes = true;
+                }
                 return true;
             }
 
@@ -520,11 +525,15 @@ namespace Tweaks_Fixes
                     {
                         __instance.waterValue = __instance.foodValue * .5f;
                     }
-                    else if (CraftData.GetTechType(__instance.gameObject) == TechType.HangingFruit)
-                    {
-                        __instance.waterValue = 5f;
-                    }
-
+                }
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (Main.config.eatableFoodValue.ContainsKey(tt))
+                {
+                    __instance.foodValue = Main.config.eatableFoodValue[tt];
+                }
+                if (Main.config.eatableWaterValue.ContainsKey(tt))
+                {
+                    __instance.waterValue = Main.config.eatableWaterValue[tt];
                 }
             }
 

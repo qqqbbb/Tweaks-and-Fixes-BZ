@@ -7,7 +7,7 @@ using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{/*
+{
     class Game_Speed_Patch
     { 
         [HarmonyPatch(typeof(DayNightCycle), "Awake")]
@@ -15,7 +15,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(DayNightCycle __instance)
             {
-                __instance._dayNightSpeed = Main.config.gameSpeed;
+                __instance._dayNightSpeed = Main.config.dayNightSpeed;
             }
         }
         
@@ -30,7 +30,7 @@ namespace Tweaks_Fixes
                 if (__instance.skipTimeMode && __instance.timePassed >= __instance.skipModeEndTime)
                 {
                     __instance.skipTimeMode = false;
-                    __instance._dayNightSpeed = Main.config.gameSpeed;
+                    __instance._dayNightSpeed = Main.config.dayNightSpeed;
                 }
                 __instance.UpdateAtmosphere();
                 __instance.UpdateDayNightMessage();
@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(DayNightCycle __instance)
             {
-                __instance._dayNightSpeed = Main.config.gameSpeed;
+                __instance._dayNightSpeed = Main.config.dayNightSpeed;
                 return false;
             }
         }
@@ -58,7 +58,7 @@ namespace Tweaks_Fixes
                 AddDebug("Night cheat activated");
                 __instance.timePassedAsDouble += 1200.0 - __instance.timePassed % 1200.0;
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.gameSpeed;
+                __instance._dayNightSpeed = Main.config.dayNightSpeed;
                 __instance.UpdateAtmosphere();
                 if (num == 0)
                     return false;
@@ -76,7 +76,7 @@ namespace Tweaks_Fixes
                 AddDebug("Day cheat activated");
                 __instance.timePassedAsDouble += 1200.0 - __instance.timePassed % 1200.0 + 600.0;
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.gameSpeed;
+                __instance._dayNightSpeed = Main.config.dayNightSpeed;
                 __instance.UpdateAtmosphere();
                 if (num != 0)
                     return false;
@@ -99,7 +99,7 @@ namespace Tweaks_Fixes
                     __instance.timePassedAsDouble += 1200.0 - __instance.timePassedAsDouble % 1200.0 + num2 * 1200.0;
                 }
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.gameSpeed;
+                __instance._dayNightSpeed = Main.config.dayNightSpeed;
                 __instance.UpdateAtmosphere();
                 bool parms = __instance.IsDay();
                 if (parms == flag)
@@ -120,7 +120,7 @@ namespace Tweaks_Fixes
                     float num2 = Mathf.Clamp(newSpeed, 0.0f, 100f);
                     AddDebug("Setting day/night speed to " + num2 + ".");
                     __instance._dayNightSpeed = num2;
-                    Main.config.gameSpeed = num2;
+                    Main.config.dayNightSpeed = num2;
                     __instance.skipTimeMode = false;
                 }
                 else
@@ -154,7 +154,7 @@ namespace Tweaks_Fixes
             static bool Prefix(DayNightCycle __instance)
             {
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.gameSpeed;
+                __instance._dayNightSpeed = Main.config.dayNightSpeed;
 
                 return false;
             }
@@ -169,5 +169,5 @@ namespace Tweaks_Fixes
                 //AddDebug(__instance.weatherSet.name + " GetEventDuration " + __result);
             }
         }
-} */
+    } 
 }

@@ -12,6 +12,8 @@ namespace Tweaks_Fixes
     [Menu("Tweaks and Fixes")]
     public class Config : ConfigFile
     {
+        [Slider("Day/night cycle speed multiplier", 0.1f, 10f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "The higher the value the shorter days are."), OnChange(nameof(UpdateGameSpeed))]
+        public float dayNightSpeed = 1f;
         [Slider("Player speed multiplier", .1f, 5f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Your swimming, walking and running speed will be multiplied by this.")]
         public float playerSpeedMult = 1f;
         //[Slider("Player damage multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:R0}", Tooltip = "Amount of damage player takes will be multiplied by this.")]
@@ -264,13 +266,15 @@ namespace Tweaks_Fixes
 
         public float medKitHPperSecond = 50f;
         public HashSet<TechType> predatorExclusion = new HashSet<TechType> { TechType.Crash};
+        public Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> {};
+        public Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { { TechType.HangingFruit, 5 } };
         public Dictionary<string, bool> iceFruitPickedState = new Dictionary<string, bool> ();
 
-        //static void UpdateGameSpeed()
-        //{
-        //    if (DayNightCycle.main)
-        //        DayNightCycle.main._dayNightSpeed = Main.config.gameSpeed;
-        //}
+        static void UpdateGameSpeed()
+        {
+            if (DayNightCycle.main)
+                DayNightCycle.main._dayNightSpeed = Main.config.dayNightSpeed;
+        }
 
         static void UpdateBaseLight()
         {
@@ -293,7 +297,8 @@ namespace Tweaks_Fixes
         public bool randomPlantRotation = true;
         public bool fixMelons = true;
         public bool fixCoral = true;
-        public bool seaGlideMap = true;
+        public bool seaglideMap = true;
+        public bool seaglideLight = true;
         public bool craftWithoutBattery = false;
         public bool disableUseText = false;
         public bool builderPlacingWhenFinishedBuilding = true;
@@ -311,8 +316,9 @@ namespace Tweaks_Fixes
         public bool vehiclesTakeDamageOnImpact = true;
         public bool exosuitTakesDamageFromCollisions = false;
         public bool exosuitTakesDamageWhenCollidingWithTerrain = false;
-        
-
+        public bool exosuitLights = false;
+        public float brinicleDaysToGrow = 3f;
+        public bool saladGoesBad = true;
         //private void EatRawFishChangedEvent(ChoiceChangedEventArgs e)
         //{
         //    AddDebug("EatRawFishChangedEvent " + eatRawFish); 

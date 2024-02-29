@@ -198,7 +198,7 @@ namespace Tweaks_Fixes
                         return;
                     }
                     PropulsionCannonWeapon pc = Inventory.main.GetHeldTool() as PropulsionCannonWeapon;
-                    if (pc && pc.propulsionCannon.grabbedObject.Equals(__instance.gameObject))
+                    if (pc && pc.propulsionCannon.grabbedObject == __instance.gameObject)
                     {
                         //AddDebug("PropulsionCannonWeapon ");
                         __result = true;
@@ -206,7 +206,7 @@ namespace Tweaks_Fixes
                     }
                     foreach (Pickupable p in Gravsphere_Patch.gravSphereFish)
                     {
-                        if (p.Equals(__instance))
+                        if (p == __instance)
                         {
                             //AddDebug("Gravsphere ");
                             __result = true;

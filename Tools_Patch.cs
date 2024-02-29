@@ -7,6 +7,7 @@ using System.Collections;
 using FMOD;
 using FMOD.Studio;
 using FMODUnity;
+using UWE;
 
 namespace Tweaks_Fixes
 {
@@ -149,16 +150,6 @@ namespace Tweaks_Fixes
 
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnHolster")]
-            public static void OnHolsterPostfix(PlayerTool __instance)
-            {
-                if (__instance is Seaglide)
-                {
-                    VehicleInterface_MapController mc = __instance.GetComponent<VehicleInterface_MapController>();
-                    Main.config.seaGlideMap = mc.mapActive;
-                }
-            }
 
         }
 
@@ -293,7 +284,29 @@ namespace Tweaks_Fixes
             public static void Postfix(VehicleInterface_MapController __instance)
             {
                 //AddDebug("VehicleInterface_MapController Start " + __instance.name);
-                __instance.mapActive = Main.config.seaGlideMap;
+                __instance.mapActive = Main.config.seaglideMap;
+            }
+        }
+
+        [HarmonyPatch(typeof(Seaglide))]
+        class Seaglide_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(Seaglide __instance)
+            {
+                __instance.toggleLights.SetLightsActive(Main.config.seaglideLight);
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("OnHolster")]
+            public static void OnHolsterPostfix(Seaglide __instance)
+            {// fires when saving
+                //AddDebug("Seaglide OnHolster");
+                Main.config.seaglideLight = __instance.toggleLights.lightsActive;
+                var mc = __instance.GetComponent<VehicleInterface_MapController>();
+                if (mc != null)
+                    Main.config.seaglideMap = mc.mapActive;
             }
         }
 

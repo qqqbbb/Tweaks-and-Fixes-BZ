@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using static ErrorMessage;
+using static Story.ToggleMusicTrackData;
 
 namespace Tweaks_Fixes
 { 
@@ -341,7 +342,7 @@ namespace Tweaks_Fixes
             //exosuitName = Language.main.Get("Exosuit");
             //rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
             //leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
-            if (Player.main.currentMountedVehicle && Player.main.currentMountedVehicle.Equals(__instance))
+            if (Player.main.currentMountedVehicle && Player.main.currentMountedVehicle == __instance)
             {
                 GetArmNames(__instance);
                 armNamesChanged = true;
@@ -370,6 +371,7 @@ namespace Tweaks_Fixes
             so.path = "event:/sub/seamoth/impact_solid_soft";
             so.id = "{15dc7344-7b0a-4ffd-9b5c-c40f923e4f4d}";
             collisionSound.hitSoundSlow = so;
+            SetLights(__instance, Main.config.exosuitLights);
             exosuitStarted = true;
         }
 
@@ -604,24 +606,44 @@ namespace Tweaks_Fixes
             //if (__instance.thrustPower < 1F)
             //    AddDebug("thrustPower " + __instance.thrustPower.ToString("0.0"));
 
-            if (!IngameMenu.main.isActiveAndEnabled && !Player.main.pda.isInUse && Player.main.inExosuit && Player.main.currentMountedVehicle.Equals(__instance) && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+            if (!IngameMenu.main.isActiveAndEnabled && !Player.main.pda.isInUse && Player.main.inExosuit && Player.main.currentMountedVehicle == __instance && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
             {
-                Transform lightsT = __instance.transform.Find("lights_parent");
-                if (lightsT)
+                ToggleLights(__instance);
+            }
+        }
+
+        private static void SetLights(Exosuit exosuit, bool active)
+        {
+            if (active && !exosuit.energyInterface.hasCharge)
+                return;
+
+            Transform lightsT = exosuit.transform.Find("lights_parent");
+            if (lightsT)
+            {
+                lightsT.gameObject.SetActive(active);
+                //AddDebug("SetLights " + active);
+            }
+        }
+
+        private static void ToggleLights(Exosuit exosuit)
+        {
+            Transform lightsT = exosuit.transform.Find("lights_parent");
+            if (lightsT)
+            {
+                //AddDebug("IngameMenu isActiveAndEnabled " + IngameMenu.main.isActiveAndEnabled);
+                if (!lightsT.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
                 {
-                    //AddDebug("IngameMenu isActiveAndEnabled " + IngameMenu.main.isActiveAndEnabled);
-                    if (!lightsT.gameObject.activeSelf && __instance.energyInterface.hasCharge)
-                    {
-                        lightsT.gameObject.SetActive(true);
-                        Utils.PlayFMODAsset(lightOnSound, Player.main.transform);
-                    }
-                    else if (lightsT.gameObject.activeSelf)
-                    {
-                        lightsT.gameObject.SetActive(false);
-                        Utils.PlayFMODAsset(lightOffSound, Player.main.transform);
-                    }
-                    //AddDebug("lights " + lightsT.gameObject.activeSelf);
+                    lightsT.gameObject.SetActive(true);
+                    Main.config.exosuitLights = true;
+                    Utils.PlayFMODAsset(lightOnSound, Player.main.transform);
                 }
+                else if (lightsT.gameObject.activeSelf)
+                {
+                    lightsT.gameObject.SetActive(false);
+                    Main.config.exosuitLights = false;
+                    Utils.PlayFMODAsset(lightOffSound, Player.main.transform);
+                }
+                //AddDebug("lights " + lightsT.gameObject.activeSelf);
             }
         }
 
@@ -999,9 +1021,9 @@ namespace Tweaks_Fixes
             //if (__instance == null)
             //    AddDebug("TorpedoShotPrefix  Vehicle is null  ");
 
-            if (container.Equals(Exosuit_Patch.torpedoStorageLeft))
+            if (container == Exosuit_Patch.torpedoStorageLeft)
                 torpedoType = Exosuit_Patch.selectedTorpedoLeft;
-            else if (container.Equals(Exosuit_Patch.torpedoStorageRight))
+            else if (container == Exosuit_Patch.torpedoStorageRight)
                 torpedoType = Exosuit_Patch.selectedTorpedoRight;
 
             //AddDebug("TorpedoShot " + torpedoType.techType);

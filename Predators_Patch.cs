@@ -106,7 +106,7 @@ namespace Tweaks_Fixes
 
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
 
-                if (target.Equals(Player.main.gameObject))
+                if (target == Player.main.gameObject)
                 {
                     //AddDebug(__instance.myTechType + " Player");
                     if (!Player.main.CanBeAttacked() || PrecursorMoonPoolTrigger.inMoonpool || aggrMult == 0)
@@ -259,7 +259,7 @@ namespace Tweaks_Fixes
                     __result = false;
                     return false;
                 }
-                if (target.Equals(Player.main.gameObject))
+                if (target == Player.main.gameObject)
                 {
                     if (!Player.main.CanBeAttacked() || GameModeManager.HasNoCreatureAggression())
                     {
@@ -330,7 +330,7 @@ namespace Tweaks_Fixes
                         float sqrMagnitude = (wsPos - ecoTarget.GetPosition()).sqrMagnitude;
                         //if (agr > 1f)
                         //{
-                        bool player = ecoTarget.GetGameObject().Equals(Player.main.gameObject);
+                        bool player = ecoTarget.GetGameObject() == Player.main.gameObject;
                         //bool vehicle = ecoTarget.GetGameObject().GetComponent<Vehicle>();
                         //float aggrMult = GameModeManager.GetCreatureAggressionModifier();
                         if (player)
@@ -504,7 +504,7 @@ namespace Tweaks_Fixes
                 }
                 if (__instance.biteOnlyCurrentTarget)
                 {
-                    __result = target.Equals(__instance.lastTarget.target);
+                    __result = target == __instance.lastTarget.target;
                     return false;
                 }
                 if (__instance.canBiteVehicle && Util.IsVehicle(target) && IsValidVehicle(target))

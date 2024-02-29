@@ -218,8 +218,11 @@ namespace Tweaks_Fixes
         public static bool IsEatableFish(GameObject go)
         {
             Creature creature = go.GetComponent<Creature>();
+            if (!creature)
+                return false;
+
             Eatable eatable = go.GetComponent<Eatable>();
-            if (creature && eatable)
+            if (eatable)
                 return true;
             else
                 return false;

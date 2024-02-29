@@ -16,7 +16,8 @@ namespace Tweaks_Fixes
         public static void StartPostfix(LargeWorldEntity __instance)
         {
             TechType tt = CraftData.GetTechType(__instance.gameObject);
-            if(tt == TechType.GenericJeweledDisk)
+            //Main.logger.LogDebug("LargeWorldEntity start " + tt);
+            if (tt == TechType.GenericJeweledDisk)
             {
                 VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
                 surface.surfaceType = VFXSurfaceTypes.coral;
@@ -188,7 +189,6 @@ namespace Tweaks_Fixes
                 }
 
             }
-
             if (Main.config.alwaysBestLOD)
             {
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
@@ -255,7 +255,7 @@ namespace Tweaks_Fixes
 
             //AddDebug(__instance.name + " StartFading ");
             //AddDebug(" Tools_Patch.equippedTool " + Tools_Patch.equippedTool.name);
-            if (Tools_Patch.equippedTool != null && Tools_Patch.equippedTool.gameObject.Equals(__instance.gameObject))
+            if (Tools_Patch.equippedTool != null && Tools_Patch.equippedTool.gameObject == __instance.gameObject)
             {
                 //AddDebug(__instance.name + " StartFading equippedTool");
                 Tools_Patch.equippedTool = null;

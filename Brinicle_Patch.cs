@@ -9,8 +9,6 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(Brinicle))]
     public class Brinicle_Patch 
     {
-        static int daysToGrow = 3; 
-
         [HarmonyPrefix]
         [HarmonyPatch("SetState", new Type[] { typeof(Brinicle.State), typeof(float) })]
         public static bool SetStatePrefix(Brinicle __instance, Brinicle.State newState, float changedTime)
@@ -32,7 +30,10 @@ namespace Tweaks_Fixes
                     __instance.UnfreezeAll();
                     break;
                 case Brinicle.State.Grow:
-                    __instance.timeNextState = __instance.timeStateCanged + daysToGrow * 1200f / DayNightCycle.main._dayNightSpeed;
+                    if (Main.config.brinicleDaysToGrow == 0)
+                        __instance.timeNextState = __instance.timeStateCanged + Mathf.Lerp(__instance.minGrowTime, __instance.maxGrowTime, UnityEngine.Random.value);
+                    else if(Main.config.brinicleDaysToGrow > 0)
+                        __instance.timeNextState = __instance.timeStateCanged + Main.config.brinicleDaysToGrow * 1200f / DayNightCycle.main._dayNightSpeed;
                     //__instance.timeNextState = __instance.timeStateCanged + Mathf.Lerp(__instance.minGrowTime, __instance.maxGrowTime, Random.value);
                     __instance.currentSize = __instance.growthSpeed.Evaluate(Mathf.InverseLerp(__instance.timeStateCanged, __instance.timeStateCanged + __instance.timeNextState, Time.time));
                     __instance.fullScale = Vector3.Lerp(__instance.minFullScale, __instance.maxFullScale, UnityEngine.Random.value);

@@ -221,102 +221,6 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-
-            static bool OnCollisionEnterPrefix_old(DealDamageOnImpact __instance, Collision collision)
-            {
-                if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
-                    return false;
-
-                if (hoverBikes.Contains(__instance) || ddoiVanillaScript.Contains(__instance))
-                    return true;
-
-                ddoiVanillaScript.Add(__instance);
-                float damageMax = Mathf.Max(0f, Vector3.Dot(-collision.contacts[0].normal, __instance.prevVelocity));
-                float colMag = collision.relativeVelocity.magnitude;
-                //AddDebug(" colMag " + colMag);
-                //AddDebug(" speedMinimumForDamage " + __instance.speedMinimumForDamage);
-                if (colMag < __instance.speedMinimumForDamage)
-                    return OnCollisionEnterFinished(__instance);
-
-                if (__instance.impactSound && __instance.timeLastImpactSound + .5f < Time.time)
-                {
-                    //AddDebug("minDamageInterval " + __instance.minDamageInterval);
-                    //AddDebug("damageMult " + damageMult);
-                    if (__instance.checkForFishHitSound)
-                    {
-                        bool smallFish = false;
-                        GameObject gameObject = collision.gameObject;
-                        GameObject entityRoot = UWE.Utils.GetEntityRoot(collision.gameObject);
-                        if (entityRoot != null)
-                            gameObject = entityRoot;
-
-                        if (gameObject.GetComponent<Creature>() != null)
-                        {
-                            BehaviourType behaviourType = CreatureData.GetBehaviourType(gameObject);
-                            smallFish = behaviourType == BehaviourType.SmallFish || behaviourType == BehaviourType.MediumFish;
-                        }
-                        __instance.impactSound.SetParameterValue(__instance.hitFishParamIndex, smallFish ? 1f : 0f);
-                    }
-                    __instance.impactSound.SetParameterValue(__instance.velocityParamIndex, damageMax);
-                    __instance.impactSound.Play();
-                    __instance.timeLastImpactSound = Time.time;
-                }
-                if (!__instance.allowDamageToPlayer)
-                {
-                    GameObject colTarget = collision.gameObject;
-                    GameObject entityRoot = UWE.Utils.GetEntityRoot(collision.gameObject);
-                    if (entityRoot)
-                        colTarget = entityRoot;
-
-                    if (colTarget.Equals(Player.main.gameObject))
-                        return OnCollisionEnterFinished(__instance);
-                }
-                if (!__instance.damageBases && UWE.Utils.GetComponentInHierarchy<Base>(collision.gameObject))
-                    return OnCollisionEnterFinished(__instance);
-
-                LiveMixin targetLM = __instance.GetLiveMixin(collision.contacts[0].otherCollider.gameObject);
-                Vector3 position = collision.contacts[0].point;
-                Rigidbody rb = Utils.FindAncestorWithComponent<Rigidbody>(collision.gameObject);
-                float targetMass = rb != null ? rb.mass : 5000f;
-                //AddDebug(" targetMass " + targetMass);
-                float myMass = __instance.GetComponent<Rigidbody>().mass;
-                float colMult = Mathf.Clamp((1f + (myMass - targetMass) * 0.001f), 0f, damageMax);
-                float targetDamage = colMag * colMult;
-
-                if (targetLM && targetLM.IsAlive() && Time.time > __instance.timeLastDamage + __instance.minDamageInterval)
-                {
-                    bool skip = false;
-                    if (prevColTarget && rb && prevColTarget.Equals(rb) && Time.time < __instance.timeLastDamage + 3f)
-                        skip = true;
-
-                    if (!skip)
-                    {
-                        //AddDebug(" myMass " + myMass);
-                        //AddDebug(targetLM.name + " health " + targetLM.health + " damage " + targetDamage);
-                        targetLM.TakeDamage(targetDamage, position, DamageType.Collide, __instance.gameObject);
-                        __instance.timeLastDamage = Time.time;
-                        prevColTarget = rb;
-                    }
-                }
-                if (!__instance.mirroredSelfDamage || colMag < __instance.speedMinimumForSelfDamage)
-                    return OnCollisionEnterFinished(__instance);
-
-                LiveMixin myLM = __instance.GetLiveMixin(__instance.gameObject);
-                bool tooSmall = rb && rb.mass <= __instance.minimumMassForDamage;
-                if (__instance.mirroredSelfDamageFraction == 0f || !myLM || Time.time <= __instance.timeLastDamagedSelf + 1f || tooSmall)
-                    return OnCollisionEnterFinished(__instance);
-
-                //float num3 = targetDamage * __instance.mirroredSelfDamageFraction;
-                float myDamage = colMag * Mathf.Clamp((1f + (targetMass - myMass) * 0.001f), 0f, damageMax);
-                if (__instance.capMirrorDamage != -1f)
-                    myDamage = Mathf.Min(__instance.capMirrorDamage, myDamage);
-                myLM.TakeDamage(myDamage, position, DamageType.Collide, __instance.gameObject);
-                __instance.timeLastDamagedSelf = Time.time;
-                //AddDebug(__instance.name + " speedMinimumForDamage " + __instance.speedMinimumForDamage + " self damage " + myDamage);
-                ddoiVanillaScript.Remove(__instance);
-                return false;
-            }
-
             //[HarmonyPostfix]
             //[HarmonyPatch("OnCollisionEnter")]
             static bool OnCollisionEnterFinished(DealDamageOnImpact dealDamageOnImpact)
@@ -630,7 +534,7 @@ namespace Tweaks_Fixes
                 if (gameObject == null)
                     return false;
                 GameObject dealer = __instance.brinewing != null ? __instance.brinewing.gameObject : null;
-                if (gameObject.Equals(dealer))
+                if (gameObject == dealer)
                     return false;
                 //bool isFrozen = false;
                 //FrozenMixin fm = gameObject.GetComponent<FrozenMixin>();

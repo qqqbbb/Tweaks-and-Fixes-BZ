@@ -1,7 +1,6 @@
 ﻿
 using HarmonyLib;
 using UnityEngine;
-//using UnityEngine.UI;
 using TMPro;
 using static ErrorMessage;
 
@@ -45,10 +44,13 @@ namespace Tweaks_Fixes
                 //string str1 = "";
                 //string str2 = dayScalar < 0.75 ? (dayScalar < 0.5 ? (dayScalar < 0.25 ? "Midnight" : "Morning") : "Noon") : "Evening";
                 //this.textComponent.text = num2.ToString("00") + ":" + num1.ToString("00") + " " + str1 + " (" + str2 + ")";
-                int temp = Mathf.RoundToInt(Util.GetPlayerTemperature());
-                System.Text.StringBuilder sb = new System.Text.StringBuilder(temp.ToString());
-                //sb.Append(temp.ToString());
-                sb.AppendLine("°C");
+                var sb = new System.Text.StringBuilder();
+                if (GameModeManager.GetOption<bool>(GameOption.BodyTemperatureDecreases))
+                {
+                    int temp = Mathf.RoundToInt(Util.GetPlayerTemperature());
+                    sb.Append(temp.ToString());
+                    sb.AppendLine("°C");
+                }
                 sb.Append(hours.ToString("00"));
                 if (blink)
                     sb.Append(":");
