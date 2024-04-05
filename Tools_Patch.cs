@@ -104,7 +104,7 @@ namespace Tweaks_Fixes
                 if (pickupable)
                 {
                     TechType techType = pickupable.GetTechType();
-                    if (Main.config.notPickupableResources.Contains(techType))
+                    if (PickupablePatch.notPickupableResources.Contains(techType))
                     {
                         Rigidbody rb = pickupable.GetComponent<Rigidbody>();
                         if (rb && rb.isKinematic)  // attached to wall

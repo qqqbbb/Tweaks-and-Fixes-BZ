@@ -11,17 +11,18 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(LargeWorldEntity))]
     class LargeWorldEntity_Patch
     {
+
         [HarmonyPostfix]
         [HarmonyPatch("Start")]
         public static void StartPostfix(LargeWorldEntity __instance)
-        {
+        { // not run for items in container
             TechType tt = CraftData.GetTechType(__instance.gameObject);
             //Main.logger.LogDebug("LargeWorldEntity start " + tt);
             if (tt == TechType.GenericJeweledDisk)
             {
                 VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
                 surface.surfaceType = VFXSurfaceTypes.coral;
-                if (Main.config.fixCoral)
+                if (ConfigToEdit.fixCoral.Value)
                 {
                     Animator a = __instance.GetComponentInChildren<Animator>();
                     if (a)
@@ -53,7 +54,8 @@ namespace Tweaks_Fixes
             else if (tt == TechType.IceFruitPlant || tt == TechType.Creepvine || tt == TechType.SnowStalkerPlant)
             {
                 //PickPrefab[] pickPrefabs = __instance.GetAllComponentsInChildren<PickPrefab>();
-                Plants_Patch.AttachFruitPlant(__instance.gameObject);
+                if (Main.config.fruitGrowTime > 0)
+                    Plants_Patch.AttachFruitPlant(__instance.gameObject);
             }
             else if (tt == TechType.TwistyBridgeCoralLong)
             {

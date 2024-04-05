@@ -41,12 +41,9 @@ namespace Tweaks_Fixes
                 return;
 
             //AddDebug("AttachFruitPlant " + go.name);
-            //Main.Log("AttachFruitPlant " + go.name);
-            //Main.Log("AttachFruitPlantToKelpRoot ");
             List<PickPrefab> pickPrefabs = new List<PickPrefab>();
             foreach (Transform child in go.transform)
             {
-                //Main.Log(go.name + " " + child.name);
                 Pickupable p = child.gameObject.GetComponent<Pickupable>();
                 if (p)
                 {
@@ -79,9 +76,8 @@ namespace Tweaks_Fixes
             //if (!pp.enabled && !fp.inactiveFruits.Contains(pp))
             //    fp.inactiveFruits.Add(pp);
             //}
-            fp.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
-            if (fp.fruitSpawnInterval == 0f)
-                fp.fruitSpawnInterval = 1f;
+            if (Main.config.fruitGrowTime > 0)
+                fp.fruitSpawnInterval = Main.config.fruitGrowTime * Main.dayLengthSeconds;
         }
 
         //[HarmonyPatch(typeof(ResourceTracker))]
@@ -111,9 +107,8 @@ namespace Tweaks_Fixes
                     if (Main.config.iceFruitPickedState.ContainsKey(pos))
                     {
                         //AddDebug("IceFruit PickPrefab Start ");
-                        bool active = Main.config.iceFruitPickedState[pos];
-                        if (active)
-                            __instance.SetPickedState(active);
+                        if (Main.config.iceFruitPickedState[pos])
+                            __instance.SetPickedState(true);
                     }
                 }
             }
@@ -199,9 +194,8 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             public static void AwakePostfix(FruitPlant __instance)
             {
-                __instance.fruitSpawnInterval = Main.config.fruitGrowTime * 1200f;
-                if (__instance.fruitSpawnInterval == 0f)
-                    __instance.fruitSpawnInterval = 1f;
+                if (Main.config.fruitGrowTime > 0)
+                    __instance.fruitSpawnInterval = Main.config.fruitGrowTime * Main.dayLengthSeconds;
             }
             [HarmonyPrefix]
             [HarmonyPatch("Initialize")]
@@ -260,7 +254,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SetScale")]
             static bool SetScalePrefix(GrowingPlant __instance, Transform tr, float progress)
             {
-                if (!Main.config.fixMelons)
+                if (!ConfigToEdit.fixMelon.Value)
                     return true;
 
                 TechType tt = __instance.plantTechType;
@@ -270,6 +264,7 @@ namespace Tweaks_Fixes
                     float mult = 1.7f;
                     if (tt == TechType.MelonPlant)
                         mult = 1.2f;
+
                     float num = __instance.isIndoor ? __instance.growthWidthIndoor.Evaluate(progress) : __instance.growthWidth.Evaluate(progress);
                     float y = __instance.isIndoor ? __instance.growthHeightIndoor.Evaluate(progress) : __instance.growthHeight.Evaluate(progress);
                     num *= mult;
@@ -288,21 +283,22 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Planter), "AddItem", new Type[1] { typeof(InventoryItem) })]
-        class Planter_AddItem_Patch
+        [HarmonyPatch(typeof(Inventory), "OnAddItem")]
+        class Inventory_OnAddItem_Patch
         {
-            static void Prefix(Planter __instance, InventoryItem item)
+            public static void Postfix(Inventory __instance, InventoryItem item)
             {
-                if (!Main.config.fixMelons)
+                if (!ConfigToEdit.fixMelon.Value)
                     return;
 
-                Plantable p = item.item.GetComponent<Plantable>();
-                TechType tt = p.plantTechType;
-                //AddDebug("Planter AddItem " + p.plantTechType);
-                if (tt == TechType.SnowStalkerPlant || tt== TechType.MelonPlant)
+                if (item._techType == TechType.MelonSeed || item._techType == TechType.SnowStalkerFruit)
                 {
-                    //AddDebug("Planter AddItem  " + p.plantTechType);
-                    p.size = Plantable.PlantSize.Large;
+                    if (item.item)
+                    { 
+                        Plantable p = item.item.GetComponent<Plantable>();
+                        if (p)
+                            p.size = Plantable.PlantSize.Large;
+                    }
                 }
             }
         }
@@ -315,7 +311,7 @@ namespace Tweaks_Fixes
             static void OnProtoDeserializePostfix(Plantable __instance)
             {
                 TechType tt = __instance.plantTechType;
-                if (!Main.config.fixMelons && tt == TechType.MelonPlant)
+                if (!ConfigToEdit.fixMelon.Value)
                     return;
 
                 if (tt == TechType.SnowStalkerPlant || tt == TechType.MelonPlant)
@@ -330,12 +326,27 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Spawn")]
             public static void SpawnPostfix(ref GameObject __result, Plantable __instance)
             {
-                if (Main.config.randomPlantRotation && __instance.plantTechType != TechType.HeatFruitPlant)
+                if (ConfigToEdit.randomPlantRotation.Value && __instance.plantTechType != TechType.HeatFruitPlant)
                 {
                     //AddDebug("Plantable Spawn " + __result.name);
                     Vector3 rot = __result.transform.eulerAngles;
                     float y = UnityEngine.Random.Range(0, 360);
                     __result.transform.eulerAngles = new Vector3(rot.x, y, rot.z);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(TechData), "GetItemSize")]
+        class TechData_GetItemSize_Patch
+        {
+            static void Postfix(TechType techType, ref Vector2int __result)
+            {
+                if (!ConfigToEdit.fixMelon.Value)
+                    return;
+
+                if (techType == TechType.MelonPlant || techType == TechType.SnowStalkerPlant)
+                {
+                    __result = new Vector2int(2, 2);
                 }
             }
         }

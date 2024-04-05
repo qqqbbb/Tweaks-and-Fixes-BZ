@@ -13,6 +13,38 @@ namespace Tweaks_Fixes
         static Light podLight;
         public static PowerSource podPowerSource;
         static GhostCrafter podGhostCrafter;
+        public static Dictionary<TechType, int> newGameLoot = new Dictionary<TechType, int>();
+
+
+        public static IEnumerator SpawnStartLoot(ItemsContainer container)
+        {
+            foreach (KeyValuePair<TechType, int> loot in newGameLoot)
+            {
+                //TechTypeExtensions.FromString(loot.Key, out TechType tt, true);
+                //AddDebug("Start Loot tt " + tt);
+                // Main.Log("Start Loot " + tt + " " + loot.Value);
+                TaskResult<GameObject> result = new TaskResult<GameObject>();
+                TaskResult<GameObject> taskResult = result;
+                for (int i = 0; i < loot.Value; i++)
+                {
+                    yield return CraftData.InstantiateFromPrefabAsync(loot.Key, (IOut<GameObject>)taskResult);
+                    Pickupable p = result.Get().GetComponent<Pickupable>();
+                    p.Initialize();
+                    if (container.HasRoomFor(p))
+                    {
+                        //Main.Log("Add " + tt);
+                        container.UnsafeAdd(new InventoryItem(p));
+                    }
+                    else
+                    {
+                        //Main.Log("destroy " + tt);
+                        UnityEngine.Object.Destroy(p.gameObject);
+                        i = loot.Value;
+                    }
+                }
+                result = null;
+            }
+        }
 
         class RegenerateSunPowerSource : MonoBehaviour
         {
@@ -98,6 +130,33 @@ namespace Tweaks_Fixes
                 HandReticle.main.SetText(HandReticle.TextType.Hand, text1, true, GameInput.Button.LeftHand);
                 HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, true);
                 return false;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(LifepodDrop))]
+        class LifepodDrop_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("OnWaterCollision")]
+            public static void OnWaterCollisionPostfix(LifepodDrop __instance)
+            {
+                StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
+                if (sc)
+                    UWE.CoroutineHost.StartCoroutine(SpawnStartLoot(sc.container));
+            }
+            [HarmonyPostfix]
+            [HarmonyPatch("IInteriorSpace.GetInsideTemperature")]
+            public static void GetInsideTemperaturePostfix(LifepodDrop __instance, ref float __result)
+            {
+                //AddDebug("LifepodDrop inside GetInsideTemperature " + __result);
+                __result = ConfigToEdit.insideBaseTemp.Value;
+                if (Main.config.useRealTempForPlayerTemp && Main.config.dropPodMaxPower > 0)
+                {
+                    //AddDebug("LifepodDrop GetPower " + podPowerSource.GetPower());
+                    if (podPowerSource && podPowerSource.GetPower() <= 0)
+                        __result = WaterTemperatureSimulation.main.GetTemperature(__instance.transform.position);
+                }
             }
         }
 

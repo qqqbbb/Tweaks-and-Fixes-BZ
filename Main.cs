@@ -16,6 +16,8 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Bootstrap;
 using System.Runtime.CompilerServices;
+using BepInEx.Configuration;
+using System.IO;
 
 //GameModeManager.GetOption<bool>(GameOption.Hunger)
 //uGUI.isLoading 
@@ -27,7 +29,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.1.0";
+            VERSION = "2.2.0";
         public static Survival survival;
         public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
@@ -39,9 +41,12 @@ namespace Tweaks_Fixes
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
         public static bool visibleLockerInteriorModLoaded = false;
-        public static ManualLogSource logger; 
+        public static ManualLogSource logger;
+        static string configPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
+        public const float dayLengthSeconds = 1200f;
 
         public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
+        public static ConfigFile configB;
 
         //[HarmonyPatch(typeof(IngameMenu), "QuitGameAsync")]
         internal class IngameMenu_QuitGameAsync_Patch
@@ -78,14 +83,15 @@ namespace Tweaks_Fixes
             QuickSlots_Patch.invChanged = true;
             //Base_Patch.bcls = new HashSet<BaseCellLighting>();
             Crush_Damage.extraCrushDepth = 0;
+            Crush_Damage.crushDamageResistance = 0;
             //crafterOpen = false;
-            Gravsphere_Patch.gravSphereFish = new HashSet<Pickupable>();
+            Gravsphere_Patch.gravSphereFish.Clear();
             //CraftTree.fabricator = new CraftTree("Fabricator", CraftTree.FabricatorScheme());
-            Seatruck_Patch.installedUpgrades = new HashSet<TechType>();
-            fridges = new List<ItemsContainer>();
-            UI_Patches.recyclotrons = new Dictionary<ItemsContainer, Recyclotron>();
+            Seatruck_Patch.installedUpgrades.Clear();
+            fridges.Clear();
+            UI_Patches.recyclotrons.Clear();
             //Base_Patch.baseBuilt = new Dictionary<SubRoot, bool>();
-            Tools_Patch.fixedFish = new List<PlayerTool>();
+            Tools_Patch.fixedFish.Clear();
             config.Load();
         }
 
@@ -96,13 +102,8 @@ namespace Tweaks_Fixes
             {
                 survival = __instance.GetComponent<Survival>();
                 bodyTemperature = __instance.GetComponent<BodyTemperature>();
-                //IngameMenuHandler.RegisterOnSaveEvent(config.Save);
-                //guiHand = __instance.GetComponent<GUIHand>();
-                //pda = __instance.GetPDA();
                 oceanLevel = Ocean.GetOceanLevel();
                 //equipment = Inventory.main.equipment;
-                //if (config.cantScanExosuitClawArm)
-                //    DisableExosuitClawArmScan();
             }
         }
 
@@ -117,6 +118,26 @@ namespace Tweaks_Fixes
             }
         }
 
+        public static void LoadedGameSetup()
+        {
+            //AddDebug(" LoadedGameSetup ");
+            UWE.CoroutineHost.StartCoroutine(Util.SelectEquippedItem());
+            KnownTech.Add(TechType.SnowBall, false, false);
+            //if (ConfigToEdit.fixMelon.Value)
+            {
+                //logger.LogDebug("TechData.Contains MelonPlant " + TechData.Contains(TechType.MelonPlant));
+                //logger.LogDebug("TechData.GetItemSize Seaglide " + TechData.GetItemSize(TechType.Seaglide));
+                //value.Add(TechData.propertyItemSize, itemSize);
+    //            jsonValue1.GetObject(TechData.propertyItemSize, out jsonValue2))
+    //{
+    //                defaultItemSize.x = jsonValue2.GetInt(TechData.propertyX, defaultItemSize.x);
+    //                defaultItemSize.y = jsonValue2.GetInt(TechData.propertyY, defaultItemSize.y);
+    //            }
+    //TechData.entries.Add(TechType.MelonPlant, entry);
+            }
+                //TechData.defaultItemSize[TechType.MelonPlant] = new Vector2int(2, 2);
+        }
+
         [HarmonyPatch(typeof(WaitScreen), "Hide")]
         internal class WaitScreen_Hide_Patch
         { // fires after game loads
@@ -126,29 +147,8 @@ namespace Tweaks_Fixes
                 //if (uGUI.isLoading)
                 {
                     //AddDebug(" WaitScreen Hide  !!!");
-                    UWE.CoroutineHost.StartCoroutine(Util.SelectEquippedItem());
-                    KnownTech.Add(TechType.SnowBall, false, false);
-                    //loadingDone = true;
+                    LoadedGameSetup();
                 }
-            }
-        }
-
-        //[HarmonyPatch(typeof(uGUI_SceneLoading), "End")]
-        internal class uGUI_SceneLoading_End_Patch
-        { // fires after game loads
-            public static void Postfix(uGUI_SceneLoading __instance)
-            {
-                //if (!uGUI.main.hud.active)
-                //{
-                    //AddDebug(" is Loading");
-                    //return;
-                //}
-                AddDebug(" uGUI_SceneLoading end");
-                //loadingDone = true;
-                //Base_Light.BaseCellLighting_Start_Patch.UpdateBaseLights(true);
-                //Base_Light.BaseCellLighting_Start_Patch q = new Base_Light.BaseCellLighting_Start_Patch();
-                //q.Invoke("UpdateBaseLights", 3f);
-                //Base_Light.BaseCellLighting_Start_Patch.inv;
             }
         }
 
@@ -198,6 +198,8 @@ namespace Tweaks_Fixes
         private void Start()
         {
             //config.Load();
+            configB = new ConfigFile(configPath, true);
+            ConfigToEdit.Bind();
             Console.WriteLine("Tweaks Start ");
             //Assembly assembly = Assembly.GetExecutingAssembly();
             //new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
@@ -224,50 +226,18 @@ namespace Tweaks_Fixes
         public void Setup()
         {
             //Log("PostPatch GetCurrentLanguage " + Language.main.GetCurrentLanguage());
-            //Log("translatableStrings.Count " + config.translatableStrings.Count);
-            //languageCheck = Language.main.GetCurrentLanguage() == "English") || !config.translatableStrings[0] == "Burnt out ");
             //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
             logger = this.Logger;
+            //SaveUtils.RegisterOnFinishLoadingEvent(LoadedGameSetup); // runs before game loads
+            LanguageHandler.RegisterLocalizationFolder();
             SaveUtils.RegisterOnSaveEvent(SaveData);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             GetLoadedMods();
-            //LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, config.translatableStrings[19]);
-            //LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, config.translatableStrings[20]);
+            ConfigToEdit.ParseFromConfig();
             //// vanilla desc just copies the name
             //LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, config.translatableStrings[21]);
             //// vanilla desc does not tell percent
             //LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeEnergyEfficiency, config.translatableStrings[22]);
-
-            foreach (var item in config.crushDepthEquipment)
-            {
-                TechTypeExtensions.FromString(item.Key, out TechType tt, true);
-                //Log("crushDepthEquipment str " + item.Key);
-                //Log("crushDepthEquipment TechType " + tt);
-                if (tt != TechType.None)
-                    Crush_Damage.crushDepthEquipment[tt] = item.Value;
-            }
-            foreach (var item in config.itemMass)
-            {
-                TechTypeExtensions.FromString(item.Key, out TechType tt, true);
-                //Log("crushDepthEquipment str " + item.Key);
-                //Log("crushDepthEquipment TechType " + tt);
-                if (tt != TechType.None)
-                    Pickupable_Patch.itemMass[tt] = item.Value;
-            }
-            foreach (string name in config.gravTrappable)
-            {
-                TechTypeExtensions.FromString(name, out TechType tt, true);
-
-                if (tt != TechType.None)
-                    Gravsphere_Patch.gravTrappable.Add(tt);
-            }
-            foreach (var kv in config.damageMult_)
-            {
-                TechTypeExtensions.FromString(kv.Key, out TechType tt, true);
-                if (tt != TechType.None)
-                    Damage_Patch.damageMult.Add(tt, kv.Value);
-            }
-
         }
 
         public static void GetLoadedMods()
@@ -282,6 +252,8 @@ namespace Tweaks_Fixes
                     baseLightSwitchLoaded = true;
                 else if (metadata.GUID == "VisibleLockerInterior")
                     visibleLockerInteriorModLoaded = true;
+
+                //"c1oud5_SeatruckLightsSwitch"
             }
         }
 

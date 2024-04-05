@@ -128,7 +128,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("IInteriorSpace.GetInsideTemperature")]
             public static void GetInsideTemperaturePostfix(SeaTruckSegment __instance, ref float __result)
             {
-                if (Main.config.useRealTempForColdMeter && !__instance.relay.IsPowered())
+                if (Main.config.useRealTempForPlayerTemp && !__instance.relay.IsPowered())
                     __result = Player_Patches.ambientTemperature;
                 //AddDebug("SeaTruckSegment GetInsideTemperature " + __result);
             }

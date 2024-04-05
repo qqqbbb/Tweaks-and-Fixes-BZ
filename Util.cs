@@ -7,6 +7,7 @@ using System.Text;
 
 using UnityEngine;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -53,6 +54,17 @@ namespace Tweaks_Fixes
                 UnityEngine.Object.Destroy(go);
                 //Inventory.main.quickSlots.SelectInternal(int slotID);
             }
+        }
+
+
+        public static bool IsWater(Eatable eatable)
+        {
+            return eatable.waterValue > 0f && eatable.foodValue <= 0f && eatable.GetComponent<SnowBall>() == null;
+        }
+
+        public static bool IsFood(Eatable eatable)
+        {
+            return eatable.foodValue > 0f;
         }
 
         public static void FreezeObject(GameObject go, bool state)
@@ -155,21 +167,21 @@ namespace Tweaks_Fixes
             //    return currentInterior.GetInsideTemperature();
             if (Player.main.inExosuit)
             {
-                if (Main.config.useRealTempForColdMeter && Player.main.currentMountedVehicle.IsPowered())
-                    return Main.config.vehicleTemp;
-                else if (!Main.config.useRealTempForColdMeter)
-                    return Main.config.vehicleTemp;
+                if (Main.config.useRealTempForPlayerTemp && Player.main.currentMountedVehicle.IsPowered())
+                    return ConfigToEdit.insideBaseTemp.Value;
+                else if (!Main.config.useRealTempForPlayerTemp)
+                    return ConfigToEdit.insideBaseTemp.Value;
             }
-            else if (Player.main.inHovercraft && !Main.config.useRealTempForColdMeter)
+            else if (Player.main.inHovercraft && !Main.config.useRealTempForPlayerTemp)
             {
-                return Main.config.vehicleTemp;
+                return ConfigToEdit.insideBaseTemp.Value;
             }
-            else if (Player.main._currentInterior != null && !Player.main._currentInterior.Equals(null) && Player.main._currentInterior is SeaTruckSegment)
+            else if (Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment)
             {
                 SeaTruckSegment sts = Player.main._currentInterior as SeaTruckSegment;
                 //AddDebug("SeaTruck IsPowered " + sts.relay.IsPowered());
                 if (sts.relay.IsPowered())
-                    return Main.config.vehicleTemp;
+                    return ConfigToEdit.insideBaseTemp.Value;
             }
             return Player_Patches.ambientTemperature;
         }
@@ -182,7 +194,7 @@ namespace Tweaks_Fixes
         public static float GetTemperature(GameObject go)
         {
             //AddDebug("GetTemperature " + go.name);
-            if (go.GetComponentInParent<Player>())
+            if (go.GetComponentInParent<Player>()) // in inventory
                 return GetPlayerTemperature();
 
             if (go.transform.parent && go.transform.parent.parent)
@@ -194,7 +206,6 @@ namespace Tweaks_Fixes
                     return -1f;
                 }
             }
-
             IInteriorSpace currentInterior = go.GetComponentInParent<IInteriorSpace>();
             if (currentInterior != null)
                 return currentInterior.GetInsideTemperature();
@@ -230,10 +241,13 @@ namespace Tweaks_Fixes
 
         public static bool IsPlayerInVehicle()
         {
-            if (Player.main._currentInterior != null && !Player.main._currentInterior.Equals(null) && Player.main._currentInterior is SeaTruckSegment)
+            if (Player.main.inExosuit || Player.main.inHovercraft)
                 return true;
 
-            return Player.main.inExosuit || Player.main.inHovercraft;
+            if (Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment)
+                return true;
+
+            return false;
         }
 
         public static void Message(string str)
@@ -369,6 +383,23 @@ namespace Tweaks_Fixes
         { // Mathf.Approximately does not work when compare to 0
             return (Mathf.Abs(a - b) < tolerance);
         }
+
+        public static void MakeEatable(GameObject go, float food)
+        {
+            Eatable eatable = go.EnsureComponent<Eatable>();
+            eatable.foodValue = food;
+            if (Food_Patch.decayingFood.Contains(CraftData.GetTechType(go)))
+                eatable.despawns = true;
+        }
+
+        public static void MakeDrinkable(GameObject go, float water)
+        {
+            Eatable eatable = go.EnsureComponent<Eatable>();
+            eatable.waterValue = water;
+            if (Food_Patch.decayingFood.Contains(CraftData.GetTechType(go)))
+                eatable.despawns = true;
+        }
+
 
     }
 }

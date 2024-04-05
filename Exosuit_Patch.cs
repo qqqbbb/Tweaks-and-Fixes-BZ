@@ -827,19 +827,19 @@ namespace Tweaks_Fixes
                     //AddDebug("UpdateUIText rightTorpedo HasMoreThan1TorpedoType " + rightTorpedo);
                     if (leftTorpedo && rightTorpedo)
                     {
-                        __instance.sb.Append(Main.config.translatableStrings[17]);
+                        __instance.sb.Append(Language.main.Get("TF_change_torpedo"));
                         __instance.sb.Append(UI_Patches.slot1Plus2Button);
                         __instance.sb.Append(UI_Patches.changeTorpedoExosuitButtonKeyboard);
                     }
                     else if (leftTorpedo)
                     {
-                        __instance.sb.Append(Main.config.translatableStrings[17]);
+                        __instance.sb.Append(Language.main.Get("TF_change_torpedo"));
                         __instance.sb.Append(UI_Patches.slot1Button);
                         __instance.sb.Append(UI_Patches.changeTorpedoExosuitButtonKeyboard);
                     }
                     else if (rightTorpedo)
                     {
-                        __instance.sb.Append(Main.config.translatableStrings[17]);
+                        __instance.sb.Append(Language.main.Get("TF_change_torpedo"));
                         __instance.sb.Append(UI_Patches.slot2Button);
                         __instance.sb.Append(UI_Patches.changeTorpedoExosuitButtonKeyboard);
                     }
@@ -864,7 +864,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnPilotModeBegin")]
         public static void OnPilotModeBeginPostfix(Exosuit __instance)
         {
-            if (Main.config.disableGravityForExosuit)
+            if (ConfigToEdit.disableGravityForExosuit.Value)
             {
                 Util.FreezeObject(__instance.gameObject, false);
             }
@@ -892,7 +892,7 @@ namespace Tweaks_Fixes
         public static void OnPilotModeEndPostfix(Exosuit __instance)
         {
             //AddDebug("OnPilotModeEnd");
-            if (Main.config.disableGravityForExosuit)
+            if (ConfigToEdit.disableGravityForExosuit.Value)
             {
                 Util.FreezeObject(__instance.gameObject, true);
             }
@@ -1137,7 +1137,7 @@ namespace Tweaks_Fixes
         static void OnProtoDeserializePostfix(Vehicle __instance)
         {
             //AddDebug("Vehicle OnProtoDeserialize ");
-            if (Main.config.disableGravityForExosuit && __instance is Exosuit && Player.main.currentMountedVehicle != __instance)
+            if (ConfigToEdit.disableGravityForExosuit.Value && __instance is Exosuit && Player.main.currentMountedVehicle != __instance)
             {
                 Util.FreezeObject(__instance.gameObject, true);
             }
@@ -1279,7 +1279,7 @@ namespace Tweaks_Fixes
                         return false;
                     }
                     else
-                        ErrorMessage.AddMessage(Language.main.Get(ExosuitClawArm.noRoomNotification));
+                        AddMessage(Language.main.Get(ExosuitClawArm.noRoomNotification));
                 }
                 else if (pickPrefab)
                 {
@@ -1314,7 +1314,7 @@ namespace Tweaks_Fixes
                             }
                             else
                             {
-                                ErrorMessage.AddMessage(Language.main.Get(ExosuitClawArm.noRoomNotification));
+                                AddMessage(Language.main.Get(ExosuitClawArm.noRoomNotification));
                                 return false;
                             }
                         }

@@ -30,10 +30,10 @@ namespace Tweaks_Fixes
                     __instance.UnfreezeAll();
                     break;
                 case Brinicle.State.Grow:
-                    if (Main.config.brinicleDaysToGrow == 0)
+                    if (ConfigToEdit.brinicleDaysToGrow.Value == 0)
                         __instance.timeNextState = __instance.timeStateCanged + Mathf.Lerp(__instance.minGrowTime, __instance.maxGrowTime, UnityEngine.Random.value);
-                    else if(Main.config.brinicleDaysToGrow > 0)
-                        __instance.timeNextState = __instance.timeStateCanged + Main.config.brinicleDaysToGrow * 1200f / DayNightCycle.main._dayNightSpeed;
+                    else if(ConfigToEdit.brinicleDaysToGrow.Value > 0)
+                        __instance.timeNextState = __instance.timeStateCanged + ConfigToEdit.brinicleDaysToGrow.Value * Main.dayLengthSeconds / DayNightCycle.main._dayNightSpeed;
                     //__instance.timeNextState = __instance.timeStateCanged + Mathf.Lerp(__instance.minGrowTime, __instance.maxGrowTime, Random.value);
                     __instance.currentSize = __instance.growthSpeed.Evaluate(Mathf.InverseLerp(__instance.timeStateCanged, __instance.timeStateCanged + __instance.timeNextState, Time.time));
                     __instance.fullScale = Vector3.Lerp(__instance.minFullScale, __instance.maxFullScale, UnityEngine.Random.value);

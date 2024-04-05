@@ -5,10 +5,12 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Creature_Tweaks
+    class Creature_Patch
     {
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
-
+        public static HashSet<TechType> notRespawningCreatures = new HashSet<TechType> { };
+        public static HashSet<TechType> notRespawningCreaturesIfKilledByPlayer = new HashSet<TechType> { };
+        internal static Dictionary<TechType, int> respawnTime = new Dictionary<TechType, int> ();
 
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
@@ -88,12 +90,6 @@ namespace Tweaks_Fixes
                         //AddDebug(__instance.name + " no VFXSurface");
                     }
                 }
-                if (__instance is SpinnerFish || __instance is RockGrub)
-                {
-                    CreatureDeath cd = __instance.GetComponent<CreatureDeath>();
-                    if (cd)
-                        cd.respawnOnlyIfKilledByCreature = false;
-                }
             }
             [HarmonyPrefix]
             [HarmonyPatch("IsInFieldOfView")]
@@ -101,13 +97,14 @@ namespace Tweaks_Fixes
             {
                 __result = false;
                 if (go != null)
-                { // when casting ray from creature to player terrain may not be loaded. Cast from player instead
+                { // ray does not hit terrain if cast from underneath. Cast from player to avoid it.
                     Vector3 dir = go.transform.position - __instance.transform.position;
                     Vector3 rhs = __instance.eyesOnTop ? __instance.transform.up : __instance.transform.forward;
                     if ((Util.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(dir.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(go.transform.position, __instance.transform.position,  Voxeland.GetTerrainLayerMask()))
                         __result = true;
                 }
             }
+
         }
 
         [HarmonyPatch(typeof(CreatureEgg), "Start")]
@@ -123,46 +120,30 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(CreatureDeath))]
         class CreatureDeath_Patch
         {
+            //static HashSet<TechType> creatureDeaths = new HashSet<TechType>();
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
             static void StartPostfix(CreatureDeath __instance)
             {
-                if (__instance.GetComponent<Pickupable>()) // fish
-                {
-                    __instance.respawn = Main.config.fishRespawn;
-                    __instance.respawnOnlyIfKilledByCreature = !Main.config.fishRespawnIfKilledByPlayer;
-                    if (Main.config.fishRespawnTime > 0)
-                        __instance.respawnInterval = Main.config.fishRespawnTime * 1200f;
-                }
-                else
-                {
-                    LiveMixin liveMixin = __instance.GetComponent<LiveMixin>();
-
-                    if (!liveMixin)
-                        return;
-
-                    if (liveMixin.maxHealth >= 5000f) // Leviathan
-                    {
-                        __instance.respawn = Main.config.leviathansRespawn;
-                        __instance.respawnOnlyIfKilledByCreature = !Main.config.leviathansRespawnIfKilledByPlayer;
-                        if (Main.config.leviathanRespawnTime > 0)
-                            __instance.respawnInterval = Main.config.leviathanRespawnTime * 1200f;
-                    }
-                    else
-                    {
-                        __instance.respawn = Main.config.creaturesRespawn;
-                        __instance.respawnOnlyIfKilledByCreature = !Main.config.creaturesRespawnIfKilledByPlayer;
-                        if (Main.config.creatureRespawnTime > 0)
-                             __instance.respawnInterval = Main.config.creatureRespawnTime * 1200f;
-                    }
-                }
+                TechType techType = CraftData.GetTechType(__instance.gameObject);
+                //if (!creatureDeaths.Contains(techType))
+                //{
+                //    creatureDeaths.Add(techType);
+                //    Main.logger.LogMessage("CreatureDeath " + techType + " respawns " + __instance.respawn+ " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature + " respawnInterval " + __instance.respawnInterval);
+                //}
+                __instance.respawn = !notRespawningCreatures.Contains(techType);
+                __instance.respawnOnlyIfKilledByCreature = notRespawningCreaturesIfKilledByPlayer.Contains(techType);
+                //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawn " + __instance.respawn);
+                //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
+                if (respawnTime.ContainsKey(techType))
+                    __instance.respawnInterval = respawnTime[techType] * Main.dayLengthSeconds;
             }
             [HarmonyPostfix]
             [HarmonyPatch("OnTakeDamage")]
             static void OnTakeDamagePostfix(CreatureDeath __instance, DamageInfo damageInfo)
             {
                 //AddDebug("OnTakeDamage " + damageInfo.dealer.name);
-                if (!Main.config.heatBladeCooks && damageInfo.type == DamageType.Heat && damageInfo.dealer == Player.mainObject)
+                if (!ConfigToEdit.heatBladeCooks.Value && damageInfo.type == DamageType.Heat && damageInfo.dealer == Player.mainObject)
                     __instance.lastDamageWasHeat = false;
             }
             //[HarmonyPrefix]

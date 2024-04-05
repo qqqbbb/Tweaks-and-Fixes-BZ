@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System.Collections.Generic;
 using UnityEngine;
 using static ErrorMessage;
 
@@ -7,6 +8,8 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(BreakableResource))]
     public static class OnHandClickPatch
     {
+
+
         [HarmonyPrefix]
         [HarmonyPatch("OnHandClick")]
         public static bool OnHandClickPrefix()
@@ -53,8 +56,8 @@ namespace Tweaks_Fixes
                 //}
             }
             else
-                HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Main.config.translatableStrings[12]);
-
+                HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_outcrop"));
+            
             return false;
         }
 
@@ -65,6 +68,9 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(Pickupable))]
     public static class PickupablePatch
     {
+        public static HashSet<TechType> notPickupableResources = new HashSet<TechType>
+        {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}  };
+
         [HarmonyPrefix]
         [HarmonyPatch("OnHandClick")] // OnHandHover handled by GUIHand.OnUpdate
         public static bool PickupableOnHandClick(Pickupable __instance, GUIHand hand)
@@ -79,7 +85,7 @@ namespace Tweaks_Fixes
             if (exosuit && exosuit.HasClaw())
                 return true;
 
-            if (!Main.config.notPickupableResources.Contains(__instance.GetTechType()))
+            if (!notPickupableResources.Contains(__instance.GetTechType()))
                 return true;
 
             Rigidbody rb = __instance.GetComponent<Rigidbody>();

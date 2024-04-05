@@ -192,7 +192,7 @@ namespace Tweaks_Fixes
             //[HarmonyPatch("Update")]
             public static bool UpdatePrefix(SubRoot __instance)
             { // fix temp updating only when player is in
-                if (!Main.config.useRealTempForColdMeter)
+                if (!Main.config.useRealTempForPlayerTemp)
                     return true;
 
                 if (__instance.LOD.IsMinimal())
@@ -228,11 +228,19 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Update")]
             public static void UpdatePostfix(SubRoot __instance)
             { // fix temp updating only when player is in
-                if (__instance.LOD.IsMinimal() || !Main.config.useRealTempForColdMeter)
+                if (__instance.LOD.IsMinimal() || !Main.config.useRealTempForPlayerTemp)
                     return;
 
-                if (Player.main.currentSub == null || !Player.main.currentSub.Equals(__instance))
+                if (Player.main.currentSub == null || !Player.main.currentSub == __instance)
                     __instance.UpdateInternalTemperature(Time.deltaTime);
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("GetInsideTemperature")]
+            public static void GetInsideTemperaturePostfix(SubRoot __instance, ref float __result)
+            { 
+                //if (Main.config.useRealTempForColdMeter)
+                    __result = ConfigToEdit.insideBaseTemp.Value;
             }
         }
 
@@ -317,7 +325,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(FMOD_CustomEmitter __instance)
             {
-                if (Main.config.silentReactor && __instance.asset && __instance.asset.path == "event:/sub/base/nuke_gen_loop")
+                if (ConfigToEdit.silentReactor.Value && __instance.asset && __instance.asset.path == "event:/sub/base/nuke_gen_loop")
                 {
                     //AddDebug(__instance.name + " FMOD_CustomEmitter Awake ");
                     __instance.SetAsset(null);
@@ -341,11 +349,8 @@ namespace Tweaks_Fixes
                 //    AddDebug(" NootFish ");
                 //    __result = true;
                 //}
- 
             }
-
         }
-
 
         [HarmonyPatch(typeof(Constructable))]
         class Constructable_Construct_Patch
@@ -359,7 +364,7 @@ namespace Tweaks_Fixes
                 //Main.config.builderPlacingWhenFinishedBuilding = false;
                 //AddDebug(" NotifyConstructedChanged " + __instance.techType);
                 //AddDebug(" NotifyConstructedChanged isPlacing " + Builder.isPlacing);
-                if (!Main.config.builderPlacingWhenFinishedBuilding)
+                if (!ConfigToEdit.builderPlacingWhenFinishedBuilding.Value)
                     Player.main.StartCoroutine(BuilderEnd(2));
             }
         }
@@ -420,6 +425,14 @@ namespace Tweaks_Fixes
 
         }
 
+        [HarmonyPatch(typeof(SolarPanel), "Start")]
+        class SolarPanel_Patch
+        {
+            static void Prefix(SolarPanel __instance)
+            {
+                __instance.maxDepth = ConfigToEdit.solarPanelMaxDepth.Value;
+            }
+        }
 
 
 

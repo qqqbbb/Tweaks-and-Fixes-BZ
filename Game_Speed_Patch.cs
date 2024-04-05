@@ -15,7 +15,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(DayNightCycle __instance)
             {
-                __instance._dayNightSpeed = Main.config.dayNightSpeed;
+                __instance._dayNightSpeed = Main.config.timeFlowMult;
             }
         }
         
@@ -30,7 +30,7 @@ namespace Tweaks_Fixes
                 if (__instance.skipTimeMode && __instance.timePassed >= __instance.skipModeEndTime)
                 {
                     __instance.skipTimeMode = false;
-                    __instance._dayNightSpeed = Main.config.dayNightSpeed;
+                    __instance._dayNightSpeed = Main.config.timeFlowMult;
                 }
                 __instance.UpdateAtmosphere();
                 __instance.UpdateDayNightMessage();
@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(DayNightCycle __instance)
             {
-                __instance._dayNightSpeed = Main.config.dayNightSpeed;
+                __instance._dayNightSpeed = Main.config.timeFlowMult;
                 return false;
             }
         }
@@ -56,9 +56,9 @@ namespace Tweaks_Fixes
             {
                 int num = __instance.IsDay() ? 1 : 0;
                 AddDebug("Night cheat activated");
-                __instance.timePassedAsDouble += 1200.0 - __instance.timePassed % 1200.0;
+                __instance.timePassedAsDouble += Main.dayLengthSeconds - __instance.timePassed % Main.dayLengthSeconds;
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.dayNightSpeed;
+                __instance._dayNightSpeed = Main.config.timeFlowMult;
                 __instance.UpdateAtmosphere();
                 if (num == 0)
                     return false;
@@ -74,9 +74,9 @@ namespace Tweaks_Fixes
             {
                 int num = __instance.IsDay() ? 1 : 0;
                 AddDebug("Day cheat activated");
-                __instance.timePassedAsDouble += 1200.0 - __instance.timePassed % 1200.0 + 600.0;
+                __instance.timePassedAsDouble += Main.dayLengthSeconds - __instance.timePassed % Main.dayLengthSeconds + Main.dayLengthSeconds * .5f;
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.dayNightSpeed;
+                __instance._dayNightSpeed = Main.config.timeFlowMult;
                 __instance.UpdateAtmosphere();
                 if (num != 0)
                     return false;
@@ -96,10 +96,10 @@ namespace Tweaks_Fixes
                 {
                     float num2 = Mathf.Clamp01(num1);
                     AddDebug("Setting day/night scalar to " + num2 + ".");
-                    __instance.timePassedAsDouble += 1200.0 - __instance.timePassedAsDouble % 1200.0 + num2 * 1200.0;
+                    __instance.timePassedAsDouble += Main.dayLengthSeconds - __instance.timePassedAsDouble % Main.dayLengthSeconds + num2 * Main.dayLengthSeconds;
                 }
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.dayNightSpeed;
+                __instance._dayNightSpeed = Main.config.timeFlowMult;
                 __instance.UpdateAtmosphere();
                 bool parms = __instance.IsDay();
                 if (parms == flag)
@@ -120,7 +120,7 @@ namespace Tweaks_Fixes
                     float num2 = Mathf.Clamp(newSpeed, 0.0f, 100f);
                     AddDebug("Setting day/night speed to " + num2 + ".");
                     __instance._dayNightSpeed = num2;
-                    Main.config.dayNightSpeed = num2;
+                    Main.config.timeFlowMult = num2;
                     __instance.skipTimeMode = false;
                 }
                 else
@@ -154,7 +154,7 @@ namespace Tweaks_Fixes
             static bool Prefix(DayNightCycle __instance)
             {
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.dayNightSpeed;
+                __instance._dayNightSpeed = Main.config.timeFlowMult;
 
                 return false;
             }

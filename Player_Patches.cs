@@ -32,19 +32,30 @@ namespace Tweaks_Fixes
                     return false;
                 }
                 bool underwater = __instance.player.transform.position.y < Ocean.GetOceanLevel() || __instance.player.IsUnderwaterForSwimming();
-                bool movingUnderwater = !Main.config.useRealTempForColdMeter && underwater && (__instance.player.movementSpeed > Mathf.Epsilon || __instance.player.IsRidingCreature());
+                bool movingUnderwater = !Main.config.useRealTempForPlayerTemp && underwater && (__instance.player.movementSpeed > Mathf.Epsilon || __instance.player.IsRidingCreature());
                 //float temp = Main.bodyTemperature.CalculateEffectiveAmbientTemperature();
-                bool heat = !Main.config.useRealTempForColdMeter && (HeatSource.GetHeatImpactAtPosition(__instance.transform.position) > 0f || __instance.player.GetCurrentHeatVolume());
-                bool immune = movingUnderwater || heat || __instance.player.cinematicModeActive || Main.bodyTemperature.CalculateEffectiveAmbientTemperature() > Main.config.getWarmTemp;
+                bool heat = !Main.config.useRealTempForPlayerTemp && (HeatSource.GetHeatImpactAtPosition(__instance.transform.position) > 0f || __instance.player.GetCurrentHeatVolume());
+                bool immune = movingUnderwater || heat || __instance.player.cinematicModeActive || Main.bodyTemperature.CalculateEffectiveAmbientTemperature() > ConfigToEdit.warmTemp.Value;
                 bool piloting = __instance.player.IsPiloting();
-                if (Main.config.useRealTempForColdMeter && __instance.player.inHovercraft)
-                    piloting = false;
 
-                bool interior = !Main.config.useRealTempForColdMeter && __instance.player.currentInterior != null;
+                if (piloting && Main.config.useRealTempForPlayerTemp)
+                {
+                    if (__instance.player.inHovercraft)
+                        piloting = false;
+                    else if (Player.main.inExosuit)
+                        piloting = Player.main.currentMountedVehicle.IsPowered();
+                    else if (Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment)
+                    {
+                        SeaTruckSegment sts = Player.main._currentInterior as SeaTruckSegment;
+                        //AddDebug("SeaTruck IsPowered " + sts.relay.IsPowered());
+                        piloting = sts.relay.IsPowered();
+                    }
+                }
+                bool interior = !Main.config.useRealTempForPlayerTemp && __instance.player.currentInterior != null;
                 __result = !immune && !piloting && !interior;
                 //AddDebug("GetHeatImpactAtPosition " + HeatSource.GetHeatImpactAtPosition(__instance.transform.position));
                 //AddDebug("GetCurrentHeatVolume " + __instance.player.GetCurrentHeatVolume());
-                //AddDebug("isExposed " + __result + " " + (int)temp);
+                //AddDebug("immune " + immune + " interior " + interior);
                 return false;
             }
 
@@ -58,28 +69,52 @@ namespace Tweaks_Fixes
             }
 
             //[HarmonyPrefix]
-            //[HarmonyPatch("UpdateColdMeter")]
-            static bool UpdateColdMeterPrefix(BodyTemperature __instance, bool exposedToWeather, float dt)
+            //[HarmonyPatch("GetAmbientTemperatureFromEnvironment")]
+            static bool GetAmbientTemperatureFromEnvironmentPrefix(BodyTemperature __instance, ref float __result)
             {
-                if (!Main.config.useRealTempForColdMeter)
-                    return true;
-
-                float num = exposedToWeather ? __instance.exposedColdMeterImpactPerSecond.Evaluate(__instance.effectiveAmbientTemperature) : __instance.shelteredColdMeterImpactPerSecond.Evaluate(__instance.effectiveAmbientTemperature);
-                if (exposedToWeather)
+                if (__instance.player.frozenMixin.IsFrozen())
                 {
-                    float resistanceAmount = __instance.GetColdResistanceAmount();
-                    //if (__instance.currentColdMeterValue > __instance.coldMeterMaxWithFullBuff & (!Player.emergencyMode || resistanceAmount >= 1f))
-                    if (__instance.currentColdMeterValue > __instance.coldMeterMaxWithFullBuff & (IntroVignette.isIntroActive || resistanceAmount >= 1f))
-                        num = __instance.shelteredColdMeterImpactPerSecond.Evaluate(0f);
-                    if (num > 0f)
-                        num -= num * resistanceAmount;
-                }
-                __instance.AddCold(num * dt);
-                __instance.wboit.frostScalar = __instance.coldMeterAlphaToFrostEffectAlpha.Evaluate(__instance.GetColdMeterAlpha());
-                if (__instance.shouldReactToWarming || __instance.currentColdMeterValue <= __instance.warmingColdThreshold)
+                    __result = -4f;
                     return false;
-                __instance.shouldReactToWarming = true;
+                }
+                if (__instance.player.IsUnderwaterForSwimming())
+                {
+                    __result = __instance.GetWaterTemperature();
+                    return false;
+                }
+                IInteriorSpace currentInterior = __instance.player.currentInterior;
+                if (currentInterior != null)
+                {
+                    __result = currentInterior.GetInsideTemperature();
+                    AddDebug("GetAmbientTemperatureFromEnvironment currentInterior " + currentInterior.GetType());
+                    //AddDebug("GetAmbientTemperatureFromEnvironment GetInsideTemperature " + (int)__result);
+                    return false;
+                }
+                __result = __instance.player.transform.position.y < Ocean.GetOceanLevel() ? __instance.GetWaterTemperature() : WeatherManager.main.GetFeelsLikeTemperature();
 
+                return false;
+            }
+
+            //[HarmonyPrefix]
+            //[HarmonyPatch("GetAmbientTemperature")]
+            static bool UpdateColdMeterPrefix(BodyTemperature __instance, ref float __result)
+            {
+                //if (!Main.config.useRealTempForColdMeter)
+                //    return true;
+                float temperatureFromEnvironment = __instance.GetAmbientTemperatureFromEnvironment();
+                //AddDebug("GetAmbientTemperature temperatureFromEnvironment " + (int)temperatureFromEnvironment);
+                HeatVolume currentHeatVolume = __instance.player.GetCurrentHeatVolume();
+                if (currentHeatVolume != null)
+                {
+                    float temperatureOverride = currentHeatVolume.temperatureOverride;
+                    //AddDebug("GetAmbientTemperature currentHeatVolume.temperatureOverride " + (int)currentHeatVolume.temperatureOverride);
+                    if (temperatureOverride > temperatureFromEnvironment)
+                    {
+                        __result = temperatureOverride;
+                        return false;
+                    }
+                }
+                __result = temperatureFromEnvironment;
                 return false;
             }
 
@@ -93,7 +128,7 @@ namespace Tweaks_Fixes
             }
 
             [HarmonyPostfix]
-            [HarmonyPatch("UpdateEffectiveAmbientTemperature")]
+            [HarmonyPatch("UpdateEffectiveAmbientTemperature")] 
             static void UpdateEffectiveAmbientTemperaturePostfix(BodyTemperature __instance)
             {
                 ambientTemperature = __instance.effectiveAmbientTemperature;
@@ -300,6 +335,53 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(WaterTemperatureSimulation), "GetTemperature", new Type[] { typeof(Vector3), typeof(float) }, new[] { ArgumentType.Normal, ArgumentType.Out })]
+        class WaterTemperatureSimulation_GetTemperature_PrefixPatch
+        {
+            private const float defaultWaterTemp = 6f;
+
+            public static bool Prefix(WaterTemperatureSimulation __instance, ref float __result, Vector3 wsPos, ref float posBaseTemperature)
+            {
+                //AddDebug(" Targeting GetTarget  " + result.name);
+                float baseTemperature = defaultWaterTemp;
+                WaterBiomeManager waterBiomeManager = WaterBiomeManager.main;
+                WaterscapeVolume.Settings settings;
+                if (!ConfigToEdit.warmKelpWater.Value && waterBiomeManager && waterBiomeManager.GetSettings(wsPos, false, out settings))
+                {
+                    baseTemperature = settings.temperature;
+                    int biomeIndex = -1;
+                    if (LargeWorld.main)
+                    {
+                        biomeIndex = waterBiomeManager.GetBiomeIndex(waterBiomeManager.GetBiome(wsPos, false));
+                        if (biomeIndex >= 0 && biomeIndex < waterBiomeManager.biomeSettings.Count)
+                        {
+                            WaterBiomeManager.BiomeSettings biomeSettings = waterBiomeManager.biomeSettings[biomeIndex];
+                            //AddDebug("GetTemperature biomeSettings " + biomeSettings.name);
+                            if (biomeSettings.name == "arcticKelp")
+                                baseTemperature = defaultWaterTemp;
+                        }
+                    }
+                    //AddDebug("GetTemperature waterBiomeManager settings.temperature " + (int)settings.temperature);
+                }
+                EcoRegionManager ecoRegionManager = EcoRegionManager.main;
+                if (ecoRegionManager != null)
+                {
+                    float distance;
+                    IEcoTarget nearestTarget = ecoRegionManager.FindNearestTarget(EcoTargetType.HeatArea, wsPos, out distance, null, 3);
+                    if (nearestTarget != null)
+                    {
+                        float num = Mathf.Clamp(60f - distance, 0f, 60f);
+                        baseTemperature += num;
+                        //AddDebug("GetTemperature HeatArea temperature " + (int)num);
+                        //Debug.DrawLine(wsPos, nearestTarget.GetPosition(), Color.red, 5f);
+                    }
+                }
+                posBaseTemperature = baseTemperature;
+                __result = __instance.GetFinalTemperature(baseTemperature, wsPos);
+                //AddDebug("GetTemperature waterBiomeManager final temperature " + (int)__result);
+                return false;
+            }
+        }
 
         //[HarmonyPatch(typeof(ItemsContainer))]
         class ItemsContainer_Patch

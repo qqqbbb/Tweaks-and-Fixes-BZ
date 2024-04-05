@@ -14,11 +14,7 @@ namespace Tweaks_Fixes
         //static float updateHungerInterval { get { return Main.config.hungerUpdateInterval / DayNightCycle.main.dayNightSpeed; } }
         static float hungerUpdateTime = 0f;
         static float snowBallMeltRate = 0.05f;
-
-        public static bool IsWater(Eatable eatable)
-        {
-            return eatable.waterValue > 0f && eatable.foodValue <= 0f && eatable.GetComponent<SnowBall>() == null;
-        }
+        public static HashSet<TechType> decayingFood = new HashSet<TechType>();
 
         public static void CheckSnowball(Eatable eatable)
         {
@@ -372,10 +368,10 @@ namespace Tweaks_Fixes
                     //AddDebug("foodDamage " + foodDamage);
                     Player.main.liveMixin.TakeDamage(Mathf.Abs(foodDamage), Player.main.gameObject.transform.position, DamageType.Starve);
                 }
-                if (Main.config.foodTweaks && __instance.bodyTemperature.isExposed)
+                if (ConfigToEdit.eatingOutsideCold.Value > 0 && __instance.bodyTemperature.isExposed)
                 {
                     //AddDebug("eating  isExposed ");
-                    __instance.bodyTemperature.AddCold(5f);
+                    __instance.bodyTemperature.AddCold(ConfigToEdit.eatingOutsideCold.Value);
                 }
                 //AddDebug("finalFood " + finalFood);
                 //AddDebug("finalWater " + finalWater);
@@ -437,7 +433,7 @@ namespace Tweaks_Fixes
                     else if (finalFood > 0f && __instance.food > warn && __instance.food - finalWater < warn)
                         __instance.vitalsOkNotification.Play();
                 }
-                if (Main.config.waterFreezeRate > 0f && IsWater(eatable))
+                if (Main.config.waterFreezeRate > 0f && Util.IsWater(eatable))
                 {
                     float notFrozenWater = eatable.GetWaterValue();
                     eatable.removeOnUse = eatable.waterValue == notFrozenWater;
@@ -473,11 +469,13 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             static bool AwakePrefix(Eatable __instance)
             {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //Main.logger.LogDebug("Eatable Awake " + tt);
                 if (__instance.GetComponent<SnowBall>())
                 {
                     __instance.decomposes = true;
                 }
-                else if (Main.config.waterFreezeRate > 0f && IsWater(__instance))
+                else if (Main.config.waterFreezeRate > 0f && Util.IsWater(__instance))
                 {
                     if (__instance.timeDecayPause > 0f)
                     {
@@ -486,10 +484,9 @@ namespace Tweaks_Fixes
                     }
                     return false;
                 }
-                if (Main.config.saladGoesBad)
+                if (decayingFood.Contains(CraftData.GetTechType(__instance.gameObject)))
                 {
-                    if (CraftData.GetTechType(__instance.gameObject) == TechType.SpicyFruitSalad)
-                        __instance.decomposes = true;
+                    __instance.decomposes = true;
                 }
                 return true;
             }
@@ -506,12 +503,13 @@ namespace Tweaks_Fixes
                 //Main.Log("kDecayRate " + __instance.kDecayRate);
                 //Main.Log("waterValue " + __instance.waterValue);
                 //Creature creature = __instance.GetComponent<Creature>();
-                //if (__instance.decomposes)
+
+                if (Util.IsFood(__instance))
                 {
                     //AddDebug(__instance.name + " kDecayRate " + __instance.kDecayRate);
                     __instance.kDecayRate *= Main.config.foodDecayRateMult;
                 }
-                if (Main.config.waterFreezeRate > 0f && IsWater(__instance))
+                if (Main.config.waterFreezeRate > 0f && Util.IsWater(__instance))
                 {
                     __instance.decomposes = true;
                     //__instance.kDecayRate = waterFreezeRate;
@@ -519,22 +517,19 @@ namespace Tweaks_Fixes
                     //__instance.PauseDecay();
                     __instance.StartDespawnInvoke();
                 }
-                if (Main.config.foodTweaks)
+                if (Main.config.fishFoodWaterRatio > 0)
                 {
                     if (Util.IsEatableFish(__instance.gameObject) && __instance.foodValue > 0)
-                    {
-                        __instance.waterValue = __instance.foodValue * .5f;
-                    }
+                        __instance.waterValue = __instance.foodValue * Main.config.fishFoodWaterRatio;
                 }
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                if (Main.config.eatableFoodValue.ContainsKey(tt))
-                {
-                    __instance.foodValue = Main.config.eatableFoodValue[tt];
-                }
-                if (Main.config.eatableWaterValue.ContainsKey(tt))
-                {
-                    __instance.waterValue = Main.config.eatableWaterValue[tt];
-                }
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("SetDecomposes")]
+            public static void SetDecomposesPrefix(Eatable __instance, ref bool value)
+            { // SetDecomposes runs when fish killed
+                if (Util.IsFood(__instance) && value && Main.config.foodDecayRateMult == 0)
+                    value = false;
             }
 
             [HarmonyPostfix]
@@ -557,7 +552,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance.GetComponent<SnowBall>())
                     __result = 0f;
-                else if (Main.config.waterFreezeRate > 0f && IsWater(__instance))
+                else if (Main.config.waterFreezeRate > 0f && Util.IsWater(__instance))
                 {
                     if (__instance.GetWaterValue() > 0)
                         __result = __instance.foodValue;
@@ -583,7 +578,7 @@ namespace Tweaks_Fixes
                     CheckSnowball(__instance);
                     return false;
                 }
-                else if (Main.config.waterFreezeRate > 0f && IsWater(__instance))
+                else if (Main.config.waterFreezeRate > 0f && Util.IsWater(__instance))
                 {
                     CheckWater(__instance);
                     return false;
@@ -595,7 +590,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("GetSecondaryTooltip")]
             public static void GetSecondaryTooltipPostfix(Eatable __instance, ref string __result)
             {
-                if (Main.config.waterFreezeRate > 0f && IsWater(__instance))
+                if (Main.config.waterFreezeRate > 0f && Util.IsWater(__instance))
                     __result = "";
             }
 
@@ -604,7 +599,7 @@ namespace Tweaks_Fixes
             public static void GetDecayValuePostfix(Eatable __instance, ref float __result)
             {
                 //AddDebug(__instance.name + " GetDecayValue " );
-                if (Main.config.waterFreezeRate > 0f && IsWater(__instance))
+                if (Main.config.waterFreezeRate > 0f && Util.IsWater(__instance))
                 {
                     //AddDebug(__instance.name + " Water GetDecayValue ");
                     __result = __instance.timeDecayStart;
@@ -626,7 +621,7 @@ namespace Tweaks_Fixes
                     return false;
 
                 Eatable eatable = item.item.GetComponent<Eatable>();
-                bool water = Main.config.waterFreezeRate > 0f && IsWater(eatable);
+                bool water = Main.config.waterFreezeRate > 0f && Util.IsWater(eatable);
                 if (eatable == null || water || !eatable.decomposes || !__instance.powerConsumer.IsPowered())
                     return false;
 
@@ -641,7 +636,7 @@ namespace Tweaks_Fixes
                     return false;
 
                 Eatable eatable = item.item.GetComponent<Eatable>();
-                bool water = Main.config.waterFreezeRate > 0f && IsWater(eatable);
+                bool water = Main.config.waterFreezeRate > 0f && Util.IsWater(eatable);
                 if (eatable == null || water || !eatable.decomposes)
                     return false;
 
@@ -650,6 +645,20 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(Plantable), "OnProtoDeserialize")]
+        class Inventory_OnProtoDeserialize_patch
+        {
+            public static void Postfix(Plantable __instance)
+            {
+                //AddDebug(" OnProtoDeserialize " + __instance.plantTechType);
+                if (!ConfigToEdit.canReplantMelon.Value)
+                {
+                    TechType tt = __instance.plantTechType;
+                    if (tt == TechType.Melon || tt == TechType.SmallMelon || tt == TechType.JellyPlant)
+                        Destroy(__instance);
+                }
+            }
+        }
 
         //[HarmonyPatch(typeof(Inventory), "ConsumeResourcesForRecipe")]
         class Inventory_ConsumeResourcesForRecipe_patch

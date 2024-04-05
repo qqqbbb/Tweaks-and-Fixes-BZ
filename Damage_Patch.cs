@@ -8,7 +8,7 @@ namespace Tweaks_Fixes
 {
     class Damage_Patch
     {
-        static public Dictionary<TechType, float> damageMult = new Dictionary<TechType, float>();
+        //static public Dictionary<TechType, float> damageMult = new Dictionary<TechType, float>();
         static HashSet<DealDamageOnImpact> hoverBikes = new HashSet<DealDamageOnImpact>();
         static HashSet<DealDamageOnImpact> ddoiVanillaScript = new HashSet<DealDamageOnImpact>();
 
@@ -23,7 +23,7 @@ namespace Tweaks_Fixes
                 ParticleSystem.MainModule psMain = ps.main;
                 //Main.Log("startColor " + psMain.startColor.color);
                 //AddDebug("startColor " + psMain.startColor.color);
-                Color newColor = new Color(Main.config.bloodColor["Red"], Main.config.bloodColor["Green"], Main.config.bloodColor["Blue"], psMain.startColor.color.a);
+                Color newColor = new Color(ConfigToEdit.bloodColor.Value.x, ConfigToEdit.bloodColor.Value.y, ConfigToEdit.bloodColor.Value.z, psMain.startColor.color.a);
                 //newColor = Color.blue;
                 //Main.Log("blood Color " + newColor);
                 //AddDebug("blood Color " + newColor);
@@ -35,7 +35,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(DealDamageOnImpact))]
         class DealDamageOnImpact_Patch
         { // seatruck mirroredSelfDamageFraction .12, hoverbike mirroredSelfDamageFraction 1, exosuit mirroredSelfDamage false
-            static Rigidbody prevColTarget;
+            //static Rigidbody prevColTarget;
             //[HarmonyPostfix]
             //[HarmonyPatch("Start")]
             static void StartPostfix(DealDamageOnImpact __instance)
@@ -53,6 +53,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnCollisionEnter")]
             public static bool OnCollisionEnterPrefix(DealDamageOnImpact __instance, Collision collision)
             {
+                if (!ConfigToEdit.replaceDealDamageOnImpactScript.Value)
+                    return true;
+
                 if (!__instance.enabled || collision.contacts.Length == 0 || __instance.exceptions.Contains(collision.gameObject))
                     return false;
 
@@ -118,9 +121,9 @@ namespace Tweaks_Fixes
                 DealDamageOnImpact otherDDOI = colTarget.GetComponent<DealDamageOnImpact>();
 
                 bool canDealDamage = true;
-                if (vehicle && !Main.config.vehiclesDealDamageOnImpact)
+                if (vehicle && !ConfigToEdit.vehiclesDealDamageOnImpact.Value)
                     canDealDamage = false;
-                if (otherVehicle && !Main.config.vehiclesTakeDamageOnImpact)
+                if (otherVehicle && !ConfigToEdit.vehiclesTakeDamageOnImpact.Value)
                     canDealDamage = false;
                 if (otherDDOI && damageMult < otherDDOI.speedMinimumForDamage)
                     canDealDamage = false;
@@ -179,13 +182,13 @@ namespace Tweaks_Fixes
                 }
             
                 bool canTakeDamage = true;
-                if (vehicle && !Main.config.vehiclesTakeDamageOnImpact)
+                if (vehicle && !ConfigToEdit.vehiclesTakeDamageOnImpact.Value)
                     canTakeDamage = false;
-                if (otherVehicle && !Main.config.vehiclesDealDamageOnImpact)
+                if (otherVehicle && !ConfigToEdit.vehiclesDealDamageOnImpact.Value)
                     canTakeDamage = false;
                 if (damageMult < __instance.speedMinimumForSelfDamage)
                     canTakeDamage = false;
-                if (myTT == TechType.Exosuit && !Main.config.exosuitTakesDamageFromCollisions)
+                if (myTT == TechType.Exosuit && !ConfigToEdit.exosuitTakesDamageFromCollisions.Value)
                     canTakeDamage = false;
 
                 LiveMixin myLM = __instance.GetLiveMixin(__instance.gameObject);
@@ -194,7 +197,7 @@ namespace Tweaks_Fixes
                 if (!canTakeDamage || damageMult <= 0 || __instance.mirroredSelfDamageFraction == 0f || !myLM || Time.time < __instance.timeLastDamagedSelf + 1f || tooSmall)
                     return false;
 
-                if (terrain && myTT == TechType.Exosuit && !Main.config.exosuitTakesDamageWhenCollidingWithTerrain)
+                if (terrain && myTT == TechType.Exosuit && !ConfigToEdit.exosuitTakesDamageWhenCollidingWithTerrain.Value)
                     return false;
                 //float myDamage = colMag * Mathf.Clamp((1f + massRatio * 0.001f), 0f, damageMult);
                 VFXSurfaceTypes surfaceType = VFXSurfaceTypes.none;
@@ -336,9 +339,8 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(DamageFX __instance, float damageScalar, Vector3 damageSource, DamageInfo damageInfo, bool isUnderwater)
             {
-                //Main.config.crushDamageScreenEffect = false;
                 //AddDebug("AddHudDamage " + damageInfo.type);
-                if (!Main.config.crushDamageScreenEffect && damageInfo.type == DamageType.Pressure)
+                if (!ConfigToEdit.crushDamageScreenEffect.Value && damageInfo.type == DamageType.Pressure)
                     return false;
 
                 if (Main.config.damageImpactEffect)
@@ -403,11 +405,11 @@ namespace Tweaks_Fixes
                 }
                 //else if (target.GetComponent<BaseCell>())
                 //    AddDebug("base takes damage");
-                else
-                {
-                    if (damageMult.ContainsKey(techType))
-                        __result *= damageMult[techType];
-                }
+                //else if (Main.config.damageMult > 1)
+                //{
+                    //if (damageMult.ContainsKey(techType))
+                        //__result *= Main.config.damageMult;
+                //}
             }
         }
 
@@ -495,12 +497,12 @@ namespace Tweaks_Fixes
             {
                 bool flare_ = false;
                 Flare flare = Tools_Patch.equippedTool as Flare;
-                if (flare && flare.flareActivateTime > 0f)
+                if (flare && flare.flareActivateTime > 0f && flare.energyLeft > 0f)
                     flare_ = true;
 
-                if (Main.config.brinewingAttackColdDamage > 0)
+                if (ConfigToEdit.brinewingAttackColdDamage.Value > 0)
                 {
-                    float damage = Main.config.brinewingAttackColdDamage;
+                    float damage = ConfigToEdit.brinewingAttackColdDamage.Value;
                     if (flare_)
                         damage *= .5f;
 

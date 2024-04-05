@@ -12,13 +12,14 @@ namespace Tweaks_Fixes
     class UI_Patches
     {
         static bool textInput = false;
-        static bool fishTooltip = false;
         static bool chargerOpen = false;
 
         public static Dictionary<ItemsContainer, Recyclotron> recyclotrons = new Dictionary<ItemsContainer, Recyclotron>() ;
         static Recyclotron openRecyclotron = null;
         static List<TechType> landPlantSeeds = new List<TechType> { TechType.HeatFruit, TechType.PurpleVegetable, TechType.FrozenRiverPlant2Seeds, TechType.LeafyFruit, TechType.HangingFruit, TechType.MelonSeed, TechType.SnowStalkerFruit, TechType.PinkFlowerSeed, TechType.PurpleRattleSpore, TechType.OrangePetalsPlantSeed }; // obsolete plants can be found
         static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.SmallMaroonPlantSeed, TechType.TwistyBridgesMushroomChunk, TechType.JellyPlantSeed, TechType.PurpleBranchesSeed, TechType.RedBushSeed, TechType.GenericRibbonSeed, TechType.GenericSpiralChunk, TechType.SpottedLeavesPlantSeed, TechType.PurpleStalkSeed, TechType.DeepLilyShroomSeed };
+        static List<TechType> fishTechTypes = new List<TechType> { TechType.Bladderfish, TechType.Boomerang, TechType.ArcticPeeper, TechType.DiscusFish, TechType.FeatherFish, TechType.Hoopfish, TechType.FeatherFishRed, TechType.SpinnerFish, TechType.NootFish, TechType.Symbiote, TechType.Spinefish, TechType.ArrowRay, TechType.Triops };
+
         static HashSet<ItemsContainer> landPlanters = new HashSet<ItemsContainer>();
         static HashSet<ItemsContainer> waterPlanters = new HashSet<ItemsContainer>();
         static public string rightHandButton = string.Empty;
@@ -31,7 +32,7 @@ namespace Tweaks_Fixes
         static public string lightFlareString = string.Empty;
         static public string throwFlareString = string.Empty;
         static public string lightAndThrowFlareString = string.Empty;
-        static public string toggleBaseLightString = string.Empty;
+        static public string toggleBaseLights = string.Empty;
         static public string changeTorpedoExosuitButtonGamepad = string.Empty;
         static public string changeTorpedoExosuitButtonKeyboard = string.Empty;
         static public string cycleNextButton = string.Empty;
@@ -43,42 +44,30 @@ namespace Tweaks_Fixes
         static public string moveRightButton = string.Empty;
         static public string moveLeftButton = string.Empty;
         static public string swivelText = string.Empty;
+        static public string deconstructButton = string.Empty;
 
-        
+        private static void HandleBaseLights(SubRoot subRoot)
+        {
+            HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, toggleBaseLights);
+            if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                Base_Patch.ToggleBaseLight(subRoot);
+        }
 
         static void SetTooltips()
         {
-
-            LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, Main.config.translatableStrings[19]);
-            LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, Main.config.translatableStrings[20]);
+            LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, Language.main.Get("Tooltip_Bladderfish") + Language.main.Get("TF_bladderfish_tooltip"));
+            LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, Language.main.Get("TF_smallStove_tooltip"));
             // vanilla desc just copies the name
-            LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, Main.config.translatableStrings[21]);
+            LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, Language.main.Get("TF_SeaTruckUpgradeHorsePower_tooltip"));
             // vanilla desc does not tell percent
-            LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeEnergyEfficiency, Main.config.translatableStrings[22]);
+            LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeEnergyEfficiency, Language.main.Get("TF_SeaTruckUpgradeEnergyEfficiency_tooltip"));
         }
-
+        
         static void GetStrings()
         {
             //AddDebug("GetStrings");
-
-            if (Main.config.translatableStrings.Count < 25)
-            {
-                if (Main.config.translatableStrings.Count == 23)
-                {
-                    Main.config.translatableStrings.Add("Swivel left");
-                    Main.config.translatableStrings.Add("Swivel right");
-                    //AddDebug("add new strings");
-                    //foreach (var s in oldList)
-                    //    Main.logger.LogInfo("translatableStrings " + s);
-                }
-                else
-                    Main.config.translatableStrings = new List<string>
-        {"Burnt out ", "Lit ", "Increases the Seatruck engine's horsepower and energy consumption by 10%. More than 1 can be used simultaneously.", " frozen", "Increases your safe diving depth by ", " meters.", "mass ", "Throw", "Light and throw", "Light", ": min ", ", max ", "Need a knife to break it", "Need a knife to break it free", " Hold ", " and press ", " to change torpedo ", ", Change torpedo ", "Break it free", "Unique outer membrane has potential as a natural water filter. Provides some oxygen when consumed raw.", "Low-power conduction unit. Can be used to cook fish.", "Increases the Seatruck's speed when hauling two or more modules.", "Reduces vehicle energy consumption by 20% percent.", "Swivel left", "Swivel right" };
-
-                Main.config.Save();
-            }
             SetTooltips();
-
+            deconstructButton = uGUI.FormatButton(GameInput.Button.Deconstruct);
             exosuitLightsButton = ", " + LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.Deconstruct);
             altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
             rightHandButton = uGUI.FormatButton(GameInput.Button.RightHand);
@@ -88,24 +77,24 @@ namespace Tweaks_Fixes
 
             fishDropString = TooltipFactory.stringDrop + " (" + rightHandButton + ")";
             fishEatString = TooltipFactory.stringEat + " (" + altToolButton + ")";
-            lightFlareString = Main.config.translatableStrings[9] + " (" + altToolButton + ")";
-            throwFlareString = Main.config.translatableStrings[7] + " (" + rightHandButton + ")";
-
-            swivelText = Main.config.translatableStrings[23] + " (" + moveLeftButton + ")  " + Main.config.translatableStrings[24] + " (" + moveRightButton + ")";
-            lightAndThrowFlareString = Main.config.translatableStrings[8] + " (" + rightHandButton + ")";
-            beaconToolString = TooltipFactory.stringDrop + " (" + rightHandButton + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + uGUI.FormatButton(GameInput.Button.Deconstruct) + ")";
+            lightFlareString = Language.main.Get("TF_light_flare") + " (" + altToolButton + ")";
+            throwFlareString = Language.main.Get("TF_throw_flare") + " (" + rightHandButton + ")";
+            
+            swivelText = Language.main.Get("TF_swivel_chair_left") + " (" + moveLeftButton + ")  " + Language.main.Get("TF_swivel_chair_right") + " (" + moveRightButton + ")";
+            lightAndThrowFlareString = Language.main.Get("TF_light_and_throw_flare") + " (" + rightHandButton + ")";
+            beaconToolString = TooltipFactory.stringDrop + " (" + rightHandButton + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
             beaconPickString = "(" + leftHandButton + ")\n" + Language.main.Get("BeaconLabelEdit");
-            toggleBaseLightString = LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.Deconstruct);
+
+            toggleBaseLights = Language.main.Get("TF_toggle_base_lights") + " (" + deconstructButton + ")";
             cycleNextButton = uGUI.FormatButton(GameInput.Button.CycleNext);
             cyclePrevButton = uGUI.FormatButton(GameInput.Button.CyclePrev);
-            changeTorpedoExosuitButtonGamepad = Main.config.translatableStrings[14] + "(" + altToolButton + ")" + Main.config.translatableStrings[15] + "(" + cycleNextButton + "), " + "(" + cyclePrevButton + ")" + Main.config.translatableStrings[16];
+            //changeTorpedoExosuitButtonGamepad = Main.config.translatableStrings[14] + "(" + altToolButton + ")" + Main.config.translatableStrings[15] + "(" + cycleNextButton + "), " + "(" + cyclePrevButton + ")" + Main.config.translatableStrings[16];
             slot1Button = "(" + uGUI.FormatButton(GameInput.Button.Slot1) + ")";
             slot2Button = "(" + uGUI.FormatButton(GameInput.Button.Slot2) + ")";
             slot1Plus2Button = slot1Button + slot2Button;
             Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
             //changeTorpedoExosuitButtonKeyboard = slot1Button + Main.config.translatableStrings[17];
         }
-
 
         [HarmonyPatch(typeof(Recyclotron), "Start")]
         class Recyclotron_Start_Patch
@@ -328,10 +317,10 @@ namespace Tweaks_Fixes
                 }
                 else if (olayerTool is Knife)
                 { 
-                    HandReticle.main.SetText(HandReticle.TextType.Hand, Main.config.translatableStrings[18], false, GameInput.Button.RightHand);
+                    //HandReticle.main.SetText(HandReticle.TextType.Hand, Main.config.translatableStrings[18], false, GameInput.Button.RightHand);
                 }
                 else
-                    HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Main.config.translatableStrings[13]);
+                    HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_free_resource")); 
             }
 
             [HarmonyPrefix]
@@ -443,8 +432,8 @@ namespace Tweaks_Fixes
                         {
                             TechType techType = CraftData.GetTechType(__instance.activeTarget);
 
-                            if (Main.config.noBreakingWithHand && techType != TechType.None && Main.config.notPickupableResources.Contains(techType))
-                            { // ymy
+                            if (Main.config.noBreakingWithHand && techType != TechType.None && PickupablePatch.notPickupableResources.Contains(techType))
+                            {
                                 HandlePickupableResource(__instance, techType, playerTool);
                             }
                             else
@@ -622,9 +611,7 @@ namespace Tweaks_Fixes
                     SubRoot subRoot = Player.main.currentSub;
                     if (subRoot && subRoot.isBase && subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
                     {
-                        HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, toggleBaseLightString);
-                        if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
-                            Base_Patch.ToggleBaseLight(subRoot);
+                        HandleBaseLights(subRoot);
                     }
                 }
                 InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
@@ -673,7 +660,7 @@ namespace Tweaks_Fixes
                 if (flareTarget && flareTarget.energyLeft == 0f)
                 {
                     //AddDebug("activeTarget Flare");
-                    StringBuilder sb = new StringBuilder(Main.config.translatableStrings[0]);
+                    StringBuilder sb = new StringBuilder(Language.main.Get("TF_burnt_out_flare"));
                     sb.Append(Language.main.Get(targetTT));
                     HandReticle.main.SetText(HandReticle.TextType.Hand, sb.ToString(), false);
                 }
@@ -724,7 +711,7 @@ namespace Tweaks_Fixes
                 if (tt == TechType.Creepvine || tt == TechType.CreepvineSeedCluster)
                 {
                     //AddDebug("GetTarget TechType " + tt);
-                    if (Player.main._currentInterior != null && !Player.main._currentInterior.Equals(null) && Player.main._currentInterior is SeaTruckSegment)
+                    if (Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment)
                     {
                         __result = false;
                         result = null;
@@ -842,11 +829,10 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("flare.energyLeft " + flare.energyLeft);
                     if (flare.energyLeft <= 0f)
-                        TooltipFactory.WriteTitle(sb, Main.config.translatableStrings[0]);
+                        TooltipFactory.WriteTitle(sb, Language.main.Get("TF_burnt_out_flare"));
                     else if (flare.flareActivateTime > 0f)
-                        TooltipFactory.WriteTitle(sb, Main.config.translatableStrings[1]);
+                        TooltipFactory.WriteTitle(sb, Language.main.Get("TF_lit_flare"));
                 }
-                fishTooltip = Util.IsEatableFish(obj);
             }
 
             [HarmonyPostfix]
@@ -855,12 +841,93 @@ namespace Tweaks_Fixes
             {
                 if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
                 { // IInventoryDescription
-                    StringBuilder sb_ = new StringBuilder(Main.config.translatableStrings[4]);
+                    StringBuilder sb_ = new StringBuilder(Language.main.Get("TF_crush_depth_equipment"));
                     sb_.Append(Crush_Damage.crushDepthEquipment[techType].ToString());
-                    sb_.Append(Main.config.translatableStrings[5]);
+                    sb_.Append(Language.main.Get("TF_meters"));
                     TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }
-                if (techType == TechType.FirstAidKit)
+                if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
+                { // IInventoryDescription
+                    StringBuilder sb_ = new StringBuilder(Language.main.Get("TF_crush_damage_equipment"));
+                    sb_.Append(Crush_Damage.crushDepthEquipment[techType].ToString());
+                    sb_.Append(Language.main.Get("%"));
+                    TooltipFactory.WriteDescription(sb, sb_.ToString());
+                }
+                Eatable eatable = obj.GetComponent<Eatable>();
+                if (Main.config.eatRawFish != Config.EatingRawFish.Vanilla && fishTechTypes.Contains(techType) && GameModeManager.GetOption<bool>(GameOption.Hunger))
+                {
+                    //Eatable eatable = obj.GetComponent<Eatable>();
+                    if (eatable)
+                    {
+                        sb.Clear();
+                        string name = Language.main.Get(techType);
+                        string secondaryTooltip = eatable.GetSecondaryTooltip();
+                        if (!string.IsNullOrEmpty(secondaryTooltip))
+                            name = Language.main.GetFormat<string, string>("DecomposingFormat", secondaryTooltip, name);
+                        TooltipFactory.WriteTitle(sb, name);
+                        TooltipFactory.WriteDebug(sb, techType);
+                        int foodValue = Mathf.CeilToInt(eatable.GetFoodValue());
+                        if (foodValue != 0)
+                        {
+                            string food = Language.main.GetFormat<int>("FoodFormat", foodValue);
+                            int index = -1;
+                            if (foodValue < 0)
+                                index = food.LastIndexOf('-');
+                            else
+                                index = food.LastIndexOf('+');
+
+                            if (index != -1)
+                            {
+                                if (foodValue > 0)
+                                {
+                                    if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                                        food = food.Substring(0, index) + "≈ 0";
+                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                                        food = food.Substring(0, index) + "≈ " + Mathf.CeilToInt(foodValue * .5f);
+                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                                        food = food.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(foodValue * .5f));
+                                }
+                                //AddDebug("food  " + food);
+                            }
+                            TooltipFactory.WriteDescription(sb, food);
+                        }
+                        int waterValue = Mathf.CeilToInt(eatable.GetWaterValue());
+                        if (waterValue != 0)
+                        {
+                            string water = Language.main.GetFormat<int>("WaterFormat", waterValue);
+                            int index = -1;
+                            if (waterValue < 0)
+                                index = water.LastIndexOf('-');
+                            else
+                                index = water.LastIndexOf('+');
+
+                            if (index != -1)
+                            {
+                                if (waterValue > 0)
+                                {
+                                    if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                                        water = water.Substring(0, index) + "≈ 0";
+                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                                        water = water.Substring(0, index) + "≈ " + Mathf.CeilToInt(waterValue * .5f);
+                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                                        water = water.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(waterValue * .5f));
+                                }
+                                //AddDebug("water  " + water);
+                            }
+                            TooltipFactory.WriteDescription(sb, water);
+                        }
+                        TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
+                    }
+                }
+                if (techType == TechType.Battery)
+                    TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_Battery"));
+                else if (techType == TechType.PowerCell)
+                    TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PowerCell"));
+                else if (techType == TechType.PrecursorIonBattery)
+                    TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PrecursorIonBattery"));
+                else if (techType == TechType.PrecursorIonPowerCell)
+                    TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PrecursorIonPowerCell"));
+                else if(techType == TechType.FirstAidKit)
                 {
                     sb.Clear();
                     string name = Language.main.Get(techType);
@@ -874,10 +941,10 @@ namespace Tweaks_Fixes
                 {
                     sb.Clear();
                     TooltipFactory.WriteTitle(sb, Language.main.Get(techType));
-                    TooltipFactory.WriteDescription(sb, Main.config.translatableStrings[2]);
+                    TooltipFactory.WriteDescription(sb, Language.main.Get("TF_SeaTruckUpgradeHorsePower_my_tooltip"));
                 }
-                Eatable eatable = obj.GetComponent<Eatable>();
-                if (eatable && Food_Patch.IsWater(eatable) && eatable.timeDecayStart > 0f)
+
+                if (eatable && Util.IsWater(eatable) && eatable.timeDecayStart > 0f)
                 {
                     sb.Clear();
                     StringBuilder sb_ = new StringBuilder(Language.main.Get(techType));
@@ -886,9 +953,9 @@ namespace Tweaks_Fixes
                     Mathf.Clamp(frozenPercent, frozenPercent, 100f);
                     sb_.Append(Mathf.RoundToInt(frozenPercent));
                     sb_.Append("%");
-                    sb_.Append(Main.config.translatableStrings[3]);
+                    sb_.Append(Language.main.Get("TF_frozen_water"));
                     TooltipFactory.WriteTitle(sb, sb_.ToString());
-                    //int healthValue = (int)eatable.GetHealthValue();
+                    //int healthValue = (int)eatable.GetHealthValue();  
                     //if (healthValue != 0f)
                     //    TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("HealthFormat", healthValue));
                     int cold = Mathf.CeilToInt(eatable.GetColdMeterValue());
@@ -907,57 +974,8 @@ namespace Tweaks_Fixes
                     Rigidbody rb = obj.GetComponent<Rigidbody>();
                     if (rb)
                     {
-                        StringBuilder sb_ = new StringBuilder(Main.config.translatableStrings[6]);
-                        sb_.Append(rb.mass);
-                        TooltipFactory.WriteDescription(sb, sb_.ToString());
+                        TooltipFactory.WriteDescription(sb, Language.main.Get("TF_mass") + rb.mass + Language.main.Get("TF_kg"));
                     }
-            
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(Language), "FormatString", new Type[] { typeof(string), typeof(object[]) })]
-        class Language_FormatString_Patch
-        {
-            static void Postfix(string format, ref string __result, object[] args)
-            {
-                //AddDebug("FormatString " + format + " " + args.Length);
-                //AddDebug("FormatString " + __result);
-                if (!fishTooltip || Main.config.eatRawFish == Config.EatingRawFish.Vanilla || args.Length == 0 || args[0].GetType() != typeof(int))
-                    return;
-                //AddDebug("FormatString GetType " + args[0].GetType());
-                int value = (int)args[0];
-                if (value > 0f && format.Contains("FOOD:") || format.Contains("H₂O:"))
-                {
-                    string[] tokens = __result.Split(':');
-                    string min = Main.config.translatableStrings[10];
-                    string max = Main.config.translatableStrings[11];
-                    StringBuilder sb_ = new StringBuilder(tokens[0]);
-                    sb_.Append(min);
-                    if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
-                    {
-                        //__result = tokens[0] + min + "0" + max + value;
-                        sb_.Append("0");
-                        sb_.Append(max);
-                        sb_.Append(value);
-                    }
-                    else if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
-                    {
-                        //__result = tokens[0] + min + "-" + value + max + value;
-                        sb_.Append("-");
-                        sb_.Append(value);
-                        sb_.Append(max);
-                        sb_.Append(value);
-                    }
-                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
-                    {
-                        //__result = tokens[0] + min + "-" + value + max + "0";
-                        sb_.Append("-");
-                        sb_.Append(value);
-                        sb_.Append(max);
-                        sb_.Append("0");
-                    }
-                    __result = sb_.ToString();
                 }
             }
         }
@@ -1002,7 +1020,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(uGUI_HealthBar __instance)
             {
-                if (!Main.config.alwaysShowHealthNunbers)
+                if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
                     return true;
 
                 int showNumbers = __instance.showNumbers ? 1 : 0;
@@ -1034,7 +1052,7 @@ namespace Tweaks_Fixes
                         __instance.pulseTween.duration = num2;
                     }
                     PDA pda = main.GetPDA();
-                    if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
+                    if (ConfigToEdit.alwaysShowHealthFoodNunbers.Value || pda != null && pda.isInUse)
                         __instance.showNumbers = true;
                 }
                 if (__instance.statePulse.enabled)
@@ -1059,7 +1077,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(uGUI_FoodBar __instance)
             {
-                if (!Main.config.alwaysShowHealthNunbers)
+                if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
                     return true;
 
                 int showNumbers = __instance.showNumbers ? 1 : 0;
@@ -1095,7 +1113,7 @@ namespace Tweaks_Fixes
                         }
                     }
                     PDA pda = main.GetPDA();
-                    if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
+                    if (ConfigToEdit.alwaysShowHealthFoodNunbers.Value || pda != null && pda.isInUse)
                         __instance.showNumbers = true;
                 }
                 if (__instance.pulseAnimationState != null && __instance.pulseAnimation.enabled)
@@ -1120,7 +1138,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(uGUI_WaterBar __instance)
             {
-                if (!Main.config.alwaysShowHealthNunbers)
+                if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
                     return true;
 
                 int showNumbers = __instance.showNumbers ? 1 : 0;
@@ -1156,7 +1174,7 @@ namespace Tweaks_Fixes
                         }
                     }
                     PDA pda = main.GetPDA();
-                    if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
+                    if (ConfigToEdit.alwaysShowHealthFoodNunbers.Value || pda != null && pda.isInUse)
                         __instance.showNumbers = true;
                 }
                 if (__instance.pulseAnimationState != null && __instance.pulseAnimationState.enabled)
@@ -1181,7 +1199,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(uGUI_BodyHeatMeter __instance)
             {
-                if (!Main.config.alwaysShowHealthNunbers)
+                if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
                     return true;
                 int num1 = __instance.showNumbers ? 1 : 0;
                 __instance.showNumbers = false;
@@ -1219,7 +1237,7 @@ namespace Tweaks_Fixes
                         __instance.bar.overlay2Alpha = num3 * __instance.overlay2Alpha;
                     }
                     PDA pda = player.GetPDA();
-                    if (Main.config.alwaysShowHealthNunbers || pda != null && pda.isInUse)
+                    if (ConfigToEdit.alwaysShowHealthFoodNunbers.Value || pda != null && pda.isInUse)
                         __instance.showNumbers = true;
                 }
                 if (__instance.stateMaximize.normalizedTime > 0.5F)
@@ -1259,7 +1277,7 @@ namespace Tweaks_Fixes
             static bool Prefix(HandReticle __instance, HandReticle.TextType type, string text)
             {
                 //AddDebug("SetTextRaw " + type + " " + text);
-                if (Main.config.disableUseText && (type == HandReticle.TextType.Use || type == HandReticle.TextType.UseSubscript))
+                if (ConfigToEdit.disableUseText.Value && (type == HandReticle.TextType.Use || type == HandReticle.TextType.UseSubscript))
                     return false;
                 
                 return true;
@@ -1272,7 +1290,7 @@ namespace Tweaks_Fixes
             public static void Postfix(uGUI_EncyclopediaTab __instance) => __instance.contentScrollRect.verticalNormalizedPosition = 1f;
         }
 
-        [HarmonyPatch(typeof(StartScreen), "TryToShowDisclaimer")]
+        //[HarmonyPatch(typeof(StartScreen), "TryToShowDisclaimer")] 
         public static class StartScreenPatch
         {
             public static bool Prefix(StartScreen __instance) => false;

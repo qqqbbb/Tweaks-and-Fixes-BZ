@@ -56,7 +56,7 @@ namespace Tweaks_Fixes
             {
                 //Main.Log("AddNode " + node.id);
                 //AddDebug("AddNode " + node.id);
-                if (Main.config.craftVehicleUpgradesOnlyInMoonpool)
+                if (ConfigToEdit.craftVehicleUpgradesOnlyInMoonpool.Value)
                 {
                     if (node.id == "Upgrades")
                     {
@@ -80,7 +80,7 @@ namespace Tweaks_Fixes
             static void Postfix(CrafterLogic __instance, GameObject target, TechType techType)
             {
                 //AddDebug("CrafterLogic NotifyCraftEnd timeDecayStart " + timeDecayStart);
-                if (Main.config.foodTweaks && timeDecayStart > 0)
+                if (timeDecayStart > 0)
                 {
                     //AddDebug("CrafterLogic NotifyCraftEnd timeDecayStart" + timeDecayStart);
                     Eatable eatable = target.GetComponent<Eatable>();
@@ -90,6 +90,8 @@ namespace Tweaks_Fixes
                 Battery battery = target.GetComponent<Battery>();
                 if (battery)
                 {
+                    if (Main.config.batteryChargeMult != 1f)
+                        battery._capacity *= Main.config.batteryChargeMult;
                     //AddDebug("crafterOpen");
                     float mult = Main.config.craftedBatteryCharge * .01f;
                     battery._charge = battery._capacity * mult;
@@ -117,7 +119,7 @@ namespace Tweaks_Fixes
                 //AddDebug("OnRemoveItem " + item.item.GetTechName());
                 if (crafting)
                 {
-                    if (Main.config.foodTweaks && Util.IsEatableFish(item.item.gameObject))
+                    if (Util.IsEatableFish(item.item.gameObject))
                     {
                         Eatable eatable = item.item.GetComponent<Eatable>();
                         timeDecayStart = eatable.timeDecayStart;
@@ -135,7 +137,7 @@ namespace Tweaks_Fixes
             private static void Prefix(EnergyMixin __instance, TechType techType)
             { // applies to tools and vehicles
                 //AddDebug("EnergyMixin OnCraftEnd " + techType);
-                if (!Main.config.craftWithoutBattery || techType == TechType.MapRoomCamera || techType == TechType.FlashlightHelmet || techType == TechType.TeleportationTool || techType == TechType.SpyPenguin || techType == TechType.SpyPenguinRemote)
+                if (!ConfigToEdit.craftWithoutBattery.Value || techType == TechType.MapRoomCamera || techType == TechType.FlashlightHelmet || techType == TechType.TeleportationTool || techType == TechType.SpyPenguin || techType == TechType.SpyPenguinRemote)
                     return;
 
                 __instance.defaultBattery = TechType.None;

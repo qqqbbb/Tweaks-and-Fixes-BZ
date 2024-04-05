@@ -207,7 +207,7 @@ namespace Tweaks_Fixes
                     __instance.creature.Aggression.Add(__instance.aggressionPerSecond);
                     //__instance.lastScarePosition.lastScarePosition = Player.main.gameObject.transform.position;
                     __instance.lastTarget.SetTarget(Player.main.gameObject, __instance.targetPriority);
-                    if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Tweaks.silentCreatures.Contains(__instance.myTechType))
+                    if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Patch.silentCreatures.Contains(__instance.myTechType))
                         __instance.sightedSound.StartEvent();
 
                     //AddDebug(__instance.myTechType + " attack player " + );
@@ -235,7 +235,7 @@ namespace Tweaks_Fixes
                     __instance.creature.Aggression.Add((mult));
                     __instance.lastTarget.SetTarget(aggressionTarget, __instance.targetPriority);
                     //__instance.lastScarePosition.lastScarePosition = aggressionTarget.transform.position;
-                    if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Tweaks.silentCreatures.Contains(__instance.myTechType))
+                    if (__instance.sightedSound != null && !__instance.sightedSound.GetIsPlaying() && !Creature_Patch.silentCreatures.Contains(__instance.myTechType))
                         __instance.sightedSound.StartEvent();
                 }
                 return false;
@@ -325,7 +325,7 @@ namespace Tweaks_Fixes
                     //while (enumerator.MoveNext())
                     //{
                     //IEcoTarget current = enumerator.Current;
-                    if (ecoTarget != null && !ecoTarget.Equals(null))
+                    if (ecoTarget != null)
                     {
                         float sqrMagnitude = (wsPos - ecoTarget.GetPosition()).sqrMagnitude;
                         //if (agr > 1f)

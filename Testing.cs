@@ -33,19 +33,26 @@ namespace Tweaks_Fixes
             }
         }
 
+        
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
-
-                //AddDebug("IsUnderwater " + Player.main.IsUnderwater());
-                //AddDebug("GetPlayerTemperature " + (int)Main.GetPlayerTemperature());
+                //AddDebug(Player.main.GetBiomeString());
+                //AddDebug("fixMelon " + ConfigToEdit.fixMelon.Value);
+                if (__instance.currentInterior != null)
+                {
+                    //AddDebug("Player currentInterior GetInsideTemperature " +  __instance.currentInterior.GetInsideTemperature());
+                    //AddDebug("Player currentInterior Type " + __instance.currentInterior.GetType());
+                    //AddDebug("Player_Patches ambientTemperature " + Player_Patches.ambientTemperature);
+                }
                 //AddDebug("ambientTemperature " + (int)Player_Patches.ambientTemperature);
                 //BodyTemperature bt = __instance.GetComponent<BodyTemperature>();
                 //if (bt)
                 {
                     //AddDebug("isExposed " + bt.isExposed);
+                    //AddDebug("CalculateEffectiveAmbientTemperature " + bt.CalculateEffectiveAmbientTemperature());
                     //int temp = (int)bt.CalculateEffectiveAmbientTemperature();
                     //if (temp < 0f)
                     //    AddDebug("CalculateEffectiveAmbientTemperature " + temp);
@@ -75,7 +82,9 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    AddDebug("BodyTemperatureDecreases " + GameModeManager.GetOption<bool>(GameOption.BodyTemperatureDecreases));
+                    AddDebug("eatableFoodValue.Count) " + Pickupable_Patch.eatableFoodValue.Count);
+                    AddDebug("eatableWaterValue.Count) " + Pickupable_Patch.eatableWaterValue.Count);
+                    AddDebug("decayingFood.Count) " + Food_Patch.decayingFood.Count);
                     //List<string> techTypes = new List<string>();
                     //foreach (TechType tt in Enum.GetValues(typeof(TechType)))
                     {
@@ -480,7 +489,6 @@ namespace Tweaks_Fixes
                 //AddDebug(" Targeting GetTarget  " + result.name);
             }
         }
-
 
     }
 }

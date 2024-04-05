@@ -11,7 +11,9 @@ namespace Tweaks_Fixes
     {
         static float healTime = 0f;
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
-
+        public static HashSet<TechType> unmovableItems = new HashSet<TechType>();
+        public static Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> { };
+        public static Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { };
 
 
         [HarmonyPatch(typeof(Pickupable))]
@@ -22,6 +24,22 @@ namespace Tweaks_Fixes
             static void AwakePostfix(Pickupable __instance)
             {
                 TechType tt = __instance.GetTechType();
+                //Main.logger.LogDebug("Pickupable  Awake " + tt);
+
+                if (eatableFoodValue.ContainsKey(tt))
+                {
+                    Util.MakeEatable(__instance.gameObject, eatableFoodValue[tt]);
+                }
+                if (eatableWaterValue.ContainsKey(tt))
+                {
+                    Util.MakeDrinkable(__instance.gameObject, eatableWaterValue[tt]);
+                }
+                if (unmovableItems.Contains(tt))
+                { // isKinematic gets saved
+                    Rigidbody rb = __instance.GetComponent<Rigidbody>();
+                    if (rb)
+                        rb.constraints = RigidbodyConstraints.FreezeAll;
+                }
                 if (itemMass.ContainsKey(tt))
                 {
                     Rigidbody rb = __instance.GetComponent<Rigidbody>();
@@ -109,8 +127,8 @@ namespace Tweaks_Fixes
                 if (Main.config.medKitHPtoHeal > 0 && Time.time > healTime)
                 {
                     healTime = Time.time + 1f;
-                    __instance.liveMixin.AddHealth(Main.config.medKitHPperSecond);
-                    Main.config.medKitHPtoHeal -= Main.config.medKitHPperSecond;
+                    __instance.liveMixin.AddHealth(ConfigToEdit.medKitHPperSecond.Value);
+                    Main.config.medKitHPtoHeal -= ConfigToEdit.medKitHPperSecond.Value;
                     if (Main.config.medKitHPtoHeal < 0)
                         Main.config.medKitHPtoHeal = 0;
 
@@ -145,7 +163,7 @@ namespace Tweaks_Fixes
                     else
                     {
                         __result = true;
-                        if (Main.config.medKitHPperSecond >= Main.config.medKitHP)
+                        if (ConfigToEdit.medKitHPperSecond.Value >= Main.config.medKitHP)
                         {
                             Player.main.GetComponent<LiveMixin>().AddHealth(Main.config.medKitHP);
                         }
@@ -186,7 +204,7 @@ namespace Tweaks_Fixes
                     Eatable eatable = pickupable.gameObject.GetComponent<Eatable>();
                     if (Main.config.cantEatUnderwater && Player.main.IsUnderwater())
                         __result = ItemAction.None;
-                    else if (Food_Patch.IsWater(eatable) && eatable.GetWaterValue() < 0.5f)
+                    else if (Util.IsWater(eatable) && eatable.GetWaterValue() < 0.5f)
                         __result = ItemAction.None;
                 }
                 else if (__result == ItemAction.Use && Main.config.cantUseMedkitUnderwater && Player.main.IsUnderwaterForSwimming() && pickupable.GetTechType() == TechType.FirstAidKit)

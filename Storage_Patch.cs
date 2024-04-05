@@ -287,7 +287,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             static void AwakePostfix(DeployableStorage __instance)
             {
-                if (!Main.config.newStorageUI)
+                if (!ConfigToEdit.newStorageUI.Value)
                     return;
 
                 LiveMixin lm = __instance.GetComponent<LiveMixin>();
@@ -328,7 +328,7 @@ namespace Tweaks_Fixes
                     closeSound.path = "event:/sub/cyclops/locker_close";
                     closeSound.id = "{16eb5589-e341-41cb-9c88-02cb4e3da44a}";
                 }
-                if (!Main.config.newStorageUI)
+                if (!ConfigToEdit.newStorageUI.Value)
                     return;
 
                 TechTag techTag = __instance.GetComponent<TechTag>();
@@ -471,7 +471,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnHandHover")]
             static bool OnHandHoverPrefix(StorageContainer __instance, GUIHand hand)
             {
-                if (!Main.config.newStorageUI)
+                if (!ConfigToEdit.newStorageUI.Value)
                     return true;
                 //AddDebug("StorageContainer OnHandHover name " + __instance.name);
                 //HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, "Subscript");
@@ -582,7 +582,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(SeaTruckSegment __instance)
             {
-                if (!Main.config.newStorageUI)
+                if (!ConfigToEdit.newStorageUI.Value)
                     return;
 
                 if (__instance.name == "SeaTruckStorageModule(Clone)" || __instance.name == "SeaTruckFabricatorModule(Clone)")

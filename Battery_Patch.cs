@@ -56,6 +56,22 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(Battery))]
+        class Battery_Patch_
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("OnProtoDeserialize")]
+            static void OnProtoDeserializePostfix(Battery __instance)
+            {
+                __instance._capacity *= Main.config.batteryChargeMult;
+                if (__instance.charge > __instance._capacity)
+                    __instance.charge = __instance._capacity;
+                //Main.logger.LogDebug("Battery OnProtoDeserialize " + __instance._capacity);
+                //if (Main.gameLoaded)
+                //    AddDebug("Battery OnProtoDeserialize " + __instance._capacity);
+            }
+        }
+
         //[HarmonyPatch(typeof(Charger), "Start")]
         class Charger_Start_Patch
         {

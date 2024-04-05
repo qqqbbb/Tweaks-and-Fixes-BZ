@@ -9,20 +9,22 @@ namespace Tweaks_Fixes
     {
         public static float crushInterval = 3f;
         public static int extraCrushDepth = 0;
+        public static float crushDamageResistance = 0f;
         public static Dictionary<TechType, int> crushDepthEquipment = new Dictionary<TechType, int>();
+        public static Dictionary<TechType, int> crushDamageEquipment = new Dictionary<TechType, int>();
 
-        public static void CrushDamage()
+        public static void CrushDamagePlayer()
         {
             if (!Player.main.gameObject.activeInHierarchy || !Player.main.IsSwimming())
                 return;
 
             float depth = Ocean.GetDepthOf(Player.main.gameObject);
             float crushDepth = Main.config.crushDepth + extraCrushDepth;
-
             if (depth < crushDepth)
                 return;
 
-            float damage = (depth - crushDepth) * Main.config.crushDamageMult;
+            float mult = 1f - crushDamageResistance;
+            float damage = (depth - crushDepth) * Main.config.crushDamageMult * mult;
             if (Player.main.liveMixin)
                 Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
             //AddDebug(" CrushDamageUpdate " + damage);
@@ -44,6 +46,12 @@ namespace Tweaks_Fixes
                     extraCrushDepth += crushDepthEquipment[tt];
                     //AddDebug("crushDepth " + Main.config.crushDepth);
                 }
+                if (crushDamageEquipment.ContainsKey(tt))
+                {
+                    //AddDebug("crushDamageEquipment " + crushDamageEquipment[tt]);
+                    float res = crushDamageEquipment[tt] * .01f;
+                    crushDamageResistance += Mathf.Clamp01(res);
+                }
             }
                     
             [HarmonyPostfix]
@@ -60,6 +68,13 @@ namespace Tweaks_Fixes
                     extraCrushDepth -= crushDepthEquipment[tt];
                     //AddDebug("crushDepth " + Main.config.crushDepth);
                 }
+                if (crushDamageEquipment.ContainsKey(tt))
+                {
+                    //AddDebug("crushDamageEquipment " + crushDamageEquipment[tt]);
+                    crushDamageResistance -= crushDamageEquipment[tt];
+                    if (crushDamageResistance < 0f)
+                        crushDamageResistance = 0f;
+                }
             }
         }
 
@@ -74,7 +89,7 @@ namespace Tweaks_Fixes
                 if (Main.config.crushDamageMult > 0f && crushInterval + crushTime < Time.time)
                 {
                     crushTime = Time.time;
-                    CrushDamage();
+                    CrushDamagePlayer();
                 }
             }
         }
