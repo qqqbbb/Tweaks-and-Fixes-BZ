@@ -11,13 +11,18 @@ namespace Tweaks_Fixes
     class Plants_Patch
     {// fruit test -583 -30 -212   -520 -85 -80     -573 -34 -110
         static float creepVineSeedLightInt = 1.2f;
-
+        
         public static void AttachFruitPlant(GameObject go)
         { // FruitPlant will be saved
             PickPrefab[] pickPrefabs = go.GetComponentsInChildren<PickPrefab>(true);
             if (pickPrefabs == null || pickPrefabs.Length == 0)
                 return;
-
+            //FruitPlant oldFP = go.GetComponent<FruitPlant>();
+            //if (pickPrefabs.Length > 0)
+            //{
+            //    if (oldFP == null || !oldFP.fruitSpawnEnabled)
+            //        Main.logger.LogDebug(" AttachFruitPlant bad " + go.name + " " + pickPrefabs.Length);
+            //}
             FruitPlant fp = go.EnsureComponent<FruitPlant>();
             fp.fruitSpawnEnabled = true;
             //AddDebug(__instance.name + " fruitSpawnInterval orig " + fp.fruitSpawnInterval);

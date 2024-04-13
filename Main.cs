@@ -29,7 +29,7 @@ namespace Tweaks_Fixes
         private const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.2.0";
+            VERSION = "2.03.0";
         public static Survival survival;
         public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
@@ -92,6 +92,7 @@ namespace Tweaks_Fixes
             UI_Patches.recyclotrons.Clear();
             //Base_Patch.baseBuilt = new Dictionary<SubRoot, bool>();
             Tools_Patch.fixedFish.Clear();
+            Battery_Patch.seatruckPRs.Clear();
             config.Load();
         }
 

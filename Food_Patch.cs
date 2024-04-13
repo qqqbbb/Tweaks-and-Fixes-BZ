@@ -122,6 +122,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             static void AwakePostfix(SnowBall __instance)
             {
+                //AddDebug("SnowBall Awake");
                 if (Main.config.snowballWater > 0)
                 {
                     Eatable eatable = __instance.gameObject.EnsureComponent<Eatable>();
@@ -132,6 +133,13 @@ namespace Tweaks_Fixes
                     //AddDebug("SnowBall Awake waterValue " + eatable.waterValue);
                     __instance.GetComponent<WorldForces>().underwaterGravity = .5f;
                 }
+                LiveMixin lm = __instance.gameObject.AddComponent<LiveMixin>();
+                lm.data = ScriptableObject.CreateInstance<LiveMixinData>();
+                lm.data.maxHealth = 1;
+                lm.data.destroyOnDeath = true;
+                //lm.data.explodeOnDestroy = false;
+                lm.data.knifeable = true;
+                Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.snow); // vanilla is metal
                 //SnowBallChecker snowBallChecker = __instance.gameObject.EnsureComponent<SnowBallChecker>();
                 //snowBallChecker.InvokeRepeating("CheckSnowball", 1f, checkInterval);
             }

@@ -76,7 +76,7 @@ namespace Tweaks_Fixes
         public bool cantUseMedkitUnderwater = false;
 
         [Toggle("Always use best LOD models", Tooltip = "A lot of models in the game use different levels of detail depending on how close you are to them. Some of them look different and you can see those objects change as you approach them. With this on best LOD models will always be used. It will affect the game's performance, but with a good GPU it should not be noticable. The game has to be reloaded after changing this.")]
-        public bool alwaysBestLOD = false;
+        public bool useBestLOD = false;
 
         [Slider("Drop pod max power", 0, 100, DefaultValue = 0, Step = 5, Format = "{0:F0}", Tooltip = "If this is not 0 your drop pod's max power will be set to this. Drop pod's power will regenerate during the day. The game has to be reloaded after changing this.")]
         public int dropPodMaxPower = 0;
@@ -172,7 +172,7 @@ namespace Tweaks_Fixes
         [Toggle("Drop held tool when taking damage", Tooltip = "Chance to drop your tool is equal to amount of damage taken. If you take 30 damage, there is 30% chance you will drop your tool.")]
         public bool dropHeldTool = false;
 
-        [Slider("Tool power consumption multiplier", 0f, 4f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Amount of power consumed by your tools will be multiplied by this.")]
+        [Slider("Tool power consumption multiplier", 0f, 3f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Amount of power consumed by your tools will be multiplied by this.")]
         public float toolEnergyConsMult = 1f;
 
         [Slider("Vehicle power consumption multiplier", 0f, 4f, DefaultValue = 1f, Step = .1f, Format = "{0:0.#}", Tooltip = "Amount of power consumed by your vehicles will be multiplied by this.")]

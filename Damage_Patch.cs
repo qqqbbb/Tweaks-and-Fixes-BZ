@@ -64,6 +64,9 @@ namespace Tweaks_Fixes
                 if (!terrain)
                     colTarget = Util.GetEntityRoot(collision.gameObject);
 
+                if (!colTarget)
+                    colTarget = collision.gameObject;
+
                 if (collision.gameObject.GetComponentInParent<Player>())
                 {
                     if (!__instance.allowDamageToPlayer)

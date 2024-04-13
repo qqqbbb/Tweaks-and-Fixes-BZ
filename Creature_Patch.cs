@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using static ErrorMessage;
+using System.Runtime.CompilerServices;
 
 namespace Tweaks_Fixes
 {
@@ -11,6 +12,7 @@ namespace Tweaks_Fixes
         public static HashSet<TechType> notRespawningCreatures = new HashSet<TechType> { };
         public static HashSet<TechType> notRespawningCreaturesIfKilledByPlayer = new HashSet<TechType> { };
         internal static Dictionary<TechType, int> respawnTime = new Dictionary<TechType, int> ();
+        public static ConditionalWeakTable<SwimBehaviour, string> fishSBs = new ConditionalWeakTable<SwimBehaviour, string>();
 
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
         class FleeOnDamage_OnTakeDamage_Postfix_Patch
@@ -185,14 +187,11 @@ namespace Tweaks_Fixes
                         __result = true;
                         return;
                     }
-                    foreach (Pickupable p in Gravsphere_Patch.gravSphereFish)
+                    if (Gravsphere_Patch.gravSphereFish.Contains(__instance))
                     {
-                        if (p == __instance)
-                        {
-                            //AddDebug("Gravsphere ");
-                            __result = true;
-                            return;
-                        }
+                        //AddDebug("Gravsphere ");
+                        __result = true;
+                        return;
                     }
                 }
 
@@ -205,9 +204,11 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SwimToInternal")]
             public static void Prefix(SwimBehaviour __instance, ref float velocity)
             {
-                if (Util.IsEatableFish(__instance.gameObject))
+                if (fishSBs.TryGetValue(__instance, out string s) || Util.IsEatableFish(__instance.gameObject))
                 {
                     velocity *= Main.config.fishSpeedMult;
+                    if (s == null)
+                        fishSBs.Add(__instance, "");
                 }
                 else
                 {
@@ -327,6 +328,16 @@ namespace Tweaks_Fixes
             {
                 if (!Main.config.waterparkCreaturesBreed)
                     __result = false;
+            }
+        }
+
+        [HarmonyPatch(typeof(RockPuncherTreasureHunt), "PlayKnockAnimation")]
+        class RockPuncherTreasureHunt_PlayKnockAnimation_patch
+        {
+            public static void Prefix(RockPuncherTreasureHunt __instance)
+            {
+                __instance.successChance = ConfigToEdit.rockPuncherChanceToFindRock.Value * .01f;
+                //AddDebug("PlayKnockAnimation " + __instance.successChance);
             }
         }
 

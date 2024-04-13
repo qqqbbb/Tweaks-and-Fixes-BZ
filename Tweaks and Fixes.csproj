@@ -89,6 +89,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Battery_Patch.cs" />
+    <Compile Include="PropulsionCannon_Patch.cs" />
+    <Compile Include="Constructor_Patch.cs" />
+    <Compile Include="Inventory_Patch.cs" />
     <Compile Include="GameInput_Patch.cs" />
     <Compile Include="Screen_Resolution_Fix.cs" />
     <Compile Include="Start_Warning_Patch.cs" />

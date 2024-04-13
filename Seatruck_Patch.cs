@@ -129,7 +129,9 @@ namespace Tweaks_Fixes
             public static void GetInsideTemperaturePostfix(SeaTruckSegment __instance, ref float __result)
             {
                 if (Main.config.useRealTempForPlayerTemp && !__instance.relay.IsPowered())
-                    __result = Player_Patches.ambientTemperature;
+                    __result = WaterTemperatureSimulation.main.GetTemperature(__instance.transform.position);
+                else
+                    __result = ConfigToEdit.insideBaseTemp.Value;
                 //AddDebug("SeaTruckSegment GetInsideTemperature " + __result);
             }
             //[HarmonyPostfix]

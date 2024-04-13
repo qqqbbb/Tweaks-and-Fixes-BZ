@@ -82,9 +82,6 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    AddDebug("eatableFoodValue.Count) " + Pickupable_Patch.eatableFoodValue.Count);
-                    AddDebug("eatableWaterValue.Count) " + Pickupable_Patch.eatableWaterValue.Count);
-                    AddDebug("decayingFood.Count) " + Food_Patch.decayingFood.Count);
                     //List<string> techTypes = new List<string>();
                     //foreach (TechType tt in Enum.GetValues(typeof(TechType)))
                     {
@@ -92,6 +89,8 @@ namespace Tweaks_Fixes
                         //string name = Language.main.Get(tt);
                         //techTypes.Add(tt.ToString() + "  " + name);
                     }
+                    //AddDebug("CanPlayerEat " + Util.CanPlayerEat());
+                   
                     //techTypes.Sort();
                     //foreach (var s in techTypes)
                     //    Util.Log(s);
@@ -199,16 +198,19 @@ namespace Tweaks_Fixes
             public static void printTarget()
             {
                 GameObject target = Player.main.guiHand.activeTarget;
+                //if (Player.main.guiHand.activeTarget)
+                //    AddDebug("activeTarget " + Player.main.guiHand.activeTarget);
+                
                 RaycastHit hitInfo = new RaycastHit();
                 if (!target)
-                    Util.GetPlayerTarget(111f, out hitInfo);
+                    Util.GetPlayerTarget(111f, out hitInfo, true);
                 //Targeting.GetTarget(Player.main.gameObject, 11f, out target, out float targetDist);
                 if (hitInfo.collider)
                     target = hitInfo.collider.gameObject;
 
                 if (!target)
                     return;
-
+                //AddDebug("target " + target.name);
                 VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
                 TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
                 if (tcpc)
@@ -228,7 +230,7 @@ namespace Tweaks_Fixes
                     int posY = (int)lwe.transform.position.y;
                     int posZ = (int)lwe.transform.position.z;
                     AddDebug(" position " + posX + " " + posY + " " + posZ);
-                    AddDebug(" cellLevel " + lwe.cellLevel);
+                    //AddDebug(" cellLevel " + lwe.cellLevel);
                     if (vfxSurfaceType != VFXSurfaceTypes.none)
                         AddDebug("vfxSurfaceType  " + vfxSurfaceType);
 
@@ -243,6 +245,10 @@ namespace Tweaks_Fixes
                 TechType techType = CraftData.GetTechType(target);
                 if (techType != TechType.None)
                     AddDebug("TechType  " + techType);
+
+                HarvestType harvestType = TechData.GetHarvestType(techType);
+                if (harvestType != HarvestType.None)
+                    AddDebug("harvestType  " + harvestType);
             }
 
             static void PrintTerrainSurfaceType()

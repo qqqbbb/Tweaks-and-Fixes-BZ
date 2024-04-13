@@ -49,7 +49,7 @@ namespace Tweaks_Fixes
         public static void ClearAll(Gravsphere __instance)
         {
             //AddDebug("ClearAll ");
-            gravSphereFish = new HashSet<Pickupable>();
+            gravSphereFish.Clear();
         }
 
         //[HarmonyPrefix]

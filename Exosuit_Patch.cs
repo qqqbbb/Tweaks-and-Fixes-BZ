@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using static ErrorMessage;
 using static Story.ToggleMusicTrackData;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 { 
@@ -65,9 +66,12 @@ namespace Tweaks_Fixes
         }
 
         public static bool HasMoreThan1TorpedoType(Exosuit exosuit, ItemsContainer torpedoStorage)
-        {
-            List<TorpedoType> torpedos = GetTorpedos(exosuit, torpedoStorage);
+        {// torpedoStorage has torpedos after torpedo arm removed
+            if (exosuit.leftArmType != TechType.ExosuitTorpedoArmModule && exosuit.rightArmType != TechType.ExosuitTorpedoArmModule)
+                return false;
 
+            List<TorpedoType> torpedos = GetTorpedos(exosuit, torpedoStorage);
+            //AddDebug("torpedos Count " + torpedos.Count);
             if (torpedos != null && torpedos.Count > 1)
                 return true;
 
@@ -195,7 +199,7 @@ namespace Tweaks_Fixes
                             selectedTorpedoRight = torpedoTypes[index];
 
                         //AddDebug("GetTorpedoName return " + torpedoType);
-                        return Language.main.Get(torpedoType) + " x" + torpedoStorage.GetCount(torpedoType);
+                        return Language.main.Get(torpedoType) + " " + torpedoStorage.GetCount(torpedoType);
                     }
                 }
             }
@@ -331,6 +335,30 @@ namespace Tweaks_Fixes
                 vehicle.OnPoweredChanged(powered);
             }
             vehicle.ReplenishOxygen();
+        }
+
+        private static void CheckExosuitButtons(Exosuit exosuit)
+        {
+            if (!IngameMenu.main.isActiveAndEnabled && !Player.main.pda.isInUse && Player.main.inExosuit && Player.main.currentMountedVehicle == exosuit)
+            {
+                if (GameInput.GetButtonDown(GameInput.Button.MoveDown))
+                    ToggleLights(exosuit);
+
+                if (GameInput.lastDevice == GameInput.Device.Controller)
+                {
+                    bool leftTorpedo = HasMoreThan1TorpedoType(exosuit, torpedoStorageLeft);
+                    bool rightTorpedo = HasMoreThan1TorpedoType(exosuit, torpedoStorageRight);
+
+                    if (leftTorpedo && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                    {
+                        ChangeTorpedo(exosuit, 0);
+                    }
+                    else if (rightTorpedo && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                    {
+                        ChangeTorpedo(exosuit, 1);
+                    }
+                }
+            }
         }
 
         [HarmonyPostfix]
@@ -605,11 +633,7 @@ namespace Tweaks_Fixes
             //    AddDebug("horizontalJetsActive " + __instance.horizontalJetsActive);
             //if (__instance.thrustPower < 1F)
             //    AddDebug("thrustPower " + __instance.thrustPower.ToString("0.0"));
-
-            if (!IngameMenu.main.isActiveAndEnabled && !Player.main.pda.isInUse && Player.main.inExosuit && Player.main.currentMountedVehicle == __instance && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
-            {
-                ToggleLights(__instance);
-            }
+            CheckExosuitButtons(__instance);
         }
 
         private static void SetLights(Exosuit exosuit, bool active)
@@ -784,6 +808,7 @@ namespace Tweaks_Fixes
             {
                 bool leftTorpedo = HasMoreThan1TorpedoType(__instance, torpedoStorageLeft);
                 bool rightTorpedo = HasMoreThan1TorpedoType(__instance, torpedoStorageRight);
+                //AddDebug("UpdateUIText leftTorpedo " + leftTorpedo + " rightTorpedo " + rightTorpedo);
                 bool lightsText = false;
                 string buttonFormat1 = LanguageCache.GetButtonFormat("ExosuitBoost", GameInput.Button.Sprint);
                 string buttonFormat2 = LanguageCache.GetButtonFormat("ExosuitJump", GameInput.Button.MoveUp);
@@ -843,6 +868,11 @@ namespace Tweaks_Fixes
                         __instance.sb.Append(UI_Patches.slot2Button);
                         __instance.sb.Append(UI_Patches.changeTorpedoExosuitButtonKeyboard);
                     }
+                }
+                else if (GameInput.lastDevice == GameInput.Device.Controller)
+                { // alt tool button used by prop arm
+                    if (leftTorpedo || rightTorpedo)
+                        __instance.sb.Append(UI_Patches.exosuitChangeTorpedoButton);
                 }
                 if (hasPropCannon)
                 {

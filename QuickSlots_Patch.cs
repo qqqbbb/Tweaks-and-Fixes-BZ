@@ -14,6 +14,8 @@ namespace Tweaks_Fixes
         static Queue<InventoryItem> toEquip;
         static HashSet<TechType> toEquipTT;
         public static bool invChanged = true;
+        public static GameInput.Button quickslotButton;
+        public static GameInput.Button lightButton;
 
         public static void GetTools()
         {
@@ -121,10 +123,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SlotNext")]
             public static bool SlotNextPrefix(QuickSlots __instance)
             {
-                if (Input.GetKey(Main.config.quickslotKey))
+                if (Input.GetKey(Main.config.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
                 {
-                    Pickupable pickupable = Inventory.main.GetHeld();
-                    if (pickupable != null)
+                    if (Inventory.main.GetHeld() != null)
                     {
                         EquipNextTool();
                         return false;
@@ -136,10 +137,13 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SlotPrevious")]
             public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
-                if (Input.GetKey(Main.config.quickslotKey) && Inventory.main.GetHeld() != null)
+                if (Input.GetKey(Main.config.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
                 {
-                    EquipNextTool();
-                    return false;
+                    if (Inventory.main.GetHeld() != null)
+                    {
+                        EquipNextTool();
+                        return false;
+                    }
                 }
                 return true;
             }

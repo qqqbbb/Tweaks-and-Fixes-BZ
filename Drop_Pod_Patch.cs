@@ -123,7 +123,7 @@ namespace Tweaks_Fixes
                     if (__instance.HasEnoughPower())
                         text2 = Language.main.GetFormat<int, int>("PowerCellStatus", Mathf.FloorToInt(__instance.powerRelay.GetPower()), Mathf.FloorToInt(__instance.powerRelay.GetMaxPower()));
                     else
-                        text2 = "unpowered";
+                        text2 = Language.main.Get("Unpowered");
 
                     HandReticle.main.SetIcon(HandReticle.IconType.Hand);
                 }
@@ -155,7 +155,10 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("LifepodDrop GetPower " + podPowerSource.GetPower());
                     if (podPowerSource && podPowerSource.GetPower() <= 0)
+                        //__result = Player_Patches.ambientTemperature;
                         __result = WaterTemperatureSimulation.main.GetTemperature(__instance.transform.position);
+
+
                 }
             }
         }

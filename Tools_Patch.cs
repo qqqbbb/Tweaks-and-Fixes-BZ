@@ -13,8 +13,8 @@ namespace Tweaks_Fixes
 {
     class Tools_Patch
     {
-        public static bool releasingGrabbedObject = false;
-        public static List<GameObject> repCannonGOs = new List<GameObject>();
+
+        //public static List<GameObject> repCannonGOs = new List<GameObject>();
         public static PlayerTool equippedTool;
         public static List<PlayerTool> fixedFish = new List<PlayerTool>();
 
@@ -223,21 +223,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Constructor), "OnEnable")]
-        class Constructor_OnEnable_Patch
-        {
-            static void Postfix(Constructor __instance)
-            {
-                ImmuneToPropulsioncannon itpc = __instance.GetComponent<ImmuneToPropulsioncannon>();
-                if (itpc)
-                {
-                    //AddDebug("OnEnable Constructor ");
-                    UnityEngine.Object.Destroy(itpc);
-                }
-                //itpc.enabled = false;
-            }
-        }
-
         [HarmonyPatch(typeof(FlashLight), "Start")]
         public class FlashLight_Start_Patch
         {
@@ -253,30 +238,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(PropulsionCannon))]
-        class PropulsionCannon_Patch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch("OnShoot")]
-            static void OnShootPrefix(PropulsionCannon __instance)
-            {
-                if (__instance.grabbedObject == null)
-                    return;
-                //AddDebug("OnShoot " + __instance.grabbedObject.name);
-                releasingGrabbedObject = true;
-            }
-
-            [HarmonyPrefix]
-            [HarmonyPatch("ReleaseGrabbedObject")]
-            static void ReleaseGrabbedObjectPrefix(PropulsionCannon __instance)
-            {
-                if (__instance.grabbedObject == null)
-                    return;
-                //AddDebug("ReleaseGrabbedObject " + __instance.grabbedObject.name);
-                releasingGrabbedObject = true;
-            }
-
-        }
 
         [HarmonyPatch(typeof(VehicleInterface_MapController), "Start")]
         class VehicleInterface_MapController_Start_Patch

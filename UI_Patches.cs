@@ -33,7 +33,6 @@ namespace Tweaks_Fixes
         static public string throwFlareString = string.Empty;
         static public string lightAndThrowFlareString = string.Empty;
         static public string toggleBaseLights = string.Empty;
-        static public string changeTorpedoExosuitButtonGamepad = string.Empty;
         static public string changeTorpedoExosuitButtonKeyboard = string.Empty;
         static public string cycleNextButton = string.Empty;
         static public string cyclePrevButton = string.Empty;
@@ -45,6 +44,11 @@ namespace Tweaks_Fixes
         static public string moveLeftButton = string.Empty;
         static public string swivelText = string.Empty;
         static public string deconstructButton = string.Empty;
+        static public string exosuitChangeTorpedoButton = string.Empty;
+        static public string propCannonEatString = string.Empty;
+        static public string pickupString = string.Empty;
+
+        static public string bladderfishTooltip = Language.main.Get("Tooltip_Bladderfish") + Language.main.Get("TF_bladderfish_tooltip");
 
         private static void HandleBaseLights(SubRoot subRoot)
         {
@@ -55,7 +59,7 @@ namespace Tweaks_Fixes
 
         static void SetTooltips()
         {
-            LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, Language.main.Get("Tooltip_Bladderfish") + Language.main.Get("TF_bladderfish_tooltip"));
+            LanguageHandler.SetTechTypeTooltip(TechType.Bladderfish, bladderfishTooltip);
             LanguageHandler.SetTechTypeTooltip(TechType.SmallStove, Language.main.Get("TF_smallStove_tooltip"));
             // vanilla desc just copies the name
             LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, Language.main.Get("TF_SeaTruckUpgradeHorsePower_tooltip"));
@@ -68,23 +72,24 @@ namespace Tweaks_Fixes
             //AddDebug("GetStrings");
             SetTooltips();
             deconstructButton = uGUI.FormatButton(GameInput.Button.Deconstruct);
-            exosuitLightsButton = ", " + LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.Deconstruct);
+            exosuitLightsButton = ", " + LanguageCache.GetButtonFormat("SeaglideLightsTooltip", GameInput.Button.MoveDown);
             altToolButton = uGUI.FormatButton(GameInput.Button.AltTool);
             rightHandButton = uGUI.FormatButton(GameInput.Button.RightHand);
             leftHandButton = uGUI.FormatButton(GameInput.Button.LeftHand);
             moveLeftButton = uGUI.FormatButton(GameInput.Button.MoveLeft);
             moveRightButton = uGUI.FormatButton(GameInput.Button.MoveRight);
 
+            pickupString = Language.main.Get("PickUp");
+            pickupString = pickupString.Substring(0, pickupString.IndexOf('{')).Trim();
+            propCannonEatString = TooltipFactory.stringEat + " (" + deconstructButton + ")";
             fishDropString = TooltipFactory.stringDrop + " (" + rightHandButton + ")";
             fishEatString = TooltipFactory.stringEat + " (" + altToolButton + ")";
             lightFlareString = Language.main.Get("TF_light_flare") + " (" + altToolButton + ")";
             throwFlareString = Language.main.Get("TF_throw_flare") + " (" + rightHandButton + ")";
-            
             swivelText = Language.main.Get("TF_swivel_chair_left") + " (" + moveLeftButton + ")  " + Language.main.Get("TF_swivel_chair_right") + " (" + moveRightButton + ")";
             lightAndThrowFlareString = Language.main.Get("TF_light_and_throw_flare") + " (" + rightHandButton + ")";
             beaconToolString = TooltipFactory.stringDrop + " (" + rightHandButton + ")  " + Language.main.Get("BeaconLabelEdit") + " (" + deconstructButton + ")";
             beaconPickString = "(" + leftHandButton + ")\n" + Language.main.Get("BeaconLabelEdit");
-
             toggleBaseLights = Language.main.Get("TF_toggle_base_lights") + " (" + deconstructButton + ")";
             cycleNextButton = uGUI.FormatButton(GameInput.Button.CycleNext);
             cyclePrevButton = uGUI.FormatButton(GameInput.Button.CyclePrev);
@@ -93,7 +98,7 @@ namespace Tweaks_Fixes
             slot2Button = "(" + uGUI.FormatButton(GameInput.Button.Slot2) + ")";
             slot1Plus2Button = slot1Button + slot2Button;
             Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
-            //changeTorpedoExosuitButtonKeyboard = slot1Button + Main.config.translatableStrings[17];
+            exosuitChangeTorpedoButton = Language.main.Get("TF_change_torpedo") + "(" + deconstructButton + ")";
         }
 
         [HarmonyPatch(typeof(Recyclotron), "Start")]
@@ -625,8 +630,7 @@ namespace Tweaks_Fixes
                         text = GUIHand.GetActionString(ItemAction.Drop, heldItem.item);
                         text = HandReticle.main.GetText(text, true, GameInput.Button.RightHand);
                     }
-                    bool cantEat = Main.config.cantEatUnderwater && Player.main.IsUnderwater();
-                    if (!cantEat)
+                    if (Util.CanPlayerEat())
                     {
                         string eatText = GUIHand.GetActionString(ItemAction.Eat, heldItem.item);
                         eatText = HandReticle.main.GetText(eatText, true, GameInput.Button.AltTool);
@@ -980,41 +984,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Inventory), "ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem)})]
-        class Inventory_ExecuteItemAction_Patch
-        {
-            public static bool Prefix(Inventory __instance, InventoryItem item, ItemAction action)
-            {
-                //AddDebug("ExecuteItemAction " + action);
-                IItemsContainer oppositeContainer = __instance.GetOppositeContainer(item);
-                if (action != ItemAction.Switch || oppositeContainer == null || item.container is Equipment || oppositeContainer is Equipment)
-                    return true;
-
-                ItemsContainer container = (ItemsContainer)item.container;
-                List<InventoryItem> itemsToTransfer = new List<InventoryItem>();
-                if (Input.GetKey(Main.config.transferAllItemsKey))
-                {
-                    //AddDebug("LeftShift ");
-                    foreach (TechType itemType in container.GetItemTypes())
-                        container.GetItems(itemType, itemsToTransfer);
-                }
-                else if (Input.GetKey(Main.config.transferSameItemsKey))
-                {
-                    //AddDebug("LeftControl ");
-                    container.GetItems(item.item.GetTechType(), itemsToTransfer);
-                }
-                foreach (InventoryItem ii in itemsToTransfer)
-                {
-                    //AddDebug("itemsToTransfer " + ii.item.name);
-                    Inventory.AddOrSwap(ii, oppositeContainer);
-                }
-                if (itemsToTransfer.Count > 0)
-                    return false;
-                else
-                    return true;
-            }
-        }
-               
         [HarmonyPatch(typeof(uGUI_HealthBar), "LateUpdate")]
         class uGUI_HealthBar_LateUpdate_Patch
         {

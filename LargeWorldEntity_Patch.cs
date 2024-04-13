@@ -11,6 +11,14 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(LargeWorldEntity))]
     class LargeWorldEntity_Patch
     {
+        static HashSet<TechType> plantSurfaces = new HashSet<TechType> { TechType.PurpleVegetablePlant, TechType.Creepvine, TechType.HeatFruitPlant, TechType.IceFruitPlant, TechType.FrozenRiverPlant2, TechType.JellyPlant, TechType.LeafyFruitPlant, TechType.KelpRoot, TechType.KelpRootPustule, TechType.HangingFruitTree, TechType.MelonPlant, TechType.SnowStalkerPlant, TechType.CrashHome, TechType.DeepLilyShroom, TechType.DeepLilyPadsLanternPlant, TechType.BlueFurPlant, TechType.GlacialTree, TechType.GlowFlower, TechType.OrangePetalsPlant, TechType.HoneyCombPlant, TechType.CavePlant, TechType.GlacialPouchBulb, TechType.PurpleRattle, TechType.ThermalLily, TechType.GlacialBulb, TechType.PinkFlower, TechType.SmallMaroonPlant, TechType.DeepTwistyBridgesLargePlant, TechType.GenericShellDouble, TechType.TwistyBridgeCliffPlant, TechType.GenericCrystal, TechType.CaveFlower, TechType.TrianglePlant, TechType.PurpleBranches, TechType.GenericBigPlant2, TechType.GenericBigPlant1, TechType.GenericShellSingle, TechType.OxygenPlant, TechType.TwistyBridgeCoralLong, TechType.GenericCage, TechType.TapePlant, TechType.GenericBowl, TechType.TallShootsPlant, TechType.TreeSpireMushroom, TechType.RedBush, TechType.GenericRibbon, TechType.MohawkPlant, TechType.GenericSpiral, TechType.SpottedLeavesPlant, TechType.TornadoPlates, TechType.ThermalSpireBarnacle, TechType.TwistyBridgesLargePlant, TechType.PurpleStalk, TechType.LargeVentGarden, TechType.SmallVentGarden};
+
+        static HashSet<TechType> LilyPadTechtypes = new HashSet<TechType> { TechType.LilyPadFallen, TechType.LilyPadMature, TechType.LilyPadResource, TechType.LilyPadRoot, TechType.LilyPadStage1, TechType.LilyPadStage2, TechType.LilyPadStage3 };
+        static HashSet<TechType> coralTechtypes = new HashSet<TechType> { TechType.TwistyBridgesCoralShelf, TechType.JeweledDiskPiece, TechType.GenericJeweledDisk };
+
+         static HashSet<string> plantsWithoutTechtype = new HashSet<string> { "treespires_cliff_lanterns_01_" };
+         static HashSet<string> lilypadWithoutTechtype = new HashSet<string> { "lilypad_roots_", "lilypad_base_", "lilypad_middle_", "lilypad_stage_", "lilypad_fallen_" };
+        static HashSet<string> metalWithoutTechtype = new HashSet<string> { "Precursor_ArcticSpires_Cable_LightBlock_BrokenCable_InGround" };
 
         [HarmonyPostfix]
         [HarmonyPatch("Start")]
@@ -18,10 +26,20 @@ namespace Tweaks_Fixes
         { // not run for items in container
             TechType tt = CraftData.GetTechType(__instance.gameObject);
             //Main.logger.LogDebug("LargeWorldEntity start " + tt);
+            if (plantSurfaces.Contains(tt))
+            {
+                Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
+            }
+            if (LilyPadTechtypes.Contains(tt) || tt == TechType.TwistyBridgesMushroom)
+            {
+                Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.lilypad);
+            }
+            if (coralTechtypes.Contains(tt))
+            {
+                Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
+            }
             if (tt == TechType.GenericJeweledDisk)
             {
-                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
-                surface.surfaceType = VFXSurfaceTypes.coral;
                 if (ConfigToEdit.fixCoral.Value)
                 {
                     Animator a = __instance.GetComponentInChildren<Animator>();
@@ -52,15 +70,13 @@ namespace Tweaks_Fixes
                 }
             }
             else if (tt == TechType.IceFruitPlant || tt == TechType.Creepvine || tt == TechType.SnowStalkerPlant)
-            {
-                //PickPrefab[] pickPrefabs = __instance.GetAllComponentsInChildren<PickPrefab>();
-                if (Main.config.fruitGrowTime > 0)
-                    Plants_Patch.AttachFruitPlant(__instance.gameObject);
+            { // bad Creepvine -680 -630
+              //PickPrefab[] pickPrefabs = __instance.GetAllComponentsInChildren<PickPrefab>();
+              //if (Main.config.fruitGrowTime > 0)
+                Plants_Patch.AttachFruitPlant(__instance.gameObject);
             }
             else if (tt == TechType.TwistyBridgeCoralLong)
             {
-                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
-                surface.surfaceType = VFXSurfaceTypes.vegetation;
                 // disable collision but allow scanning
                 Collider collider = __instance.GetComponent<Collider>();
                 if (collider)
@@ -75,39 +91,20 @@ namespace Tweaks_Fixes
             }
             else if (tt == TechType.TapePlant)
             {// disable collision but allow scanning
-                Transform tr = __instance.transform.GetChild(0);
                 CapsuleCollider cc = __instance.GetComponent<CapsuleCollider>();
-                GameObject go = new GameObject("collision");
-                go.transform.SetParent(__instance.transform);
-                go.transform.position = tr.position;
-                go.transform.localPosition = tr.localPosition;
-                go.layer = 13;
-                CapsuleCollider cc1 = go.AddComponent<CapsuleCollider>();
-                cc1.isTrigger = true;
-                cc1.center = cc.center;
-                cc1.radius = cc.radius;
-                cc1.height = cc.height * cc.height;
-                UnityEngine.Object.Destroy(cc);
+                __instance.gameObject.layer = LayerID.Useable;
+                cc.isTrigger = true;
+                cc.height *= cc.height;
             }
             else if (tt == TechType.CyanFlower)
             {// disable collision but allow scanning
                 Transform tr = __instance.transform.Find("collision");
                 if (tr)
                 {
-                    tr.gameObject.layer = 13;
+                    tr.gameObject.layer = LayerID.Useable;
                     CapsuleCollider cc = tr.GetComponent<CapsuleCollider>();
                     cc.isTrigger = true;
                 }
-            }
-            else if (tt == TechType.TwistyBridgesCoralShelf || tt == TechType.JeweledDiskPiece || tt == TechType.GenericJeweledDisk)
-            {
-                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
-                surface.surfaceType = VFXSurfaceTypes.coral;
-            }
-            else if (tt == TechType.OxygenPlant)
-            {
-                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
-                surface.surfaceType = VFXSurfaceTypes.lilypad;
             }
             else if (tt == TechType.None)
             {
@@ -124,6 +121,20 @@ namespace Tweaks_Fixes
                         //__instance.transform.eulerAngles = new Vector3(rot.x, rot.y, 359f);
                     //}
                 }
+                foreach (string s in lilypadWithoutTechtype)
+                {
+                    if (__instance.name.StartsWith(s))
+                    {
+                        Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.lilypad);
+                        AddDebug("lilypadWithoutTechtype");
+                    }
+                }
+                foreach (string s in plantsWithoutTechtype)
+                {
+                    if (__instance.name.StartsWith(s))
+                        Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
+                }
+
                 if (__instance.name == "treespires_fissure_edge_01_b_straight(Clone)")
                 {
                     int x = (int)__instance.transform.position.x;
@@ -191,7 +202,7 @@ namespace Tweaks_Fixes
                 }
 
             }
-            if (Main.config.alwaysBestLOD)
+            if (Main.config.useBestLOD)
             {
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 LODGroup[] lodGroups = __instance.GetComponentsInChildren<LODGroup>();
@@ -263,18 +274,18 @@ namespace Tweaks_Fixes
                 Tools_Patch.equippedTool = null;
                 return false;
             }
-            else if(Tools_Patch.releasingGrabbedObject)
+            else if(PropulsionCannon_Patch.releasingGrabbedObject)
             {
-                Tools_Patch.releasingGrabbedObject = false;
+                PropulsionCannon_Patch.releasingGrabbedObject = false;
                 //AddDebug("StartFading releasingGrabbedObject " + __instance.name);
                 return false;
             }
-            else if (Tools_Patch.repCannonGOs.Contains(__instance.gameObject))
-            {
+            //else if (Tools_Patch.repCannonGOs.Contains(__instance.gameObject))
+            //{
                 //AddDebug("StartFading rep Cannon go " + __instance.name);
-                Tools_Patch.repCannonGOs.Remove(__instance.gameObject);
-                return false;
-            }
+            //    Tools_Patch.repCannonGOs.Remove(__instance.gameObject);
+            //    return false;
+            //}
             TechType tt = CraftData.GetTechType(__instance.gameObject);
             if (tt == TechType.JeweledDiskPiece || tt == TechType.Gold || tt == TechType.Silver || tt == TechType.Titanium || tt == TechType.Lead || tt == TechType.Lithium || tt == TechType.Diamond)
             {

@@ -13,6 +13,12 @@ namespace Tweaks_Fixes
 {
     internal static class Util
     {
+        public static bool CanPlayerEat()
+        {
+            bool canEat = GameModeManager.GetOption<bool>(GameOption.Hunger) || GameModeManager.GetOption<bool>(GameOption.Thirst);
+            bool cantEat = Main.config.cantEatUnderwater && Player.main.isUnderwater.value;
+            return canEat && !cantEat;
+        }
 
         static public IEnumerator AddToInventory(TechType techType)
         {
@@ -21,7 +27,6 @@ namespace Tweaks_Fixes
             TaskResult<GameObject> result = new TaskResult<GameObject>();
             yield return CraftData.InstantiateFromPrefabAsync(techType, (IOut<GameObject>)result);
             gameObject = result.Get();
-            result = (TaskResult<GameObject>)null;
             if (gameObject != null)
             {
                 //addedToInv = gameObject;
@@ -56,6 +61,11 @@ namespace Tweaks_Fixes
             }
         }
 
+        public static void AddVFXsurfaceComponent(GameObject go, VFXSurfaceTypes type)
+        {
+            VFXSurface vFXSurface = go.EnsureComponent<VFXSurface>();
+            vFXSurface.surfaceType = type;
+        }
 
         public static bool IsWater(Eatable eatable)
         {
@@ -218,12 +228,12 @@ namespace Tweaks_Fixes
 
         public static bool IsCreatureAlive(GameObject go)
         {
-            LiveMixin liveMixin = go.GetComponent<LiveMixin>();
             Creature creature = go.GetComponent<Creature>();
-            if (creature && liveMixin && liveMixin.IsAlive())
-                return true;
-            else
+            if (creature == null)
                 return false;
+
+            LiveMixin liveMixin = go.GetComponent<LiveMixin>();
+            return liveMixin && liveMixin.IsAlive();
         }
 
         public static bool IsEatableFish(GameObject go)
@@ -362,20 +372,34 @@ namespace Tweaks_Fixes
             return Physics.Raycast(startPos, dir, out hitInfo, distance);
         }
 
-        public static bool GetPlayerTarget(float distance, out RaycastHit hitInfo)
+        public static bool GetPlayerTarget(float distance, out RaycastHit hitInfo, bool getTriggers = false)
         {
             Vector3 startPos = Player.mainObject.transform.position;
             Vector3 dir = MainCamera.camera.transform.forward;
             int layerMask = ~(1 << LayerMask.NameToLayer("Player"));
-            return Physics.Raycast(startPos, dir, out hitInfo, distance, layerMask, QueryTriggerInteraction.Ignore);
-            //return Physics.Raycast(startPos, dir, out hitInfo, distance);
+            QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.Ignore;
+            if (getTriggers)
+                queryTriggerInteraction = QueryTriggerInteraction.Collide;
+
+            RaycastHit[] results = new RaycastHit[1];
+            int hits = Physics.RaycastNonAlloc(startPos, dir, results, distance, layerMask, queryTriggerInteraction);
+            //AddDebug("GetPlayerTarget hits " + hits + " results " + results.Length);
+            if (hits > 0)
+            {
+                hitInfo = results[0];
+                return true;
+            }
+            else
+                hitInfo = new RaycastHit();
+
+            return false;
         }
 
         public static GameObject GetEntityRoot(GameObject go)
         {
-            PrefabIdentifier prefabIdentifier = go.GetComponent<PrefabIdentifier>();
+            UniqueIdentifier prefabIdentifier = go.GetComponent<UniqueIdentifier>();
             if (prefabIdentifier == null)
-                prefabIdentifier = go.GetComponentInParent<PrefabIdentifier>();
+                prefabIdentifier = go.GetComponentInParent<UniqueIdentifier>();
             return prefabIdentifier != null ? prefabIdentifier.gameObject : null;
         }
 

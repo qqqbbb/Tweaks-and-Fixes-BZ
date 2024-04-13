@@ -9,19 +9,67 @@ namespace Tweaks_Fixes
 {
     class Battery_Patch
     {
+        static EnergyMixin PlayerToolEM;
+        static EnergyMixin HoverbikeEM;
+        static EnergyInterface propCannonEI;
+        public static HashSet<PowerRelay> seatruckPRs = new HashSet<PowerRelay>();
+
+      
         [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
         class EnergyMixin_OnAfterDeserialize_Patch
         {
             static void Prefix(EnergyMixin __instance, ref float amount)
             {
-                if (__instance.GetComponent<Hoverbike>())
+                //AddDebug(__instance.name + " EnergyMixin ConsumeEnergy");
+                if (HoverbikeEM == __instance)
                 {
                     //AddDebug("Hoverbike ConsumeEnergy");
                     amount *= Main.config.vehicleEnergyConsMult;
                 }
-                else
+                else if (PlayerToolEM  == __instance)
                 {
                     //AddDebug(__instance.name + " EnergyMixin ConsumeEnergy");
+                    amount *= Main.config.toolEnergyConsMult;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Hoverbike), "EnterVehicle")]
+        class Hoverbike_EnterVehicle_Patch
+        {
+            static void Postfix(Hoverbike __instance)
+            {
+                HoverbikeEM = __instance.energyMixin;
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerTool), "OnDraw")]
+        class PlayerTool_OnDraw_Patch
+        {
+            static void Postfix(PlayerTool __instance)
+            {
+                //AddDebug("PlayerTool OnDraw ");
+                PlayerToolEM = __instance.energyMixin;
+            }
+        }
+
+        [HarmonyPatch(typeof(PropulsionCannonWeapon), "OnDraw")]
+        class PropulsionCannonWeapon_OnDraw_Patch
+        {
+            static void Postfix(PropulsionCannonWeapon __instance)
+            {
+                propCannonEI = __instance.propulsionCannon.energyInterface;
+            }
+        }
+
+        [HarmonyPatch(typeof(EnergyInterface), "ConsumeEnergy")]
+        class EnergyInterface_ConsumeEnergy_Patch
+        {
+            static void Prefix(EnergyInterface __instance, ref float amount)
+            {
+                if (propCannonEI == __instance)
+                {
+                    //AddDebug(" propCannon ConsumeEnergy");
                     amount *= Main.config.toolEnergyConsMult;
                 }
             }
@@ -37,13 +85,23 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(SeaTruckSegment), "Start")]
+        class SeaTruckSegment_Start_Patch
+        {
+            static void Postfix(SeaTruckSegment __instance)
+            {
+                if (__instance.relay)
+                    seatruckPRs.Add(__instance.relay);
+            }
+        }
+
         [HarmonyPatch(typeof(PowerSystem), nameof(PowerSystem.ConsumeEnergy))]
         class PowerSystem_ConsumeEnergy_Patch
         {
             static void Prefix(ref float amount, IPowerInterface powerInterface)
             {
                 PowerRelay pr = powerInterface as PowerRelay;
-                if (pr && pr.GetComponent<SeaTruckSegment>())
+                if (pr && seatruckPRs.Contains(pr))
                 {
                     amount *= Main.config.vehicleEnergyConsMult;
                     //AddDebug(pr.name + " SeaTruck PowerRelay ConsumeEnergy ");

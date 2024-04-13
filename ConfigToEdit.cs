@@ -20,7 +20,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<Button> transferAllItemsButton;
         public static ConfigEntry<Button> transferSameItemsButton;
         public static ConfigEntry<Button> quickslotButton;
-        public static ConfigEntry<Button> lightButton;
         public static ConfigEntry<string> gameStartWarningText;
         public static ConfigEntry<string> newGameLoot;
         public static ConfigEntry<string> crushDepthEquipment;
@@ -70,10 +69,14 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> craftVehicleUpgradesOnlyInMoonpool;
         public static ConfigEntry<int> warmTemp;
         public static ConfigEntry<int> insideBaseTemp;
+        public static ConfigEntry<bool> propulsionCannonGrabFX;
+        public static ConfigEntry<int> rockPuncherChanceToFindRock;
+
 
 
 
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
+        public static AcceptableValueRange<int> rockPuncherChanceToFindRockRange = new AcceptableValueRange<int>(0, 100);
 
         public static void Bind()
         {
@@ -137,10 +140,12 @@ namespace Tweaks_Fixes
             warmTemp = Main.configB.Bind("", "Warm temperature", 15, "Player is warm when ambient temperature is above this celsius value.");
             insideBaseTemp = Main.configB.Bind("", "Temperature inside base", 22, "Celsius temperature inside powered base or vehicle. Used only when 'Only ambient tempterature makes player warm' setting is on.");
             gameStartWarningText = Main.configB.Bind("", "Game start warning text", "", "Text shown when the game starts. If this field is empty the warning will be skipped.");
+            propulsionCannonGrabFX = Main.configB.Bind("", "Propulsion cannon sphere effect", true, "Blue sphere visual effect you see when holding an object with propulsion cannon will be disabled if this is false.");
+            rockPuncherChanceToFindRock = Main.configB.Bind("", "Rock puncher chance percent to find rock", 20, new ConfigDescription("", rockPuncherChanceToFindRockRange));
             transferAllItemsButton = Main.configB.Bind("", "Move all items button", Button.LookUp, "Press this button to move all items from one container to another. This works only with controller.");
             transferSameItemsButton = Main.configB.Bind("", "Move same items button", Button.LookDown, "Press this button to move all items of the same type from one container to another. This works only with controller.");
             quickslotButton = Main.configB.Bind("", "Quickslot cycle button", Button.Exit, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller.");
-            lightButton = Main.configB.Bind("", "Light intensity button", Button.LeftHand, "When holding a tool in your hand or piloting a vehicle press 'Cycle next' or 'Cycle previous' button while holding down this button to change the tool's or vehicle's light intensity. This works only with controller.");
+
 
 
         }
@@ -247,6 +252,10 @@ namespace Tweaks_Fixes
             Creature_Patch.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
             Food_Patch.decayingFood = ParseSetFromString(decayingFood.Value);
             Creature_Patch.respawnTime = ParseIntDicFromString(respawnTime.Value);
+
+            Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
+            Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);
+            Enum.TryParse(quickslotButton.Value.ToString(), out QuickSlots_Patch.quickslotButton);
 
             //Main.logger.LogInfo("decayingFood str  " + decayingFood.Value);
             //Main.logger.LogInfo("decayingFood.Count  " + Food_Patch.decayingFood.Count);

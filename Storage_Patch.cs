@@ -479,32 +479,36 @@ namespace Tweaks_Fixes
                 //str = LanguageCache.GetButtonFormat("AirBladderUseTool", GameInput.Button.RightHand);
                 if (!__instance.enabled || __instance.disableUseability)
                     return false;
+
                 Constructable c = __instance.gameObject.GetComponent<Constructable>();
                 if (c && !c.constructed)
                     return false;
 
                 GameObject parent = Util.GetParent(__instance.gameObject);
+                //AddDebug("StorageContainer OnHandHover parent " + parent.name);
+                //AddDebug("StorageContainer OnHandHover transform.parent.name " + __instance.transform.parent.name);
 
                 //GameObject parent = __instance.transform.parent.gameObject;
                 ColoredLabel label = null;
                 PickupableStorage ps = null;
                 Sign sign = null;
                 if (parent.name == "SeaTruckStorageModule(Clone)")
+                {
                     label = GetSeaTruckLabel(parent, __instance);
+                }
+                else if(parent.name == "SeaTruckAquariumModule(Clone)")
+                {
+                    //AddDebug("StorageContainer OnHandHover aquarium");
+                }
                 else
-                {// fix
+                {
                     label = parent.GetComponentInChildren<ColoredLabel>();
                     ps = parent.GetComponentInChildren<PickupableStorage>();
                     sign = parent.GetComponentInChildren<Sign>();
-                }
+                }               
                 //if (label)
-                //AddDebug("StorageContainer OnHandHover label");
-                //if (ps)
-                //AddDebug("StorageContainer OnHandHover PickupableStorage");
+                //    AddDebug("StorageContainer OnHandHover label");
                 string text = GetText(label, ps, __instance, hand, sign);
-                //string text = HandReticle.main.GetText(__instance.hoverText, true, GameInput.Button.LeftHand);
-                //HandReticle.main.SetText(HandReticle.TextType.Hand, __instance.hoverText, true, GameInput.Button.LeftHand);
-                //HandReticle.main.SetText(HandReticle.TextType.HandSubscript, __instance.IsEmpty() ? "Empty" : string.Empty, true);
                 HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, text);
                 HandReticle.main.SetIcon(HandReticle.IconType.Hand);
                 ProcessInput(label, ps, __instance, hand, sign);
