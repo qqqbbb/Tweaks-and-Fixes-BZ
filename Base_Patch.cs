@@ -24,8 +24,8 @@ namespace Tweaks_Fixes
                     int z = (int)pos.z;
                     string key = x + "_" + y + "_" + z;
                     string currentSlot = SaveLoadManager.main.currentSlot;
-                    if (Main.config.baseLights.ContainsKey(currentSlot) && Main.config.baseLights[currentSlot].ContainsKey(key))
-                        return Main.config.baseLights[currentSlot][key];
+                    if (Main.configMain.baseLights.ContainsKey(currentSlot) && Main.configMain.baseLights[currentSlot].ContainsKey(key))
+                        return Main.configMain.baseLights[currentSlot][key];
                 }
                 return on;
             }
@@ -40,12 +40,12 @@ namespace Tweaks_Fixes
                     int z = (int)pos.z;
                     string key = x + "_" + y + "_" + z;
                     string currentSlot = SaveLoadManager.main.currentSlot;
-                    if (Main.config.baseLights.ContainsKey(currentSlot))
-                        Main.config.baseLights[currentSlot][key] = value;
+                    if (Main.configMain.baseLights.ContainsKey(currentSlot))
+                        Main.configMain.baseLights[currentSlot][key] = value;
                     else
                     {
-                        Main.config.baseLights[currentSlot] = new Dictionary<string, bool>();
-                        Main.config.baseLights[currentSlot][key] = value;
+                        Main.configMain.baseLights[currentSlot] = new Dictionary<string, bool>();
+                        Main.configMain.baseLights[currentSlot][key] = value;
                     }
                 }
             }
@@ -100,8 +100,8 @@ namespace Tweaks_Fixes
             int z = (int)pos.z;
             string key = x + "_" + y + "_" + z;
             string currentSlot = SaveLoadManager.main.currentSlot;
-            if (Main.config.baseLights.ContainsKey(currentSlot) && Main.config.baseLights[currentSlot].ContainsKey(key))
-                return Main.config.baseLights[currentSlot][key];
+            if (Main.configMain.baseLights.ContainsKey(currentSlot) && Main.configMain.baseLights[currentSlot].ContainsKey(key))
+                return Main.configMain.baseLights[currentSlot][key];
 
             return true;
         }
@@ -145,9 +145,9 @@ namespace Tweaks_Fixes
                     int z = (int)__instance.transform.position.z;
                     string key = x + "_" + y + "_" + z;
                     string currentSlot = SaveLoadManager.main.currentSlot;
-                    if (Main.config.baseLights.ContainsKey(currentSlot) && Main.config.baseLights[currentSlot].ContainsKey(key))
+                    if (Main.configMain.baseLights.ContainsKey(currentSlot) && Main.configMain.baseLights[currentSlot].ContainsKey(key))
                     {
-                        lightOn = Main.config.baseLights[currentSlot][key];
+                        lightOn = Main.configMain.baseLights[currentSlot][key];
                         BaseCellLighting[] bcls = __instance.GetComponentsInChildren<BaseCellLighting>();
                         //togglingLight = true;
                         //AddDebug("saved Lights " + lightOn);
@@ -188,50 +188,14 @@ namespace Tweaks_Fixes
                 //}
             }
 
-            //[HarmonyPrefix]
-            //[HarmonyPatch("Update")]
-            public static bool UpdatePrefix(SubRoot __instance)
-            { // fix temp updating only when player is in
-                if (!Main.config.useRealTempForPlayerTemp)
-                    return true;
-
-                if (__instance.LOD.IsMinimal())
-                    return false;
-
-                //else if (Player.main.IsInSub() && Player.main.currentSub == __instance)
-                    __instance.UpdateInternalTemperature(Time.deltaTime);
-                __instance.UpdateDamageSettings();
-                __instance.UpdateLighting();
-                __instance.UpdateThermalReactorCharge();
-                if (__instance.waterPlane != null)
-                {
-                    if (Player.main.IsInSub())
-                        __instance.waterPlane.GetComponent<SubWaterPlane>().leakAmount = __instance.floodFraction;
-                    else
-                        __instance.waterPlane.GetComponent<SubWaterPlane>().leakAmount = 0f;
-                }
-                if (__instance.shieldFX != null && __instance.shieldFX.gameObject.activeSelf)
-                {
-                    __instance.shieldImpactIntensity = Mathf.MoveTowards(__instance.shieldImpactIntensity, 0f, Time.deltaTime * .25f);
-                    __instance.shieldIntensity = Mathf.MoveTowards(__instance.shieldIntensity, __instance.shieldGoToIntensity, Time.deltaTime *.5f);
-                    __instance.shieldFX.material.SetFloat(ShaderPropertyID._Intensity, __instance.shieldIntensity);
-                    __instance.shieldFX.material.SetFloat(ShaderPropertyID._ImpactIntensity, __instance.shieldImpactIntensity);
-                    if (Util.Approximately(__instance.shieldIntensity, 0f) && __instance.shieldGoToIntensity == 0f)
-                        __instance.shieldFX.gameObject.SetActive(false);
-                }
-                __instance.UpdateSubModules();
-
-                return false;
-            }
-
             [HarmonyPostfix]
             [HarmonyPatch("Update")]
             public static void UpdatePostfix(SubRoot __instance)
             { // fix temp updating only when player is in
-                if (__instance.LOD.IsMinimal() || !Main.config.useRealTempForPlayerTemp)
+                if (__instance.LOD.IsMinimal() || !ConfigMenu.useRealTempForPlayerTemp.Value)
                     return;
 
-                if (Player.main.currentSub == null || !Player.main.currentSub == __instance)
+                if (Player.main.currentSub == null || Player.main.currentSub != __instance)
                     __instance.UpdateInternalTemperature(Time.deltaTime);
             }
 

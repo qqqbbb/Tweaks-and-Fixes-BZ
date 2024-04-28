@@ -84,9 +84,8 @@ namespace Tweaks_Fixes
             {
                 //if (__instance.maxSearchRings > 1)
                 //    AddDebug(__instance.name + " maxSearchRings " + __instance.maxSearchRings);
-             
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
-                if (__instance.targetType != EcoTargetType.Shark || aggrMult <= 1 || Main.config.predatorExclusion.Contains(__instance.myTechType))
+                if (__instance.targetType != EcoTargetType.Shark || aggrMult <= 1 || Main.configMain.predatorExclusion.Contains(__instance.myTechType))
                     return true;
 
                 int searchRings = Mathf.RoundToInt(__instance.maxSearchRings * aggrMult);
@@ -101,7 +100,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("IsTargetValid", new Type[] { typeof(GameObject) })]
             public static bool IsTargetValidPrefix(GameObject target, AggressiveWhenSeeTarget __instance, ref bool __result)
             {
-                if (__instance.targetType != EcoTargetType.Shark || Main.config.predatorExclusion.Contains(__instance.myTechType))
+                if (__instance.targetType != EcoTargetType.Shark || Main.configMain.predatorExclusion.Contains(__instance.myTechType))
                     return true;
 
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
@@ -124,12 +123,12 @@ namespace Tweaks_Fixes
                     }
                     if (!Util.IsPlayerInVehicle())
                     {
-                        if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Only_if_lights_on && !IsLightOn(target))
+                        if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on && !IsLightOn(target))
                         {
                             __result = false;
                             return false;
                         }
-                        else if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.No)
+                        else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.No)
                         {
                             __result = false;
                             return false;
@@ -194,7 +193,7 @@ namespace Tweaks_Fixes
                 if (EcoRegionManager.main == null || !__instance.gameObject.activeInHierarchy || !__instance.enabled)
                     return false;
 
-                if (__instance.targetType != EcoTargetType.Shark || Main.config.predatorExclusion.Contains(__instance.myTechType))
+                if (__instance.targetType != EcoTargetType.Shark || Main.configMain.predatorExclusion.Contains(__instance.myTechType))
                     return true;
 
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
@@ -279,12 +278,12 @@ namespace Tweaks_Fixes
                     bool playerInSeaTruck = Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment;
                     if ((vehicle && !Player.main.inExosuit) || (sts && !playerInSeaTruck))
                     {
-                        if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Only_if_lights_on)
+                        if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on)
                         {
                             __result = IsLightOn(target);
                             return false;
                         }
-                        __result = Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Yes;
+                        __result = ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Yes;
                         return false;
                     }
                     //Vector3 vel = Vector3.zero;
@@ -385,7 +384,7 @@ namespace Tweaks_Fixes
             {
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
 
-                if (aggrMult == 0f || Main.config.predatorExclusion.Contains(CraftData.GetTechType(__instance.gameObject)))
+                if (aggrMult == 0f || Main.configMain.predatorExclusion.Contains(CraftData.GetTechType(__instance.gameObject)))
                     __result = false;
             }
         }
@@ -435,7 +434,7 @@ namespace Tweaks_Fixes
                     return false;
 
                 TechType myTT = CraftData.GetTechType(__instance.gameObject);
-                if (Main.config.predatorExclusion.Contains(myTT))
+                if (Main.configMain.predatorExclusion.Contains(myTT))
                     return false;
 
                 Vehicle vehicle = main.GetVehicle();
@@ -484,10 +483,10 @@ namespace Tweaks_Fixes
                 
                 if (Util.IsPlayerInVehicle())
                     return true;
-                else if (Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Only_if_lights_on && IsLightOn(target))
+                else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on && IsLightOn(target))
                     return true;
                 else
-                    return Main.config.emptyVehicleCanBeAttacked == Config.EmptyVehicleCanBeAttacked.Yes;
+                    return ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Yes;
             }
           
             [HarmonyPrefix]

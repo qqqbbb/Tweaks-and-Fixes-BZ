@@ -26,10 +26,10 @@ namespace Tweaks_Fixes
     [BepInPlugin(GUID, MODNAME, VERSION)]
     public class Main : BaseUnityPlugin
     {
-        private const string
+        public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.03.0";
+            VERSION = "2.04.0";
         public static Survival survival;
         public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
@@ -43,10 +43,12 @@ namespace Tweaks_Fixes
         public static bool visibleLockerInteriorModLoaded = false;
         public static ManualLogSource logger;
         static string configPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigToEdit.cfg";
+        static string configMenuPath = Paths.ConfigPath + Path.DirectorySeparatorChar + MODNAME + Path.DirectorySeparatorChar + "ConfigMenu.cfg";
+        internal static OptionsMenu options;
+        public static ConfigFile configMenu;
+        public static ConfigMain configMain = new ConfigMain();
+        public static ConfigFile configToEdit;
         public const float dayLengthSeconds = 1200f;
-
-        public static Config config { get; } = OptionsPanelHandler.RegisterModOptions<Config>();
-        public static ConfigFile configB;
 
         //[HarmonyPatch(typeof(IngameMenu), "QuitGameAsync")]
         internal class IngameMenu_QuitGameAsync_Patch
@@ -93,7 +95,7 @@ namespace Tweaks_Fixes
             //Base_Patch.baseBuilt = new Dictionary<SubRoot, bool>();
             Tools_Patch.fixedFish.Clear();
             Battery_Patch.seatruckPRs.Clear();
-            config.Load();
+            configMain.Load();
         }
 
         [HarmonyPatch(typeof(Player), "Start")]
@@ -159,9 +161,9 @@ namespace Tweaks_Fixes
             public static void Postfix(SaveLoadManager __instance, string slotName)
             {
                 //AddDebug("ClearSlotAsync " + slotName);
-                config.podPower.Remove(slotName);
-                config.lockerNames.Remove(slotName);
-                config.Save();
+                configMain.podPower.Remove(slotName);
+                configMain.lockerNames.Remove(slotName);
+                configMain.Save();
             }
         }
 
@@ -175,9 +177,9 @@ namespace Tweaks_Fixes
             //    config.playerCamRot = -1f;
 
             if (Drop_Pod_Patch.podPowerSource)
-                config.podPower[SaveLoadManager.main.currentSlot] = Drop_Pod_Patch.podPowerSource.power;
+                configMain.podPower[SaveLoadManager.main.currentSlot] = Drop_Pod_Patch.podPowerSource.power;
 
-            config.activeSlot = Inventory.main.quickSlots.activeSlot;
+            configMain.activeSlot = Inventory.main.quickSlots.activeSlot;
             InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
             if (heldItem != null)
             {
@@ -185,29 +187,26 @@ namespace Tweaks_Fixes
                 if (mc)
                 {
                     //AddDebug(" save seaglide");
-                    config.seaglideMap = mc.mapActive;
+                    configMain.seaglideMap = mc.mapActive;
                 }
             }
             //if (heldItem.item.GetTechType() == TechType.Seaglide)
             //    config.activeSlot = -1;
 
             //config.crushDepth -= Crush_Damage.extraCrushDepth;
-            config.Save();
+            configMain.Save();
             //config.crushDepth += Crush_Damage.extraCrushDepth;
         }
 
         private void Start()
         {
             //config.Load();
-            configB = new ConfigFile(configPath, true);
-            ConfigToEdit.Bind();
-            Console.WriteLine("Tweaks Start ");
+            logger = this.Logger;
             //Assembly assembly = Assembly.GetExecutingAssembly();
             //new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
+            Setup();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
-            Setup();
-
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(21f, -39.5f, -364.3f), new Vector3(30f, 50f, 340f)));
             //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("a3f8c8e0-0a2c-4f9b-b585-8804d15bc04b", new Vector3(-412.3f, -100.79f, -388.2f), new Vector3(310f, 0f, 90f)));
@@ -226,15 +225,18 @@ namespace Tweaks_Fixes
 
         public void Setup()
         {
-            //Log("PostPatch GetCurrentLanguage " + Language.main.GetCurrentLanguage());
-            //IQMod iqMod = QModServices.Main.FindModById("DayNightSpeed");
-            logger = this.Logger;
+            configToEdit = new ConfigFile(configPath, true);
+            ConfigToEdit.Bind();
+            configMenu = new ConfigFile(configMenuPath, true);
+            ConfigMenu.Bind();
             //SaveUtils.RegisterOnFinishLoadingEvent(LoadedGameSetup); // runs before game loads
             LanguageHandler.RegisterLocalizationFolder();
             SaveUtils.RegisterOnSaveEvent(SaveData);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             GetLoadedMods();
             ConfigToEdit.ParseFromConfig();
+            options = new OptionsMenu();
+            OptionsPanelHandler.RegisterModOptions(options);
             //// vanilla desc just copies the name
             //LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, config.translatableStrings[21]);
             //// vanilla desc does not tell percent

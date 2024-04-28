@@ -21,9 +21,10 @@ namespace Tweaks_Fixes
         static PickPrefab fruitToPickUp;
         static Eatable grabbedEatable;
 
-        private static IEnumerator SpawnResource(BreakableResource resource)
+        private static IEnumerator SpawnResource(PropulsionCannon cannon, BreakableResource resource)
         {
             yield return new WaitForSeconds(.1f + UnityEngine.Random.value);
+            cannon.ReleaseGrabbedObject();
             grabbingResource = false;
             resource.BreakIntoResources();
         }
@@ -244,7 +245,7 @@ namespace Tweaks_Fixes
                 {
                     grabbingResource = true;
                     BreakableResource resource = target.GetComponent<BreakableResource>();
-                    UWE.CoroutineHost.StartCoroutine(SpawnResource(resource));
+                    UWE.CoroutineHost.StartCoroutine(SpawnResource(__instance, resource));
                 }
                 return true;
             }

@@ -124,13 +124,16 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             { // not checking savegame slot
-                if (Main.config.medKitHPtoHeal > 0 && Time.time > healTime)
+                if (uGUI.isLoading)
+                    return;
+                
+                if (Main.configMain.medKitHPtoHeal > 0 && Time.time > healTime)
                 {
                     healTime = Time.time + 1f;
                     __instance.liveMixin.AddHealth(ConfigToEdit.medKitHPperSecond.Value);
-                    Main.config.medKitHPtoHeal -= ConfigToEdit.medKitHPperSecond.Value;
-                    if (Main.config.medKitHPtoHeal < 0)
-                        Main.config.medKitHPtoHeal = 0;
+                    Main.configMain.medKitHPtoHeal -= ConfigToEdit.medKitHPperSecond.Value;
+                    if (Main.configMain.medKitHPtoHeal < 0)
+                        Main.configMain.medKitHPtoHeal = 0;
 
                     //AddDebug("Player Update heal " + Main.config.medKitHPperSecond);
                     //AddDebug("Player Update medKitHPtoHeal " + Main.config.medKitHPtoHeal);
@@ -163,13 +166,13 @@ namespace Tweaks_Fixes
                     else
                     {
                         __result = true;
-                        if (ConfigToEdit.medKitHPperSecond.Value >= Main.config.medKitHP)
+                        if (ConfigToEdit.medKitHPperSecond.Value >= ConfigMenu.medKitHP.Value)
                         {
-                            Player.main.GetComponent<LiveMixin>().AddHealth(Main.config.medKitHP);
+                            Player.main.GetComponent<LiveMixin>().AddHealth(ConfigMenu.medKitHP.Value);
                         }
                         else
                         {
-                            Main.config.medKitHPtoHeal += Main.config.medKitHP;
+                            Main.configMain.medKitHPtoHeal += ConfigMenu.medKitHP.Value;
                             healTime = Time.time;
                         }
                     }
@@ -202,12 +205,12 @@ namespace Tweaks_Fixes
                 if (__result == ItemAction.Eat)
                 {
                     Eatable eatable = pickupable.gameObject.GetComponent<Eatable>();
-                    if (Main.config.cantEatUnderwater && Player.main.IsUnderwater())
+                    if (ConfigMenu.cantEatUnderwater.Value && Player.main.IsUnderwater())
                         __result = ItemAction.None;
                     else if (Util.IsWater(eatable) && eatable.GetWaterValue() < 0.5f)
                         __result = ItemAction.None;
                 }
-                else if (__result == ItemAction.Use && Main.config.cantUseMedkitUnderwater && Player.main.IsUnderwaterForSwimming() && pickupable.GetTechType() == TechType.FirstAidKit)
+                else if (__result == ItemAction.Use && ConfigMenu.cantUseMedkitUnderwater.Value && Player.main.IsUnderwaterForSwimming() && pickupable.GetTechType() == TechType.FirstAidKit)
                 {
                     //AddDebug("cantUseMedkitUnderwater");
                     __result = ItemAction.None;
@@ -219,7 +222,7 @@ namespace Tweaks_Fixes
             static void ExecuteItemActionPrefix(Inventory __instance, ref ItemAction action, InventoryItem item)
             {
                 //AddDebug(item.item.name + " ExecuteItemAction " + action);
-                if (Main.config.cantUseMedkitUnderwater && action == ItemAction.Use && item.item.GetTechType() == TechType.FirstAidKit && Player.main.IsUnderwaterForSwimming())
+                if (ConfigMenu.cantUseMedkitUnderwater.Value && action == ItemAction.Use && item.item.GetTechType() == TechType.FirstAidKit && Player.main.IsUnderwaterForSwimming())
                 {
                     //AddDebug("ExecuteItemAction FirstAidKit ");
                     action = ItemAction.None;

@@ -81,15 +81,15 @@ namespace Tweaks_Fixes
             //if (!pp.enabled && !fp.inactiveFruits.Contains(pp))
             //    fp.inactiveFruits.Add(pp);
             //}
-            if (Main.config.fruitGrowTime > 0)
-                fp.fruitSpawnInterval = Main.config.fruitGrowTime * Main.dayLengthSeconds;
+            if (ConfigMenu.fruitGrowTime.Value > 0)
+                fp.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * Main.dayLengthSeconds;
         }
 
         //[HarmonyPatch(typeof(ResourceTracker))]
         class ResourceTracker_Patch
         {
-            [HarmonyPatch("Start")]
-            [HarmonyPostfix]
+            //[HarmonyPatch("Start")]
+            //[HarmonyPostfix]
             public static void StartPrefix(ResourceTracker __instance)
             {
                 if (__instance.techType == TechType.GenericJeweledDisk)
@@ -109,10 +109,10 @@ namespace Tweaks_Fixes
                 if (__instance.pickTech == TechType.IceFruit)
                 { // OnProtoDeserialize does not run 
                     string pos = (int)__instance.transform.position.x + "_" + (int)__instance.transform.position.y + "_" + (int)__instance.transform.position.z;
-                    if (Main.config.iceFruitPickedState.ContainsKey(pos))
+                    if (Main.configMain.iceFruitPickedState.ContainsKey(pos))
                     {
                         //AddDebug("IceFruit PickPrefab Start ");
-                        if (Main.config.iceFruitPickedState[pos])
+                        if (Main.configMain.iceFruitPickedState[pos])
                             __instance.SetPickedState(true);
                     }
                 }
@@ -165,7 +165,7 @@ namespace Tweaks_Fixes
                 { // not checking save slot
                     string pos = (int)__instance.transform.position.x + "_" + (int)__instance.transform.position.y + "_" + (int)__instance.transform.position.z;
                     //AddDebug("pos " + pos);
-                    Main.config.iceFruitPickedState[pos] = newPickedState;
+                    Main.configMain.iceFruitPickedState[pos] = newPickedState;
                 }
                 else if (__instance.pickTech == TechType.CreepvineSeedCluster)
                 {
@@ -199,8 +199,8 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             public static void AwakePostfix(FruitPlant __instance)
             {
-                if (Main.config.fruitGrowTime > 0)
-                    __instance.fruitSpawnInterval = Main.config.fruitGrowTime * Main.dayLengthSeconds;
+                if (ConfigMenu.fruitGrowTime.Value > 0)
+                    __instance.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * Main.dayLengthSeconds;
             }
             [HarmonyPrefix]
             [HarmonyPatch("Initialize")]

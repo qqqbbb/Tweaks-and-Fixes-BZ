@@ -399,7 +399,7 @@ namespace Tweaks_Fixes
             so.path = "event:/sub/seamoth/impact_solid_soft";
             so.id = "{15dc7344-7b0a-4ffd-9b5c-c40f923e4f4d}";
             collisionSound.hitSoundSlow = so;
-            SetLights(__instance, Main.config.exosuitLights);
+            SetLights(__instance, Main.configMain.exosuitLights);
             exosuitStarted = true;
         }
 
@@ -407,7 +407,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("ApplyJumpForce")]
         static bool ApplyJumpForcePrefix(Exosuit __instance)
         {
-            if (Main.config.exosuitMoveTweaks || __instance.timeLastJumped + 1f > Time.time)
+            if (ConfigMenu.exosuitMoveTweaks.Value || __instance.timeLastJumped + 1f > Time.time)
                 return false;
 
             //AddDebug("ApplyJumpForce");
@@ -480,7 +480,7 @@ namespace Tweaks_Fixes
         {
             //Vehicle vehicle = __instance as Vehicle;
             //vehicle.Update();
-            if (!Main.config.exosuitMoveTweaks)
+            if (!ConfigMenu.exosuitMoveTweaks.Value)
                 return true;
 
             //AddDebug("thrustConsumption " + __instance.thrustConsumption);
@@ -658,13 +658,13 @@ namespace Tweaks_Fixes
                 if (!lightsT.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
                 {
                     lightsT.gameObject.SetActive(true);
-                    Main.config.exosuitLights = true;
+                    Main.configMain.exosuitLights = true;
                     Utils.PlayFMODAsset(lightOnSound, Player.main.transform);
                 }
                 else if (lightsT.gameObject.activeSelf)
                 {
                     lightsT.gameObject.SetActive(false);
-                    Main.config.exosuitLights = false;
+                    Main.configMain.exosuitLights = false;
                     Utils.PlayFMODAsset(lightOffSound, Player.main.transform);
                 }
                 //AddDebug("lights " + lightsT.gameObject.activeSelf);
@@ -675,7 +675,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("FixedUpdate")]
         public static bool FixedUpdatePostfix(Exosuit __instance)
         { // reduce vert thrust speed. jumpJetsUpgrade affects vert and hor speed the same way. powersliding
-            if (!Main.config.exosuitMoveTweaks)
+            if (!ConfigMenu.exosuitMoveTweaks.Value)
                 return true;
 
             VehicleFixedUpdate(__instance);
@@ -703,7 +703,7 @@ namespace Tweaks_Fixes
                         direction += Vector3.up * Mathf.Clamp(forward.y, -0.75f, 0.75f);
                     }
                     Vector3 acceleration = horThrustAcc * direction * thrustPower;
-                    acceleration *= Main.config.exosuitSpeedMult;
+                    acceleration *= ConfigMenu.exosuitSpeedMult.Value;
                     if (__instance.powersliding)
                         acceleration *= 4f; // my
 
@@ -713,7 +713,7 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("verticalJetsActive");
                     Vector3 acceleration = Vector3.up * vertThrustAcc * thrustPower;
-                    acceleration *= Main.config.exosuitSpeedMult;  // my
+                    acceleration *= ConfigMenu.exosuitSpeedMult.Value;  // my
                     __instance.useRigidbody.AddForce(acceleration, ForceMode.Acceleration);
                 }
             }
@@ -905,7 +905,7 @@ namespace Tweaks_Fixes
         public static void EnterVehiclePostfix(Exosuit __instance)
         { // runs before Exosuit.Start
           //AddDebug("EnterVehicle");
-            if (Main.config.exosuitMoveTweaks)
+            if (ConfigMenu.exosuitMoveTweaks.Value)
                 __instance.onGroundForceMultiplier = 2f;
             else
                 __instance.onGroundForceMultiplier = 4f;
@@ -1036,7 +1036,7 @@ namespace Tweaks_Fixes
                 Vector3 vector3_4 = new Vector3(0.0f, vector3_1.y, 0f);
                 vector3_4.y *= vehicle.verticalForce * Time.deltaTime;
                 Vector3 acceleration = num * vector * Time.deltaTime + vector3_4;
-                acceleration *= Main.config.exosuitSpeedMult;
+                acceleration *= ConfigMenu.exosuitSpeedMult.Value;
                 vehicle.OverrideAcceleration(ref acceleration);
                 for (int index = 0; index < vehicle.accelerationModifiers.Length; ++index)
                     vehicle.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
@@ -1084,7 +1084,7 @@ namespace Tweaks_Fixes
             if (!__instance.GetPilotingMode())
                 return false;
 
-            if (!Main.config.exosuitMoveTweaks)
+            if (!ConfigMenu.exosuitMoveTweaks.Value)
             {
                 ApplyPhysicsMoveVanilla(__instance);
                 return false;
@@ -1140,7 +1140,7 @@ namespace Tweaks_Fixes
                 if (__instance.wasAboveWater)
                     acceleration *= 1.33f;
 
-                acceleration *= Main.config.exosuitSpeedMult;
+                acceleration *= ConfigMenu.exosuitSpeedMult.Value;
                 __instance.OverrideAcceleration(ref acceleration);
                 for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
                     __instance.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
@@ -1239,7 +1239,7 @@ namespace Tweaks_Fixes
         {
             TaskResult<GameObject> taskResult = new TaskResult<GameObject>();
             TaskResult<Pickupable> pickupableResult = new TaskResult<Pickupable>();
-            for (int index = 0; index < Main.config.freeTorpedos; ++index)
+            for (int index = 0; index < ConfigToEdit.freeTorpedos.Value; ++index)
             {
                 yield return CraftData.InstantiateFromPrefabAsync(TechType.WhirlpoolTorpedo, (IOut<GameObject>)taskResult);
                 GameObject gameObject = taskResult.Get();

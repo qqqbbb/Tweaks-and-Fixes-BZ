@@ -18,7 +18,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("HoverEngines")]
             static bool HoverEnginesPrefix(Hoverbike __instance)
             { // increase hover heigt above water, can jump and boost on water
-                if (!Main.config.hoverbikeMoveTweaks)
+                if (!ConfigMenu.hoverbikeMoveTweaks.Value)
                     return true;
                 //AddDebug("forwardAccel " + __instance.forwardAccel);
                 //AddDebug("forwardBoostForce " + __instance.forwardBoostForce);
@@ -216,7 +216,7 @@ namespace Tweaks_Fixes
                     __instance.moveDirection = Vector3.zero;
                 __instance.appliedThrottle = __instance.moveDirection != Vector3.zero;
                 float horizontalDampening = __instance.horizontalDampening;
-                if (__instance.overWater && !Main.config.hoverbikeMoveTweaks)
+                if (__instance.overWater && !ConfigMenu.hoverbikeMoveTweaks.Value)
                     horizontalDampening = __instance.horizontalDampening / __instance.waterDampening;
 
                 __instance.rb.AddTorque(__instance.transform.right * -overflowInput.x * __instance.sidewaysTorque * __instance.verticalDampening, ForceMode.VelocityChange);
@@ -226,7 +226,7 @@ namespace Tweaks_Fixes
                 //double num2 = Mathf.Min(1f, moveDirection.magnitude);
                 moveDirection.y = 0f;
                 moveDirection.Normalize();
-                if (Main.config.hoverbikeMoveTweaks)
+                if (ConfigMenu.hoverbikeMoveTweaks.Value)
                 { 
                     moveDirection.x *= .5f;
                     if (moveDirection.z < 0f)
@@ -234,10 +234,10 @@ namespace Tweaks_Fixes
                 }
                 __instance.horizMoveDir = MainCamera.camera.transform.rotation * moveDirection;
                 Vector3 accel = __instance.horizMoveDir * __instance.forwardAccel;
-                if (__instance.overWater && !Main.config.hoverbikeMoveTweaks)
+                if (__instance.overWater && !ConfigMenu.hoverbikeMoveTweaks.Value)
                     accel = __instance.horizMoveDir * (__instance.forwardAccel / __instance.waterDampening);
 
-                accel *= Main.config.snowfoxSpeedMult;
+                accel *= ConfigMenu.hoverbikeSpeedMult.Value;
                  __instance.rb.AddForce(accel);
                 return false;
             }

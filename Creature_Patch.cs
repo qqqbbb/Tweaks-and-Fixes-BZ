@@ -19,7 +19,7 @@ namespace Tweaks_Fixes
         {
             public static bool Prefix(FleeOnDamage __instance, DamageInfo damageInfo)
             {
-                if (Main.config.CreatureFleeChance == 100 && !Main.config.CreatureFleeChanceBasedOnHealth && Main.config.CreatureFleeUseDamageThreshold)
+                if (ConfigMenu.CreatureFleeChance.Value == 100 && !ConfigMenu.creatureFleeChanceBasedOnHealth.Value && ConfigMenu.creatureFleeUseDamageThreshold.Value)
                     return true;
 
                 if (!__instance.enabled || __instance.frozen)
@@ -28,7 +28,7 @@ namespace Tweaks_Fixes
                 float damage = damageInfo.damage;
                 bool doFlee = false;
                 LiveMixin liveMixin = __instance.creature.liveMixin;
-                if (Main.config.CreatureFleeChanceBasedOnHealth && liveMixin && liveMixin.IsAlive())
+                if (ConfigMenu.creatureFleeChanceBasedOnHealth.Value && liveMixin && liveMixin.IsAlive())
                 {
                     int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
                     int rnd1 = Main.rndm.Next(0, maxHealth + 1);
@@ -52,11 +52,11 @@ namespace Tweaks_Fixes
                         //AddDebug(__instance.name + " accumulatedDamage " + __instance.accumulatedDamage + " damageThreshold " + __instance.damageThreshold);
 
                     __instance.lastDamagePosition = damageInfo.position;
-                    if (Main.config.CreatureFleeUseDamageThreshold && __instance.accumulatedDamage <= __instance.damageThreshold)
+                    if (ConfigMenu.creatureFleeUseDamageThreshold.Value && __instance.accumulatedDamage <= __instance.damageThreshold)
                         return false;
 
                     int rnd = Main.rndm.Next(1, 101);
-                    if (Main.config.CreatureFleeChance >= rnd)
+                    if (ConfigMenu.CreatureFleeChance.Value >= rnd)
                         doFlee = true;
                 }
                 if (doFlee)
@@ -171,7 +171,7 @@ namespace Tweaks_Fixes
             public static void Postfix(Pickupable __instance, ref bool __result)
             {
                 //__result = __instance.isPickupable && Time.time - __instance.timeDropped > 1.0 && Player.main.HasInventoryRoom(__instance);
-                if (Main.config.noFishCatching && Util.IsCreatureAlive(__instance.gameObject) && Util.IsEatableFish(__instance.gameObject))
+                if (ConfigMenu.noFishCatching.Value && Util.IsCreatureAlive(__instance.gameObject) && Util.IsEatableFish(__instance.gameObject))
                 {
                     __result = false;
                     if (Player.main._currentWaterPark)
@@ -206,13 +206,13 @@ namespace Tweaks_Fixes
             {
                 if (fishSBs.TryGetValue(__instance, out string s) || Util.IsEatableFish(__instance.gameObject))
                 {
-                    velocity *= Main.config.fishSpeedMult;
+                    velocity *= ConfigMenu.fishSpeedMult.Value;
                     if (s == null)
                         fishSBs.Add(__instance, "");
                 }
                 else
                 {
-                    velocity *= Main.config.creatureSpeedMult;
+                    velocity *= ConfigMenu.creatureSpeedMult.Value;
                 }
             }
         }
@@ -326,7 +326,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(WaterParkCreature __instance, ref bool __result)
             {
-                if (!Main.config.waterparkCreaturesBreed)
+                if (!ConfigMenu.waterparkCreaturesBreed.Value)
                     __result = false;
             }
         }

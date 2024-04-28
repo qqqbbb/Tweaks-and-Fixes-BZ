@@ -126,7 +126,6 @@ namespace Tweaks_Fixes
                     if (__instance.name.StartsWith(s))
                     {
                         Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.lilypad);
-                        AddDebug("lilypadWithoutTechtype");
                     }
                 }
                 foreach (string s in plantsWithoutTechtype)
@@ -202,7 +201,7 @@ namespace Tweaks_Fixes
                 }
 
             }
-            if (Main.config.useBestLOD)
+            if (ConfigMenu.useBestLOD.Value)
             {
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 LODGroup[] lodGroups = __instance.GetComponentsInChildren<LODGroup>();

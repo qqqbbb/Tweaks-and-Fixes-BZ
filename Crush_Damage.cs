@@ -19,12 +19,12 @@ namespace Tweaks_Fixes
                 return;
 
             float depth = Ocean.GetDepthOf(Player.main.gameObject);
-            float crushDepth = Main.config.crushDepth + extraCrushDepth;
+            float crushDepth = ConfigMenu.crushDepth.Value + extraCrushDepth;
             if (depth < crushDepth)
                 return;
 
             float mult = 1f - crushDamageResistance;
-            float damage = (depth - crushDepth) * Main.config.crushDamageMult * mult;
+            float damage = (depth - crushDepth) * ConfigMenu.crushDamageMult.Value * mult;
             if (Player.main.liveMixin)
                 Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
             //AddDebug(" CrushDamageUpdate " + damage);
@@ -86,7 +86,7 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
-                if (Main.config.crushDamageMult > 0f && crushInterval + crushTime < Time.time)
+                if (ConfigMenu.crushDamageMult.Value > 0f && crushInterval + crushTime < Time.time)
                 {
                     crushTime = Time.time;
                     CrushDamagePlayer();
@@ -135,7 +135,7 @@ namespace Tweaks_Fixes
                 if (depth < __instance.crushDepth)
                     return false;
 
-                float damage = (depth - __instance.crushDepth) * Main.config.vehicleCrushDamageMult;
+                float damage = (depth - __instance.crushDepth) * ConfigMenu.vehicleCrushDamageMult.Value;
                 if (damage == 0f)
                     damage = __instance.damagePerCrush;
                 //AddDebug("damage " + damage);

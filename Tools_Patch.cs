@@ -142,8 +142,8 @@ namespace Tweaks_Fixes
                     if (knifeDamageDefault == 0f)
                         knifeDamageDefault = knife.damage;
 
-                    knife.attackDist = knifeRangeDefault * Main.config.knifeRangeMult;
-                    knife.damage = knifeDamageDefault * Main.config.knifeDamageMult;
+                    knife.attackDist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
+                    knife.damage = knifeDamageDefault * ConfigMenu.knifeDamageMult.Value;
                     //AddDebug(" attackDist  " + knife.attackDist);
                     //AddDebug(" damage  " + knife.damage);
                 }
@@ -245,7 +245,7 @@ namespace Tweaks_Fixes
             public static void Postfix(VehicleInterface_MapController __instance)
             {
                 //AddDebug("VehicleInterface_MapController Start " + __instance.name);
-                __instance.mapActive = Main.config.seaglideMap;
+                __instance.mapActive = Main.configMain.seaglideMap;
             }
         }
 
@@ -256,7 +256,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Start")]
             public static void StartPostfix(Seaglide __instance)
             {
-                __instance.toggleLights.SetLightsActive(Main.config.seaglideLight);
+                __instance.toggleLights.SetLightsActive(Main.configMain.seaglideLights);
             }
 
             [HarmonyPostfix]
@@ -264,10 +264,10 @@ namespace Tweaks_Fixes
             public static void OnHolsterPostfix(Seaglide __instance)
             {// fires when saving
                 //AddDebug("Seaglide OnHolster");
-                Main.config.seaglideLight = __instance.toggleLights.lightsActive;
+                Main.configMain.seaglideLights = __instance.toggleLights.lightsActive;
                 var mc = __instance.GetComponent<VehicleInterface_MapController>();
                 if (mc != null)
-                    Main.config.seaglideMap = mc.mapActive;
+                    Main.configMain.seaglideMap = mc.mapActive;
             }
         }
 

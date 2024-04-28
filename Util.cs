@@ -16,7 +16,7 @@ namespace Tweaks_Fixes
         public static bool CanPlayerEat()
         {
             bool canEat = GameModeManager.GetOption<bool>(GameOption.Hunger) || GameModeManager.GetOption<bool>(GameOption.Thirst);
-            bool cantEat = Main.config.cantEatUnderwater && Player.main.isUnderwater.value;
+            bool cantEat = ConfigMenu.cantEatUnderwater.Value && Player.main.isUnderwater.value;
             return canEat && !cantEat;
         }
 
@@ -177,12 +177,12 @@ namespace Tweaks_Fixes
             //    return currentInterior.GetInsideTemperature();
             if (Player.main.inExosuit)
             {
-                if (Main.config.useRealTempForPlayerTemp && Player.main.currentMountedVehicle.IsPowered())
+                if (ConfigMenu.useRealTempForPlayerTemp.Value && Player.main.currentMountedVehicle.IsPowered())
                     return ConfigToEdit.insideBaseTemp.Value;
-                else if (!Main.config.useRealTempForPlayerTemp)
+                else if (!ConfigMenu.useRealTempForPlayerTemp.Value)
                     return ConfigToEdit.insideBaseTemp.Value;
             }
-            else if (Player.main.inHovercraft && !Main.config.useRealTempForPlayerTemp)
+            else if (Player.main.inHovercraft && !ConfigMenu.useRealTempForPlayerTemp.Value)
             {
                 return ConfigToEdit.insideBaseTemp.Value;
             }
@@ -329,11 +329,11 @@ namespace Tweaks_Fixes
             while (!uGUI.main.hud.active)
                 yield return null;
             yield return new WaitForSeconds(.5f);
-            if (Main.config.activeSlot != -1)
+            if (Main.configMain.activeSlot != -1)
             {
                 //Inventory.main.quickSlots.SelectImmediate(config.activeSlot);
                 //Inventory.main.quickSlots.DeselectImmediate();
-                Inventory.main.quickSlots.Select(Main.config.activeSlot);
+                Inventory.main.quickSlots.Select(Main.configMain.activeSlot);
             }
         }
 

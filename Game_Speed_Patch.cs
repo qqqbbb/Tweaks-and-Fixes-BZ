@@ -15,7 +15,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(DayNightCycle __instance)
             {
-                __instance._dayNightSpeed = Main.config.timeFlowMult;
+                __instance._dayNightSpeed = ConfigMenu.timeFlowSpeed.Value;
             }
         }
         
@@ -30,7 +30,7 @@ namespace Tweaks_Fixes
                 if (__instance.skipTimeMode && __instance.timePassed >= __instance.skipModeEndTime)
                 {
                     __instance.skipTimeMode = false;
-                    __instance._dayNightSpeed = Main.config.timeFlowMult;
+                    __instance._dayNightSpeed = ConfigMenu.timeFlowSpeed.Value;
                 }
                 __instance.UpdateAtmosphere();
                 __instance.UpdateDayNightMessage();
@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(DayNightCycle __instance)
             {
-                __instance._dayNightSpeed = Main.config.timeFlowMult;
+                __instance._dayNightSpeed = ConfigMenu.timeFlowSpeed.Value;
                 return false;
             }
         }
@@ -58,7 +58,7 @@ namespace Tweaks_Fixes
                 AddDebug("Night cheat activated");
                 __instance.timePassedAsDouble += Main.dayLengthSeconds - __instance.timePassed % Main.dayLengthSeconds;
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.timeFlowMult;
+                __instance._dayNightSpeed = ConfigMenu.timeFlowSpeed.Value;
                 __instance.UpdateAtmosphere();
                 if (num == 0)
                     return false;
@@ -76,7 +76,7 @@ namespace Tweaks_Fixes
                 AddDebug("Day cheat activated");
                 __instance.timePassedAsDouble += Main.dayLengthSeconds - __instance.timePassed % Main.dayLengthSeconds + Main.dayLengthSeconds * .5f;
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.timeFlowMult;
+                __instance._dayNightSpeed = ConfigMenu.timeFlowSpeed.Value;
                 __instance.UpdateAtmosphere();
                 if (num != 0)
                     return false;
@@ -99,7 +99,7 @@ namespace Tweaks_Fixes
                     __instance.timePassedAsDouble += Main.dayLengthSeconds - __instance.timePassedAsDouble % Main.dayLengthSeconds + num2 * Main.dayLengthSeconds;
                 }
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.timeFlowMult;
+                __instance._dayNightSpeed = ConfigMenu.timeFlowSpeed.Value;
                 __instance.UpdateAtmosphere();
                 bool parms = __instance.IsDay();
                 if (parms == flag)
@@ -120,7 +120,7 @@ namespace Tweaks_Fixes
                     float num2 = Mathf.Clamp(newSpeed, 0.0f, 100f);
                     AddDebug("Setting day/night speed to " + num2 + ".");
                     __instance._dayNightSpeed = num2;
-                    Main.config.timeFlowMult = num2;
+                    ConfigMenu.timeFlowSpeed.Value = num2;
                     __instance.skipTimeMode = false;
                 }
                 else
@@ -154,7 +154,7 @@ namespace Tweaks_Fixes
             static bool Prefix(DayNightCycle __instance)
             {
                 __instance.skipTimeMode = false;
-                __instance._dayNightSpeed = Main.config.timeFlowMult;
+                __instance._dayNightSpeed = ConfigMenu.timeFlowSpeed.Value;
 
                 return false;
             }

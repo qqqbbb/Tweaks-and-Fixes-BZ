@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnHandClick")]
         public static bool OnHandClickPrefix()
         {
-            if (!Main.config.noBreakingWithHand)
+            if (!ConfigMenu.noBreakingWithHand.Value)
                 return true;
 
             Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
@@ -59,7 +59,7 @@ namespace Tweaks_Fixes
                 //HandReticle.main.SetIcon(HandReticle.IconType.Hand);
                 return false;
             }
-            if (!Main.config.noBreakingWithHand)
+            if (!ConfigMenu.noBreakingWithHand.Value)
                 return true;
 
             Knife knife = Inventory.main.GetHeldTool() as Knife;
@@ -87,7 +87,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("OnHandClick")] // OnHandHover handled by GUIHand.OnUpdate
         public static bool PickupableOnHandClick(Pickupable __instance, GUIHand hand)
         {
-            if (!Main.config.noBreakingWithHand)
+            if (!ConfigMenu.noBreakingWithHand.Value)
                 return true;
 
             if (!hand.IsFreeToInteract())

@@ -123,7 +123,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SlotNext")]
             public static bool SlotNextPrefix(QuickSlots __instance)
             {
-                if (Input.GetKey(Main.config.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
+                if (Input.GetKey(ConfigMenu.quickslotButton.Value) || GameInput.GetButtonHeld(quickslotButton))
                 {
                     if (Inventory.main.GetHeld() != null)
                     {
@@ -137,7 +137,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SlotPrevious")]
             public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
-                if (Input.GetKey(Main.config.quickslotKey) || GameInput.GetButtonHeld(quickslotButton))
+                if (Input.GetKey(ConfigMenu.quickslotButton.Value) || GameInput.GetButtonHeld(quickslotButton))
                 {
                     if (Inventory.main.GetHeld() != null)
                     {

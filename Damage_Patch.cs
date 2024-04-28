@@ -346,10 +346,10 @@ namespace Tweaks_Fixes
                 if (!ConfigToEdit.crushDamageScreenEffect.Value && damageInfo.type == DamageType.Pressure)
                     return false;
 
-                if (Main.config.damageImpactEffect)
+                if (ConfigMenu.damageImpactEffect.Value)
                     __instance.CreateImpactEffect(damageScalar, damageSource, damageInfo.type, isUnderwater);
 
-                if (Main.config.damageScreenFX)
+                if (ConfigMenu.damageScreenFX.Value)
                     __instance.PlayScreenFX(damageInfo);
 
                 return false;
@@ -371,7 +371,7 @@ namespace Tweaks_Fixes
                     //if (__result == 0f)
                     //    return;
 
-                    if (Main.config.dropHeldTool)
+                    if (ConfigToEdit.dropHeldTool.Value)
                     {
                         if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
                         {

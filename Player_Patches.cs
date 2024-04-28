@@ -32,13 +32,13 @@ namespace Tweaks_Fixes
                     return false;
                 }
                 bool underwater = __instance.player.transform.position.y < Ocean.GetOceanLevel() || __instance.player.IsUnderwaterForSwimming();
-                bool movingUnderwater = !Main.config.useRealTempForPlayerTemp && underwater && (__instance.player.movementSpeed > Mathf.Epsilon || __instance.player.IsRidingCreature());
+                bool movingUnderwater = !ConfigMenu.useRealTempForPlayerTemp.Value && underwater && (__instance.player.movementSpeed > Mathf.Epsilon || __instance.player.IsRidingCreature());
                 //float temp = Main.bodyTemperature.CalculateEffectiveAmbientTemperature();
-                bool heat = !Main.config.useRealTempForPlayerTemp && (HeatSource.GetHeatImpactAtPosition(__instance.transform.position) > 0f || __instance.player.GetCurrentHeatVolume());
+                bool heat = !ConfigMenu.useRealTempForPlayerTemp.Value && (HeatSource.GetHeatImpactAtPosition(__instance.transform.position) > 0f || __instance.player.GetCurrentHeatVolume());
                 bool immune = movingUnderwater || heat || __instance.player.cinematicModeActive || Main.bodyTemperature.CalculateEffectiveAmbientTemperature() > ConfigToEdit.warmTemp.Value;
                 bool piloting = __instance.player.IsPiloting();
 
-                if (piloting && Main.config.useRealTempForPlayerTemp)
+                if (piloting && ConfigMenu.useRealTempForPlayerTemp.Value)
                 {
                     if (__instance.player.inHovercraft)
                         piloting = false;
@@ -51,7 +51,7 @@ namespace Tweaks_Fixes
                         piloting = sts.relay.IsPowered();
                     }
                 }
-                bool interior = !Main.config.useRealTempForPlayerTemp && __instance.player.currentInterior != null;
+                bool interior = !ConfigMenu.useRealTempForPlayerTemp.Value && __instance.player.currentInterior != null;
                 __result = !immune && !piloting && !interior;
                 //AddDebug("GetHeatImpactAtPosition " + HeatSource.GetHeatImpactAtPosition(__instance.transform.position));
                 //AddDebug("GetCurrentHeatVolume " + __instance.player.GetCurrentHeatVolume());
@@ -63,7 +63,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("AddCold")]
             static bool AddColdPrefix(BodyTemperature __instance, float cold)
             {
-                __instance.currentColdMeterValue = Mathf.Clamp(__instance.currentColdMeterValue + cold * Main.config.coldMult, 0f, __instance.coldMeterMaxValue);
+                __instance.currentColdMeterValue = Mathf.Clamp(__instance.currentColdMeterValue + cold * ConfigMenu.coldMult.Value, 0f, __instance.coldMeterMaxValue);
 
                 return false;
             }
@@ -195,7 +195,7 @@ namespace Tweaks_Fixes
                 }
                 else
                 {
-                    __instance.crushDepth = Main.config.crushDepth;
+                    __instance.crushDepth = ConfigMenu.crushDepth.Value;
                     float depth = Ocean.GetDepthOf(__instance.gameObject);
                     if (depth > __instance.crushDepth)
                         depthClass = Ocean.DepthClass.Crush;
@@ -225,8 +225,8 @@ namespace Tweaks_Fixes
             public static void Postfix(Inventory __instance)
             { // does not work
                 //AddDebug("OnProtoDeserialize " + Main.config.activeSlot);
-                if (Main.config.activeSlot != -1)
-                    Inventory.main.quickSlots.SelectImmediate(Main.config.activeSlot);
+                if (Main.configMain.activeSlot != -1)
+                    Inventory.main.quickSlots.SelectImmediate(Main.configMain.activeSlot);
             }
         }
 
@@ -242,11 +242,11 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("LoseItems");
                 __result = false;
-                if (Main.config.loseItemsOnDeath == Config.LoseItemsOnDeath.Vanilla)
+                if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Vanilla)
                     return true;
-                else if (Main.config.loseItemsOnDeath == Config.LoseItemsOnDeath.None)
+                else if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Do_not_drop_anything)
                     return false;
-                else if (Main.config.loseItemsOnDeath == Config.LoseItemsOnDeath.All)
+                else if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Drop_everything)
                 {
                     List<InventoryItem> itemsToDrop = new List<InventoryItem>();
                     foreach (InventoryItem inventoryItem in Inventory.main.container)

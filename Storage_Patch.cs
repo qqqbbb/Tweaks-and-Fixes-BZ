@@ -136,12 +136,12 @@ namespace Tweaks_Fixes
                     si.inputField.text = Language.main.Get(si.stringDefaultLabel);
                     si.inputField.characterLimit = 58;
                     string slot = SaveLoadManager.main.currentSlot;
-                    if (Main.config.lockerNames.ContainsKey(slot))
+                    if (Main.configMain.lockerNames.ContainsKey(slot))
                     {
                         string key = GetKey(door);
-                        if (Main.config.lockerNames[slot].ContainsKey(key))
+                        if (Main.configMain.lockerNames[slot].ContainsKey(key))
                         {
-                            SavedLabel sl = Main.config.lockerNames[slot][key];
+                            SavedLabel sl = Main.configMain.lockerNames[slot][key];
                             si.inputField.text = sl.text;
                             si.colorIndex = sl.color;
                             si.SetBackground(sl.background);
@@ -549,10 +549,10 @@ namespace Tweaks_Fixes
                     string key = GetKey(__instance.transform.parent.parent);
                     //AddDebug("key " + key);
                     string slot = SaveLoadManager.main.currentSlot;
-                    if (!Main.config.lockerNames.ContainsKey(slot))
-                        Main.config.lockerNames[slot] = new Dictionary<string, SavedLabel>();
+                    if (!Main.configMain.lockerNames.ContainsKey(slot))
+                        Main.configMain.lockerNames[slot] = new Dictionary<string, SavedLabel>();
 
-                    Main.config.lockerNames[slot][key] = new SavedLabel(__instance.text, __instance.backgroundToggle.isOn, __instance.colorIndex, __instance.scaleIndex);
+                    Main.configMain.lockerNames[slot][key] = new SavedLabel(__instance.text, __instance.backgroundToggle.isOn, __instance.colorIndex, __instance.scaleIndex);
                 }
             }
         }
@@ -568,13 +568,13 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("Deconstruct " + __instance.constructedAmount);
                     string slot = SaveLoadManager.main.currentSlot;
-                    if (Main.config.lockerNames.ContainsKey(slot))
+                    if (Main.configMain.lockerNames.ContainsKey(slot))
                     {
                         string key = GetKey(__instance.transform);
-                        if (Main.config.lockerNames[slot].ContainsKey(key))
+                        if (Main.configMain.lockerNames[slot].ContainsKey(key))
                         {
                             //AddDebug("Deconstruct saved locker ");
-                            Main.config.lockerNames[slot].Remove(key);
+                            Main.configMain.lockerNames[slot].Remove(key);
                         }
                     }
                 }

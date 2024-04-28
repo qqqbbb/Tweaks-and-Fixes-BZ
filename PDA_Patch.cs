@@ -91,7 +91,7 @@ namespace Tweaks_Fixes
                 {
                     __instance.cameraOffsetTransform.localEulerAngles = UWE.Utils.LerpEuler(__instance.cameraOffsetTransform.localEulerAngles, Vector3.zero, deltaTime * 5f);
                 }
-                else if (!Main.config.instantPDA)
+                //else if (!Main.config.instantPDA)
                 {
                     transform = __instance.cameraOffsetTransform;
                     __instance.rotationY = Mathf.LerpAngle(__instance.rotationY, 0f, PDA.deltaTime * 15f);
@@ -221,8 +221,8 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(ArmsController __instance)
             {
-                if (!Main.config.instantPDA)
-                    __instance.GetComponent<ConditionRules>().AddCondition((ConditionRules.ConditionFunction)(() => __instance.player.GetPDA().isInUse)).WhenChanges((ConditionRules.BoolHandlerFunction)(newValue => SafeAnimator.SetBool(__instance.animator, "using_pda", newValue)));
+                //if (!Main.config.instantPDA)
+                //    __instance.GetComponent<ConditionRules>().AddCondition((ConditionRules.ConditionFunction)(() => __instance.player.GetPDA().isInUse)).WhenChanges((ConditionRules.BoolHandlerFunction)(newValue => SafeAnimator.SetBool(__instance.animator, "using_pda", newValue)));
                 __instance.GetComponent<ConditionRules>().AddCondition((ConditionRules.ConditionFunction)(() => (Inventory.main.GetHeldTool() as Welder) != null)).WhenChanges((ConditionRules.BoolHandlerFunction)(newValue => SafeAnimator.SetBool(__instance.animator, "holding_welder", newValue)));
                 __instance.GetComponent<ConditionRules>().AddCondition((ConditionRules.ConditionFunction)(() =>
                 {

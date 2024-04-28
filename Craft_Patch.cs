@@ -19,7 +19,7 @@ namespace Tweaks_Fixes
             static void Prefix(Crafter __instance, TechType techType, ref float duration)
             {
                 //AddDebug("Craft " + techType);
-                duration *= Main.config.craftTimeMult;
+                duration *= ConfigMenu.craftTimeMult.Value;
                 //return true;
             }
         }
@@ -32,7 +32,7 @@ namespace Tweaks_Fixes
                 if (hoverBikeBuildTime == 0f)
                     hoverBikeBuildTime = __instance.timeToConstruct;
 
-                __instance.timeToConstruct = hoverBikeBuildTime * Main.config.craftTimeMult;
+                __instance.timeToConstruct = hoverBikeBuildTime * ConfigMenu.craftTimeMult.Value;
                 //AddDebug("TryStartConstructBike " + __instance.timeToConstruct);
             }
         }
@@ -45,7 +45,7 @@ namespace Tweaks_Fixes
                 if (NoCostConsoleCommand.main.fastBuildCheat)
                     return;
                 //AddDebug("GetConstructInterval " );
-                __result *= Main.config.buildTimeMult;
+                __result *= ConfigMenu.buildTimeMult.Value;
             }
         }
 
@@ -90,10 +90,10 @@ namespace Tweaks_Fixes
                 Battery battery = target.GetComponent<Battery>();
                 if (battery)
                 {
-                    if (Main.config.batteryChargeMult != 1f)
-                        battery._capacity *= Main.config.batteryChargeMult;
+                    if (ConfigMenu.batteryChargeMult.Value != 1f)
+                        battery._capacity *= ConfigMenu.batteryChargeMult.Value;
                     //AddDebug("crafterOpen");
-                    float mult = Main.config.craftedBatteryCharge * .01f;
+                    float mult = ConfigMenu.craftedBatteryCharge.Value * .01f;
                     battery._charge = battery._capacity * mult;
                 }
                 timeDecayStart = 0f;

@@ -332,7 +332,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnUpdate")]
             public static bool OnUpdatePrefix(GUIHand __instance)
             {
-                if (!Main.config.noBreakingWithHand)
+                if (!ConfigMenu.noBreakingWithHand.Value)
                     return true;
 
                 __instance.usedToolThisFrame = false;
@@ -437,7 +437,7 @@ namespace Tweaks_Fixes
                         {
                             TechType techType = CraftData.GetTechType(__instance.activeTarget);
 
-                            if (Main.config.noBreakingWithHand && techType != TechType.None && PickupablePatch.notPickupableResources.Contains(techType))
+                            if (ConfigMenu.noBreakingWithHand.Value && techType != TechType.None && PickupablePatch.notPickupableResources.Contains(techType))
                             {
                                 HandlePickupableResource(__instance, techType, playerTool);
                             }
@@ -748,12 +748,17 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(uGUI_PDA __instance)
             {
-                if (Input.GetKey(KeyCode.LeftShift))
+                if (uGUI.isLoading || GameInput.lastDevice != GameInput.Device.Keyboard || IngameMenu.main.isActiveAndEnabled || !Player.main.pda.isOpen)
+                    return;
+
+                //if (Input.GetAxis("Mouse ScrollWheel") > 0f)
+                if (Input.GetKeyDown(ConfigMenu.nextPDATabKey.Value))
                 {
-                    if (Input.mouseScrollDelta.y > 0f)
-                        __instance.OpenTab(__instance.GetNextTab());
-                    else if (Input.mouseScrollDelta.y < 0f)
-                        __instance.OpenTab(__instance.GetPreviousTab());
+                    __instance.OpenTab(__instance.GetNextTab());
+                }
+                else if (Input.GetKeyDown(ConfigMenu.previousPDATabKey.Value))
+                {
+                    __instance.OpenTab(__instance.GetPreviousTab());
                 }
             }
         }
@@ -764,7 +769,7 @@ namespace Tweaks_Fixes
             static bool Prefix(uGUI_FeedbackCollector __instance)
             {
                 //AddDebug("uGUI_FeedbackCollector HintShow");
-                    return !Main.config.disableHints;
+                    return !ConfigToEdit.disableHints.Value;
             }
         }
 
@@ -774,7 +779,7 @@ namespace Tweaks_Fixes
             internal static bool Prefix(PlayerWorldArrows __instance)
             {
                 //AddDebug("CreateWorldArrows");
-                return !Main.config.disableHints;
+                return !ConfigToEdit.disableHints.Value;
             }
         }
 
@@ -858,7 +863,7 @@ namespace Tweaks_Fixes
                     TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }
                 Eatable eatable = obj.GetComponent<Eatable>();
-                if (Main.config.eatRawFish != Config.EatingRawFish.Vanilla && fishTechTypes.Contains(techType) && GameModeManager.GetOption<bool>(GameOption.Hunger))
+                if (ConfigMenu.eatRawFish.Value != ConfigMenu.EatingRawFish.Vanilla && fishTechTypes.Contains(techType) && GameModeManager.GetOption<bool>(GameOption.Hunger))
                 {
                     //Eatable eatable = obj.GetComponent<Eatable>();
                     if (eatable)
@@ -884,11 +889,11 @@ namespace Tweaks_Fixes
                             {
                                 if (foodValue > 0)
                                 {
-                                    if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                                    if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Risky)
                                         food = food.Substring(0, index) + "≈ 0";
-                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmless)
                                         food = food.Substring(0, index) + "≈ " + Mathf.CeilToInt(foodValue * .5f);
-                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmful)
                                         food = food.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(foodValue * .5f));
                                 }
                                 //AddDebug("food  " + food);
@@ -909,11 +914,11 @@ namespace Tweaks_Fixes
                             {
                                 if (waterValue > 0)
                                 {
-                                    if (Main.config.eatRawFish == Config.EatingRawFish.Risky)
+                                    if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Risky)
                                         water = water.Substring(0, index) + "≈ 0";
-                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmless)
+                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmless)
                                         water = water.Substring(0, index) + "≈ " + Mathf.CeilToInt(waterValue * .5f);
-                                    else if (Main.config.eatRawFish == Config.EatingRawFish.Harmful)
+                                    else if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Harmful)
                                         water = water.Substring(0, index) + "≈ " + (-Mathf.CeilToInt(waterValue * .5f));
                                 }
                                 //AddDebug("water  " + water);
@@ -937,11 +942,11 @@ namespace Tweaks_Fixes
                     string name = Language.main.Get(techType);
                     TooltipFactory.WriteTitle(sb, name);
                     TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
-                    TooltipFactory.WriteDescription(sb, Language.main.GetFormat<float>("HealthFormat", Main.config.medKitHP));
+                    TooltipFactory.WriteDescription(sb, Language.main.GetFormat<float>("HealthFormat", ConfigMenu.medKitHP.Value));
                     //TooltipFactory.WriteDescription(sb, "Restores " + Main.config.medKitHP + " health.");
                     //AddDebug("ItemCommons " + sb.ToString());
                 }
-                else if (techType == TechType.SeaTruckUpgradeHorsePower && Main.config.seatruckMoveTweaks)
+                else if (techType == TechType.SeaTruckUpgradeHorsePower && ConfigMenu.seatruckMoveTweaks.Value)
                 {
                     sb.Clear();
                     TooltipFactory.WriteTitle(sb, Language.main.Get(techType));
@@ -973,7 +978,7 @@ namespace Tweaks_Fixes
                         TooltipFactory.WriteDescription(sb, Language.main.GetFormat<int>("WaterFormat", waterValue));
                     TooltipFactory.WriteDescription(sb, Language.main.Get(TooltipFactory.techTypeTooltipStrings.Get(techType)));
                 }
-                if (Main.config.invMultLand > 0f || Main.config.invMultWater > 0f)
+                if (ConfigMenu.invMultLand.Value > 0f || ConfigMenu.invMultWater.Value > 0f)
                 {
                     Rigidbody rb = obj.GetComponent<Rigidbody>();
                     if (rb)
@@ -1250,6 +1255,24 @@ namespace Tweaks_Fixes
                     return false;
                 
                 return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(HintSwimToSurface), "Update")]
+        public static class HintSwimToSurface_Update_Patch
+        {
+            public static bool Prefix(HintSwimToSurface __instance)
+            {
+                return ConfigToEdit.lowOxygenWarning.Value;
+            }
+        }
+
+        [HarmonyPatch(typeof(LowOxygenAlert), "Update")]
+        public static class LowOxygenAlert_Update_Patch
+        {
+            public static bool Prefix(LowOxygenAlert __instance)
+            {
+                return ConfigToEdit.lowOxygenAudioWarning.Value;
             }
         }
 

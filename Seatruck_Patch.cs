@@ -128,7 +128,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("IInteriorSpace.GetInsideTemperature")]
             public static void GetInsideTemperaturePostfix(SeaTruckSegment __instance, ref float __result)
             {
-                if (Main.config.useRealTempForPlayerTemp && !__instance.relay.IsPowered())
+                if (ConfigMenu.useRealTempForPlayerTemp.Value && !__instance.relay.IsPowered())
                     __result = WaterTemperatureSimulation.main.GetTemperature(__instance.transform.position);
                 else
                     __result = ConfigToEdit.insideBaseTemp.Value;
@@ -298,7 +298,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("IsAllowedToAdd")]
             public static bool IsAllowedToAddPrefix(SeaTruckUpgrades __instance, Pickupable pickupable, ref bool __result)
             {
-                if (!Main.config.seatruckMoveTweaks)
+                if (!ConfigMenu.seatruckMoveTweaks.Value)
                     return true;
 
                 if (pickupable == null)
@@ -329,7 +329,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("TryActivateAfterBurner")]
             public static bool TryActivateAfterBurnerPrefix(SeaTruckUpgrades __instance)
             {
-                if (!Main.config.seatruckMoveTweaks)
+                if (!ConfigMenu.seatruckMoveTweaks.Value)
                     return true;
 
                 for (int slotID = 0; slotID < SeaTruckUpgrades.slotIDs.Length; ++slotID)
@@ -399,7 +399,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("GetWeight")]
             public static bool GetWeightPrefix(SeaTruckMotor __instance, ref float __result)
             {
-                if (Main.config.seatruckMoveTweaks)
+                if (ConfigMenu.seatruckMoveTweaks.Value)
                 {
                     __result = __instance.truckSegment.GetWeight() + __instance.truckSegment.GetAttachedWeight() * 0.8f;
                     return false;
@@ -411,7 +411,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch( "Update")]
             public static void UpdatePrefix(SeaTruckMotor __instance)
             {
-                if (!Main.config.seatruckMoveTweaks)
+                if (!ConfigMenu.seatruckMoveTweaks.Value)
                     return;
 
                 if (__instance.afterBurnerActive)
@@ -433,7 +433,7 @@ namespace Tweaks_Fixes
                         HandReticle.main.SetTextRaw(HandReticle.TextType.Use, uiText);
                     HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, uiTextSub);
                 }
-                if (!Main.config.seatruckMoveTweaks)
+                if (!ConfigMenu.seatruckMoveTweaks.Value)
                     return;
 
                 if (GameInput.GetButtonHeld(GameInput.Button.Sprint))
@@ -471,7 +471,7 @@ namespace Tweaks_Fixes
                     if (__instance.piloting)
                     {
                         Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() || __instance.inputStackDummy.activeInHierarchy ? GameInput.GetMoveDirection() : Vector3.zero;
-                        if (!Main.config.seatruckMoveTweaks)
+                        if (!ConfigMenu.seatruckMoveTweaks.Value)
                         { 
                             moveDirection = moveDirection.normalized;
                             moveDirection.x *= .5f;
@@ -492,7 +492,7 @@ namespace Tweaks_Fixes
                         if (__instance.afterBurnerActive)
                             acceleration += 7f;
 
-                        acceleration *= Main.config.seatruckSpeedMult;
+                        acceleration *= ConfigMenu.seatruckSpeedMult.Value;
                         __instance.useRigidbody.AddForce(acceleration * vector3_2, ForceMode.Acceleration);
                         if (__instance.relay && moveDirection != Vector3.zero)
                             __instance.relay.ConsumeEnergy((Time.deltaTime * __instance.powerEfficiencyFactor * 0.12f), out float _);

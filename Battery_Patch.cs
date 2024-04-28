@@ -24,12 +24,12 @@ namespace Tweaks_Fixes
                 if (HoverbikeEM == __instance)
                 {
                     //AddDebug("Hoverbike ConsumeEnergy");
-                    amount *= Main.config.vehicleEnergyConsMult;
+                    amount *= ConfigMenu.vehicleEnergyConsMult.Value;
                 }
                 else if (PlayerToolEM  == __instance)
                 {
                     //AddDebug(__instance.name + " EnergyMixin ConsumeEnergy");
-                    amount *= Main.config.toolEnergyConsMult;
+                    amount *= ConfigMenu.toolEnergyConsMult.Value;
                 }
             }
         }
@@ -70,7 +70,7 @@ namespace Tweaks_Fixes
                 if (propCannonEI == __instance)
                 {
                     //AddDebug(" propCannon ConsumeEnergy");
-                    amount *= Main.config.toolEnergyConsMult;
+                    amount *= ConfigMenu.toolEnergyConsMult.Value;
                 }
             }
         }
@@ -81,7 +81,7 @@ namespace Tweaks_Fixes
             static void Prefix(Vehicle __instance, ref float energyCost)
             {
                 //AddDebug("Vehicle ConsumeEnergy");
-                energyCost *= Main.config.vehicleEnergyConsMult;
+                energyCost *= ConfigMenu.vehicleEnergyConsMult.Value;
             }
         }
 
@@ -103,13 +103,13 @@ namespace Tweaks_Fixes
                 PowerRelay pr = powerInterface as PowerRelay;
                 if (pr && seatruckPRs.Contains(pr))
                 {
-                    amount *= Main.config.vehicleEnergyConsMult;
+                    amount *= ConfigMenu.vehicleEnergyConsMult.Value;
                     //AddDebug(pr.name + " SeaTruck PowerRelay ConsumeEnergy ");
                 }
                 else
                 {
                     //AddDebug(pr.name + " base PowerRelay ConsumeEnergy ");
-                    amount *= Main.config.baseEnergyConsMult;
+                    amount *= ConfigMenu.baseEnergyConsMult.Value;
                 }
             }
         }
@@ -121,7 +121,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnProtoDeserialize")]
             static void OnProtoDeserializePostfix(Battery __instance)
             {
-                __instance._capacity *= Main.config.batteryChargeMult;
+                __instance._capacity *= ConfigMenu.batteryChargeMult.Value;
                 if (__instance.charge > __instance._capacity)
                     __instance.charge = __instance._capacity;
                 //Main.logger.LogDebug("Battery OnProtoDeserialize " + __instance._capacity);
@@ -171,20 +171,6 @@ namespace Tweaks_Fixes
                     __result = true;
 
                 return false;
-            }
-        }
-
-        //[HarmonyPatch(typeof(Battery), "OnAfterDeserialize")]
-        class Battery_OnAfterDeserialize_Patch
-        {
-            static void Postfix(Battery __instance)
-            {
-                //if (Main.crafterOpen)
-                {
-                    //AddDebug("crafterOpen");
-                    float mult = Main.config.craftedBatteryCharge * .01f;
-                    __instance._charge = __instance._capacity * mult;
-                }
             }
         }
 

@@ -15,10 +15,10 @@ namespace Tweaks_Fixes
         {
             static void Postfix(ResourceTracker __instance)
             {
-                if (Main.config.dontSpawnKnownFragments && __instance.techType == TechType.Fragment)
+                if (ConfigToEdit.dontSpawnKnownFragments.Value
+                    && __instance.techType == TechType.Fragment)
                 {
                     TechType tt = CraftData.GetTechType(__instance.gameObject);
-
                     if (PDAScanner.complete.Contains(tt))
                     {
                         //AddDebug("ResourceTracker start known " + __instance.techType + " " + CraftData.GetTechType(__instance.gameObject));

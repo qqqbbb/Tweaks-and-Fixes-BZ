@@ -75,7 +75,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Fabricator __instance)
             {
-                if (Main.config.dropPodMaxPower == 0)
+                if (ConfigMenu.dropPodMaxPower.Value == 0)
                     return;
 
                 GameObject dropPod = __instance.transform.parent.gameObject;
@@ -86,10 +86,10 @@ namespace Tweaks_Fixes
                     __instance.needsPower = true;
                     //AddDebug("Fabricator Start needsPower " + __instance.needsPower);
                     podPowerSource = __instance.gameObject.EnsureComponent<PowerSource>();
-                    podPowerSource.maxPower = Main.config.dropPodMaxPower;
+                    podPowerSource.maxPower = ConfigMenu.dropPodMaxPower.Value;
                     __instance.gameObject.AddComponent<RegenerateSunPowerSource>();
-                    if (Main.config.podPower.ContainsKey(SaveLoadManager.main.currentSlot))
-                        podPowerSource.power = Main.config.podPower[SaveLoadManager.main.currentSlot];
+                    if (Main.configMain.podPower.ContainsKey(SaveLoadManager.main.currentSlot))
+                        podPowerSource.power = Main.configMain.podPower[SaveLoadManager.main.currentSlot];
                 }
             }
         }
@@ -99,7 +99,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(GhostCrafter __instance, GUIHand hand)
             {
-                if (Main.config.dropPodMaxPower == 0 || __instance != podGhostCrafter)
+                if (ConfigMenu.dropPodMaxPower.Value == 0 || __instance != podGhostCrafter)
                     return true;
                 //AddDebug("GhostCrafter OnHandHover " + __instance.powerRelay.GetPower());
                 if (!__instance.enabled || __instance.logic == null)
@@ -151,7 +151,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("LifepodDrop inside GetInsideTemperature " + __result);
                 __result = ConfigToEdit.insideBaseTemp.Value;
-                if (Main.config.useRealTempForPlayerTemp && Main.config.dropPodMaxPower > 0)
+                if (ConfigMenu.useRealTempForPlayerTemp.Value && ConfigMenu.dropPodMaxPower.Value > 0)
                 {
                     //AddDebug("LifepodDrop GetPower " + podPowerSource.GetPower());
                     if (podPowerSource && podPowerSource.GetPower() <= 0)
