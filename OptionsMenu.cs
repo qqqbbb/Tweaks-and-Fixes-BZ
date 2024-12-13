@@ -29,8 +29,10 @@ namespace Tweaks_Fixes
             ModSliderOption craftTimeSlider = ConfigMenu.craftTimeMult.ToModSliderOption(0.01f, 3f, .01f, "{0:0.0#}");
             ModSliderOption buildTimeSlider = ConfigMenu.buildTimeMult.ToModSliderOption(0.01f, 3f, .01f, "{0:0.0#}");
             ModSliderOption crushDepthSlider = ConfigMenu.crushDepth.ToModSliderOption(50, 500, 10);
-            ModSliderOption crushDamageSlider = ConfigMenu.crushDamageMult.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
-            ModSliderOption vehicleCrushDamageSlider = ConfigMenu.vehicleCrushDamageMult.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
+            ModSliderOption crushDamageSlider = ConfigMenu.crushDamage.ToModSliderOption(0f, 10f, .1f, "{0:0.0#}");
+            ModSliderOption vehicleCrushDamageSlider = ConfigMenu.vehicleCrushDamageMult.ToModSliderOption(0f, 10f, .1f, "{0:0.0#}");
+            ModSliderOption crushDamageProgressionSlider = ConfigMenu.crushDamageProgression.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
+
             ModSliderOption hungerUpdateIntervalSlider = ConfigMenu.hungerUpdateInterval.ToModSliderOption(1, 100, 1);
             ModSliderOption fishFoodWaterRatioSlider = ConfigMenu.fishFoodWaterRatio.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
             ModSliderOption foodDecayRateSlider = ConfigMenu.foodDecayRateMult.ToModSliderOption(0f, 3f, .1f, "{0:0.#}");
@@ -45,7 +47,8 @@ namespace Tweaks_Fixes
             ModSliderOption invMultLandSlider = ConfigMenu.invMultLand.ToModSliderOption(0f, 5f, .01f, "{0:0.0#}");
             ModSliderOption waterFreezeSlider = ConfigMenu.waterFreezeRate.ToModSliderOption(0f, 5f, .1f, "{0:0.#}");
             ModSliderOption snowballWaterSlider = ConfigMenu.snowballWater.ToModSliderOption(0, 30, 1);
-
+            ModSliderOption baseHullStrengthSlider = ConfigMenu.baseHullStrengthMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
+            ModSliderOption drillDamageMultSlider = ConfigMenu.drillDamageMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
 
             AddItem(timeFlowSpeedSlider);
             AddItem(playerSpeedSlider);
@@ -63,14 +66,18 @@ namespace Tweaks_Fixes
             AddItem(ConfigMenu.seatruckMoveTweaks.ToModToggleOption());
             AddItem(ConfigMenu.exosuitMoveTweaks.ToModToggleOption());
             AddItem(ConfigMenu.hoverbikeMoveTweaks.ToModToggleOption());
+            AddItem(drillDamageMultSlider);
             AddItem(ConfigMenu.emptyVehiclesCanBeAttacked.ToModChoiceOption());
             AddItem(medKitHPslider);
             AddItem(ConfigMenu.cantUseMedkitUnderwater.ToModToggleOption());
             AddItem(ConfigMenu.useBestLOD.ToModToggleOption());
             AddItem(dropPodMaxPower);
             AddItem(fruitGrowTimeSlider);
+            AddItem(crushDepthSlider);
             AddItem(crushDamageSlider);
             AddItem(vehicleCrushDamageSlider);
+            AddItem(crushDamageProgressionSlider);
+            AddItem(baseHullStrengthSlider);
             AddItem(hungerUpdateIntervalSlider);
             AddItem(ConfigMenu.newHungerSystem.ToModToggleOption());
             AddItem(ConfigMenu.eatRawFish.ToModChoiceOption());
@@ -95,7 +102,6 @@ namespace Tweaks_Fixes
             AddItem(batteryChargeSlider);
             AddItem(craftedBatteryChargeSlider);
             AddItem(ConfigMenu.realOxygenCons.ToModToggleOption());
-            AddItem(ConfigMenu.cameraBobbing.ToModToggleOption());
             AddItem(ConfigMenu.dropItemsOnDeath.ToModChoiceOption());
             AddItem(invMultWaterSlider);
             AddItem(invMultLandSlider);

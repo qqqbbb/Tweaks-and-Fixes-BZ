@@ -13,7 +13,7 @@ namespace Tweaks_Fixes
         static HashSet<DealDamageOnImpact> ddoiVanillaScript = new HashSet<DealDamageOnImpact>();
 
         static void SetBloodColor(GameObject go)
-        {  
+        {
             ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
             //AddDebug("SetBloodColor " + go.name + " " + pss.Length);
             //Main.Log("SetBloodColor " + go.name );
@@ -87,7 +87,7 @@ namespace Tweaks_Fixes
                 float damageMult = Mathf.Max(0f, Vector3.Dot(-contactPoint.normal, __instance.prevVelocity));
 
                 damageMult = Mathf.Clamp(damageMult, 0f, 10f);
- 
+
                 Rigidbody otherRB = collision.rigidbody;
                 float myMass = __instance.GetComponent<Rigidbody>().mass;
                 float massRatioInv;
@@ -133,6 +133,7 @@ namespace Tweaks_Fixes
                 if (damageMult < __instance.speedMinimumForDamage)
                     canDealDamage = false;
 
+                //AddDebug("damageMult " + damageMult + " speedMinimumForDamage " + __instance.speedMinimumForDamage);
                 if (__instance.impactSound && __instance.timeLastImpactSound + 0.5 < Time.time)
                 {
                     if (__instance.checkForFishHitSound)
@@ -142,6 +143,7 @@ namespace Tweaks_Fixes
                         GameObject entityRoot = UWE.Utils.GetEntityRoot(collision.gameObject);
                         if (entityRoot != null)
                             gameObject = entityRoot;
+
                         if (gameObject.GetComponent<Creature>() != null)
                         {
                             BehaviourType behaviourType = CreatureData.GetBehaviourType(gameObject);
@@ -183,7 +185,7 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-            
+
                 bool canTakeDamage = true;
                 if (vehicle && !ConfigToEdit.vehiclesTakeDamageOnImpact.Value)
                     canTakeDamage = false;
@@ -250,7 +252,7 @@ namespace Tweaks_Fixes
                     VFXSurface surface = __instance.GetComponent<VFXSurface>();
                     if (surface && surface.surfaceType == VFXSurfaceTypes.organic)
                     {
-                        if (__instance.data.damageEffect )
+                        if (__instance.data.damageEffect)
                             SetBloodColor(__instance.data.damageEffect);
 
                         if (__instance.data.deathEffect)
@@ -263,6 +265,22 @@ namespace Tweaks_Fixes
             [HarmonyPatch("TakeDamage")]
             static bool TakeDamagePrefix(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position = default(Vector3), DamageType type = DamageType.Normal, GameObject dealer = null)
             {
+                if (originalDamage > 0 && type == DamageType.Normal || type == DamageType.Fire || type == DamageType.Collide || type == DamageType.Acid || type == DamageType.Heat || type == DamageType.Drill || type == DamageType.Explosive || type == DamageType.Pressure || type == DamageType.Puncture)
+                {
+                    FrozenMixin frozenMixin = __instance.GetComponent<FrozenMixin>();
+                    if (frozenMixin && frozenMixin.IsFrozen())
+                    {
+                        //AddDebug("frozenMixin tekes damage ");
+                        frozenMixin.Unfreeze();
+                        return false;
+                    }
+                }
+                return true;
+            }
+            //[HarmonyPrefix]
+            //[HarmonyPatch("TakeDamage")]
+            static bool TakeDamagePrefix__(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position = default(Vector3), DamageType type = DamageType.Normal, GameObject dealer = null)
+            {
                 TechType techType = CraftData.GetTechType(__instance.gameObject);
                 bool isBaseCell = __instance.GetComponent<BaseCell>() != null;
                 float damageTakenModifier = GameModeManager.GetDamageTakenModifier(techType, isBaseCell);
@@ -273,6 +291,7 @@ namespace Tweaks_Fixes
                     float damage = 0f;
                     if (!__instance.shielded)
                         damage = DamageSystem.CalculateDamage(techType, damageTakenModifier, originalDamage, type, __instance.gameObject, dealer);
+
                     __instance.health = Mathf.Max(0f, __instance.health - damage);
                     if (type == DamageType.Poison)
                     {
@@ -337,26 +356,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(DamageFX), "AddHudDamage")]
-        class DamageFX_AddHudDamage_Patch
-        {
-            public static bool Prefix(DamageFX __instance, float damageScalar, Vector3 damageSource, DamageInfo damageInfo, bool isUnderwater)
-            {
-                //AddDebug("AddHudDamage " + damageInfo.type);
-                if (!ConfigToEdit.crushDamageScreenEffect.Value && damageInfo.type == DamageType.Pressure)
-                    return false;
-
-                if (ConfigMenu.damageImpactEffect.Value)
-                    __instance.CreateImpactEffect(damageScalar, damageSource, damageInfo.type, isUnderwater);
-
-                if (ConfigMenu.damageScreenFX.Value)
-                    __instance.PlayScreenFX(damageInfo);
-
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(DamageSystem), "CalculateDamage", new Type[] { typeof(TechType), typeof(float), typeof(float), typeof(DamageType), typeof(GameObject), typeof(GameObject)})]
+        [HarmonyPatch(typeof(DamageSystem), "CalculateDamage", new Type[] { typeof(TechType), typeof(float), typeof(float), typeof(DamageType), typeof(GameObject), typeof(GameObject) })]
         class DamageSystem_CalculateDamage_Patch
         {
             public static void Postfix(DamageSystem __instance, float damage, DamageType type, GameObject target, GameObject dealer, ref float __result, TechType techType)
@@ -364,6 +364,11 @@ namespace Tweaks_Fixes
                 if (__result <= 0f)
                     return;
 
+                if (type == DamageType.Drill)
+                {
+                    __result *= ConfigMenu.drillDamageMult.Value;
+                    //AddDebug("CalculateDamage Drill");
+                }
                 if (techType == TechType.Player)
                 {
                     //__result *= Main.config.playerDamageMult;
@@ -410,8 +415,8 @@ namespace Tweaks_Fixes
                 //    AddDebug("base takes damage");
                 //else if (Main.config.damageMult > 1)
                 //{
-                    //if (damageMult.ContainsKey(techType))
-                        //__result *= Main.config.damageMult;
+                //if (damageMult.ContainsKey(techType))
+                //__result *= Main.config.damageMult;
                 //}
             }
         }
@@ -451,7 +456,7 @@ namespace Tweaks_Fixes
                             if (fishToCook == fish)
                             {
                                 if (damageTicks == damageTicksToCook)
-                                { 
+                                {
                                     fishToCook = null;
                                     Util.CookFish(fish);
                                 }
@@ -474,7 +479,7 @@ namespace Tweaks_Fixes
                 //}
                 return false;
             }
-       
+
         }
 
         [HarmonyPatch(typeof(VFXSurfaceTypeDatabase), "SetPrefab")]
@@ -568,8 +573,8 @@ namespace Tweaks_Fixes
                         //    AddDebug("Take Cold Damage " + __instance.coldDamage * 100f);
                     }
                 }
-                    //if (fm is PlayerFrozenMixin && __instance.brinewing != null)
-                    //    __instance.brinewing.OnFreezePlayer();
+                //if (fm is PlayerFrozenMixin && __instance.brinewing != null)
+                //    __instance.brinewing.OnFreezePlayer();
                 //}
                 __instance.Despawn();
                 return false;
@@ -663,6 +668,51 @@ namespace Tweaks_Fixes
                 Utils.PlayFMODAsset(Player.main.IsUnderwater() ? __instance.swingWaterSound : __instance.swingSound, __instance.transform.position);
 
                 return false;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(Drillable), "OnDrill")]
+        class Drillable_OnDrill_Patch
+        {
+            static void Postfix(Drillable __instance, Vector3 position, Exosuit exo)
+            { // cant replace prefix bc it invokes event
+                float totalStartHealth = 0f;
+                for (int index = 0; index < __instance.health.Length; ++index)
+                    totalStartHealth += __instance.health[index];
+
+                __instance.drillingExo = exo;
+                Vector3 center = Vector3.zero;
+                int closestMesh = __instance.FindClosestMesh(position, out center);
+                //hitObject = __instance.renderers[closestMesh].gameObject;
+                __instance.timeLastDrilled = Time.time;
+                if (totalStartHealth > 0)
+                {
+                    float drillDamage = 5f * ConfigMenu.drillDamageMult.Value;
+                    float closestChunkHealth = __instance.health[closestMesh];
+                    __instance.health[closestMesh] = Mathf.Max(0f, __instance.health[closestMesh] - drillDamage);
+                    float healthLeft = totalStartHealth - (closestChunkHealth - __instance.health[closestMesh]);
+                    if (closestChunkHealth > 0 && __instance.health[closestMesh] <= 0)
+                    {
+                        __instance.renderers[closestMesh].gameObject.SetActive(false);
+                        __instance.SpawnFX(__instance.breakFX, center);
+                        if (__instance.resources.Length != 0)
+                            __instance.StartCoroutine(__instance.SpawnLootAsync(center));
+                    }
+                    if (healthLeft <= 0)
+                    {
+                        __instance.SpawnFX(__instance.breakAllFX, center);
+                        if (__instance.deleteWhenDrilled)
+                        {
+                            ResourceTracker rt = __instance.GetComponent<ResourceTracker>();
+                            if (rt)
+                                rt.OnBreakResource();
+
+                            __instance.Invoke("DestroySelf", __instance.lootPinataOnSpawn ? 6f : 0f);
+                        }
+                    }
+                }
+                BehaviourUpdateUtils.Register(__instance);
             }
         }
 

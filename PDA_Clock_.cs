@@ -1,7 +1,7 @@
 ﻿
 using HarmonyLib;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -47,9 +47,16 @@ namespace Tweaks_Fixes
                 var sb = new System.Text.StringBuilder();
                 if (GameModeManager.GetOption<bool>(GameOption.BodyTemperatureDecreases))
                 {
-                    int temp = Mathf.RoundToInt(Util.GetPlayerTemperature());
+                    int temp = (int)Util.GetPlayerTemperature();
+                    if (ConfigToEdit.showTempFahrenhiet.Value)
+                        temp = (int)Util.CelciusToFahrenhiet(temp);
+
                     sb.Append(temp.ToString());
-                    sb.AppendLine("°C");
+                    if (ConfigToEdit.showTempFahrenhiet.Value)
+                        sb.AppendLine("°F");
+                    else
+                        sb.AppendLine("°C");
+                    //sb.AppendLine(Language.main.GetFormat("ThermometerFormat")); // yellow color
                 }
                 sb.Append(hours.ToString("00"));
                 if (blink)

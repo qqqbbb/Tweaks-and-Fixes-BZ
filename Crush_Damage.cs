@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -24,10 +24,14 @@ namespace Tweaks_Fixes
                 return;
 
             float mult = 1f - crushDamageResistance;
-            float damage = (depth - crushDepth) * ConfigMenu.crushDamageMult.Value * mult;
-            if (Player.main.liveMixin)
-                Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
-            //AddDebug(" CrushDamageUpdate " + damage);
+            float damage = ConfigMenu.crushDamage.Value * mult;
+            if (damage <= 0)
+                return;
+            //AddDebug(" Crush Damage " + damage);
+            if (ConfigMenu.crushDamageProgression.Value > 0f)
+                damage += (depth - crushDepth) * ConfigMenu.crushDamageProgression.Value;
+            //AddDebug(" crush Damage Progression " + damage);
+            Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
         }
 
         [HarmonyPatch(typeof(Inventory))]
@@ -53,7 +57,7 @@ namespace Tweaks_Fixes
                     crushDamageResistance += Mathf.Clamp01(res);
                 }
             }
-                    
+
             [HarmonyPostfix]
             [HarmonyPatch("OnUnequip")]
             static void OnUnequipPostfix(Inventory __instance, InventoryItem item)
@@ -85,8 +89,10 @@ namespace Tweaks_Fixes
             private static float crushTime = 0f;
             static void Postfix(Player __instance)
             {
+                if (uGUI.isLoading)
+                    return;
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
-                if (ConfigMenu.crushDamageMult.Value > 0f && crushInterval + crushTime < Time.time)
+                if (ConfigMenu.crushDamage.Value > 0f && crushInterval + crushTime < Time.time)
                 {
                     crushTime = Time.time;
                     CrushDamagePlayer();
@@ -123,22 +129,27 @@ namespace Tweaks_Fixes
         { // player does not have this
             public static bool Prefix(CrushDamage __instance)
             {
-                //if (Main.config.vehicleCrushDamageMult == 0f)
-                //    return true;
-
-                if (!__instance.gameObject.activeInHierarchy || !__instance.enabled || !__instance.GetCanTakeCrushDamage())
+                if (uGUI.isLoading)
                     return false;
 
-                //AddDebug(__instance + " CrushDamageUpdate " );
+                if (ConfigMenu.vehicleCrushDamageMult.Value == 1f && ConfigMenu.crushDamageProgression.Value == 0f)
+                    return true;
+
+                if (!__instance.gameObject.activeInHierarchy || !__instance.enabled || !__instance.GetCanTakeCrushDamage() || __instance.depthCache == null)
+                    return false;
 
                 float depth = __instance.depthCache.Get();
                 if (depth < __instance.crushDepth)
                     return false;
 
-                float damage = (depth - __instance.crushDepth) * ConfigMenu.vehicleCrushDamageMult.Value;
-                if (damage == 0f)
-                    damage = __instance.damagePerCrush;
+                float damage = __instance.damagePerCrush * ConfigMenu.vehicleCrushDamageMult.Value;
+                if (damage <= 0)
+                    return false;
+
                 //AddDebug("damage " + damage);
+                if (ConfigMenu.crushDamageProgression.Value > 0f)
+                    damage += (depth - __instance.crushDepth) * ConfigMenu.crushDamageProgression.Value;
+                //AddDebug("damage Progression " + damage);
                 __instance.liveMixin.TakeDamage(damage, __instance.transform.position, DamageType.Pressure);
                 foreach (SeaTruckSegment sts in __instance.GetComponentsInChildren<SeaTruckSegment>())
                 //for (SeaTruckSegment sts = __instance; sts; sts = sts.isFrontConnected ? sts.frontConnection.GetConnection().truckSegment : null)

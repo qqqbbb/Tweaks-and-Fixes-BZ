@@ -91,18 +91,16 @@ namespace Tweaks_Fixes
                         if (__instance.CanAnimate() && !skipAnimations)
                             __instance.seatruckanimation.currentAnimation = SeaTruckAnimation.Animation.Exit;
                     }
-                    else
-                        AddError(Language.main.Get("ExitFailedNoSpace"));
                 }
                 else if (player != null & playerIsOutside)
                 {
                     bool exitPoint = __instance.FindExitPoint(out Vector3 _, out bool _);
-                    if (!__instance.IsWalkable() && !SeaTruckSegment.GetHead(__instance).isMainCab)
-                        AddError(Language.main.Get("EnterFailedTooSteep"));
-                    else if (exitPoint)
+                    //if (!__instance.IsWalkable() && !SeaTruckSegment.GetHead(__instance).isMainCab)
+                    //    AddError(Language.main.Get("EnterFailedTooSteep"));
+                    if (exitPoint)
                         __instance.EnterHatch(player);
-                    else
-                        AddError(Language.main.Get("EnterFailedNoSpace"));
+                    //else
+                    //    AddError(Language.main.Get("EnterFailedNoSpace"));
                 }
                 if (__instance.player)
                     __instance.PropagatePlayer();
@@ -311,7 +309,7 @@ namespace Tweaks_Fixes
                 else
                 {
                     __result = false;
-                    AddMessage(Language.main.Get("SeaTruckErrorMultipleTechTypes"));
+                    //AddMessage(Language.main.Get("SeaTruckErrorMultipleTechTypes"));
                 }
                 return false;
             }
@@ -457,12 +455,12 @@ namespace Tweaks_Fixes
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch("FixedUpdate")] // fixed
+            [HarmonyPatch("FixedUpdate")] 
             public static bool FixedUpdatePrefix(SeaTruckMotor __instance)
             {
                 //if (!Main.config.seatruckMoveTweaks)
                 //    return true;
-
+                //AddDebug("SeaTruckMotor FixedUpdate");
                 if (!__instance.truckSegment.isMainCab && __instance.useRigidbody != null && (!__instance.useRigidbody.isKinematic && !__instance.piloting) && (__instance.useRigidbody.velocity.y > -0.3f && __instance.pilotPosition.position.y > Ocean.GetOceanLevel() - 2f))
                     __instance.useRigidbody.AddForce(new Vector3(0f, -0.3f - __instance.useRigidbody.velocity.y, 0f), ForceMode.VelocityChange);
 
@@ -472,7 +470,7 @@ namespace Tweaks_Fixes
                     {
                         Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() || __instance.inputStackDummy.activeInHierarchy ? GameInput.GetMoveDirection() : Vector3.zero;
                         if (!ConfigMenu.seatruckMoveTweaks.Value)
-                        { 
+                        {
                             moveDirection = moveDirection.normalized;
                             moveDirection.x *= .5f;
                             moveDirection.y *= .5f;

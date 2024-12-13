@@ -11,7 +11,7 @@ namespace Tweaks_Fixes
     class Plants_Patch
     {// fruit test -583 -30 -212   -520 -85 -80     -573 -34 -110
         static float creepVineSeedLightInt = 1.2f;
-        
+
         public static void AttachFruitPlant(GameObject go)
         { // FruitPlant will be saved
             PickPrefab[] pickPrefabs = go.GetComponentsInChildren<PickPrefab>(true);
@@ -85,38 +85,45 @@ namespace Tweaks_Fixes
                 fp.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * Main.dayLengthSeconds;
         }
 
-        //[HarmonyPatch(typeof(ResourceTracker))]
-        class ResourceTracker_Patch
-        {
-            //[HarmonyPatch("Start")]
-            //[HarmonyPostfix]
-            public static void StartPrefix(ResourceTracker __instance)
-            {
-                if (__instance.techType == TechType.GenericJeweledDisk)
-                {
-                    __instance.gameObject.transform.localRotation = Quaternion.Euler(__instance.gameObject.transform.localRotation.x, __instance.gameObject.transform.localRotation.y, 0f);
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(PickPrefab))]
         class PickPrefab_Patch
         {
+            private static void LoadIcefruitState(PickPrefab pickPrefab)
+            {
+                if (Main.configMain.iceFruitsPicked.ContainsKey(SaveLoadManager.main.currentSlot))
+                {
+                    Vector3Int pos = new Vector3Int((int)pickPrefab.transform.position.x, (int)pickPrefab.transform.position.y, (int)pickPrefab.transform.position.z);
+                    if (Main.configMain.iceFruitsPicked[SaveLoadManager.main.currentSlot].Contains(pos))
+                    {
+                        //AddDebug("IceFruit PickPrefab Start ");
+                        pickPrefab.SetPickedState(true);
+                    }
+                }
+            }
+
+            private static void SaveIcefruitState(PickPrefab pickPrefab, bool state)
+            {
+                if (!Main.configMain.iceFruitsPicked.ContainsKey(SaveLoadManager.main.currentSlot))
+                    Main.configMain.iceFruitsPicked[SaveLoadManager.main.currentSlot] = new HashSet<Vector3Int>();
+
+                Vector3Int pos = new Vector3Int((int)pickPrefab.transform.position.x, (int)pickPrefab.transform.position.y, (int)pickPrefab.transform.position.z);
+                //AddDebug("pos " + pos);
+                if (state)
+                    Main.configMain.iceFruitsPicked[SaveLoadManager.main.currentSlot].Add(pos);
+                else
+                    Main.configMain.iceFruitsPicked[SaveLoadManager.main.currentSlot].Remove(pos);
+            }
+
             [HarmonyPrefix]
             [HarmonyPatch("Start")]
             public static void StartPrefix(PickPrefab __instance)
             {
                 if (__instance.pickTech == TechType.IceFruit)
                 { // OnProtoDeserialize does not run 
-                    string pos = (int)__instance.transform.position.x + "_" + (int)__instance.transform.position.y + "_" + (int)__instance.transform.position.z;
-                    if (Main.configMain.iceFruitPickedState.ContainsKey(pos))
-                    {
-                        //AddDebug("IceFruit PickPrefab Start ");
-                        if (Main.configMain.iceFruitPickedState[pos])
-                            __instance.SetPickedState(true);
-                    }
+                    LoadIcefruitState(__instance);
                 }
             }
+
             //[HarmonyPatch("SetPickedUp")]
             //[HarmonyPostfix]
             public static void SetPickedUpPostfix(PickPrefab __instance)
@@ -162,10 +169,8 @@ namespace Tweaks_Fixes
                 //if (rt && rt.techType == TechType.KelpRootPustule)
                 //    rt.Register();
                 if (__instance.pickTech == TechType.IceFruit)
-                { // not checking save slot
-                    string pos = (int)__instance.transform.position.x + "_" + (int)__instance.transform.position.y + "_" + (int)__instance.transform.position.z;
-                    //AddDebug("pos " + pos);
-                    Main.configMain.iceFruitPickedState[pos] = newPickedState;
+                {
+                    SaveIcefruitState(__instance, newPickedState);
                 }
                 else if (__instance.pickTech == TechType.CreepvineSeedCluster)
                 {
@@ -184,6 +189,7 @@ namespace Tweaks_Fixes
                     }
                 }
             }
+
             //[HarmonyPatch("OnHandHover")]
             //[HarmonyPrefix]
             public static void OnHandHoverPrefix(PickPrefab __instance)
@@ -254,7 +260,7 @@ namespace Tweaks_Fixes
                 //__result = __instance.growthDuration * Main.config.plantGrowthTimeMult * (NoCostConsoleCommand.main.fastGrowCheat ? 0.01f : 1f);
                 return false;
             }
-         
+
             [HarmonyPrefix]
             [HarmonyPatch("SetScale")]
             static bool SetScalePrefix(GrowingPlant __instance, Transform tr, float progress)
@@ -299,7 +305,7 @@ namespace Tweaks_Fixes
                 if (item._techType == TechType.MelonSeed || item._techType == TechType.SnowStalkerFruit)
                 {
                     if (item.item)
-                    { 
+                    {
                         Plantable p = item.item.GetComponent<Plantable>();
                         if (p)
                             p.size = Plantable.PlantSize.Large;
@@ -356,18 +362,19 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Eatable), "Awake")]
+        [HarmonyPatch(typeof(Eatable), "Awake")]
         class Eatable_Awake_Patch
         {
             static void Postfix(Eatable __instance)
             {
-                Plantable plantable = __instance.GetComponent<Plantable>();
-                if (plantable)
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (tt == TechType.TwistyBridgesMushroomChunk)
                 {
-                    if (plantable.plantTechType == TechType.SnowStalkerPlant)
+                    Rigidbody rb = __instance.GetComponent<Rigidbody>();
+                    if (rb)
                     {
-                        AddDebug("Eatable Awake SnowStalkerPlant " + __instance.name);
-                        plantable.size = Plantable.PlantSize.Large;
+                        //AddDebug("Eatable Awake TwistyBridgesMushroomChunk " + rb.isKinematic);
+                        rb.isKinematic = false;
                     }
                 }
             }
@@ -393,7 +400,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
-      
+
         //[HarmonyPatch(typeof(PickPrefab), "OnHandClick")]
         class PickPrefab_OnHandClick_Patch
         {

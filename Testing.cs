@@ -1,46 +1,92 @@
 ﻿
 using HarmonyLib;
-using System.Reflection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Reflection;
 using System.Text;
+using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
-{ 
+{
     class Testing
     {// purpleVent -29 -79 -861
      // crypto -90 -7 -340
         static GameObject previousTarget;
         static List<string> massList = new List<string>();
 
-        static IEnumerator PrintMass(TechType techType)
+
+        //[HarmonyPatch(typeof(SupplyCrate), "Start")]
+        class SupplyCrate_Start_Patch
         {
-            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType, false);
-            yield return request;
-            GameObject go = request.GetResult();
-            if (go)
+            static void Prefix(SupplyCrate __instance)
             {
-                Rigidbody rb = go.GetComponent<Rigidbody>();
-                if (rb)
+                int x = (int)__instance.transform.position.x;
+                int y = (int)__instance.transform.position.y;
+                int z = (int)__instance.transform.position.z;
+                if (x == -1195 && y == 16 && z == -691)
                 {
-                    string name = Language.main.Get(techType);
-                    string s = techType + ", " + name + ", mass " + rb.mass;
-                    massList.Add(s);
+                    //__instance.transform.position
                 }
+                Main.logger.LogMessage("SupplyCrate Start " + x + " " + y + " " + z);
             }
         }
 
-        
+        //[HarmonyPatch(typeof(ScannerTool), "Scan")]
+        class ScannerTool_Scan_Patch
+        {
+            static bool Prefix(ScannerTool __instance, PDAScanner.Result __result)
+            {
+                if (__instance.stateCurrent != ScannerTool.ScanState.None || __instance.idleTimer > 0)
+                {
+                    __result = PDAScanner.Result.None;
+                    return false;
+                }
+                PDAScanner.Result result = PDAScanner.Result.None;
+                if (PDAScanner.scanTarget.isValid && __instance.energyMixin.charge > 0.0)
+                {
+                    result = PDAScanner.Scan();
+                    switch (result)
+                    {
+                        case PDAScanner.Result.Scan:
+                            __instance.energyMixin.ConsumeEnergy(__instance.powerConsumption * Time.deltaTime);
+                            __instance.stateCurrent = ScannerTool.ScanState.Scan;
+                            break;
+                        case PDAScanner.Result.Done:
+                        case PDAScanner.Result.Researched:
+                            __instance.UpdateScreen(ScannerTool.ScreenState.Default);
+                            __instance.idleTimer = 0.5f;
+                            if (!PDASounds.queue.HasQueued())
+                                PDASounds.queue.Play(__instance.completeSound, SoundHost.PDA);
+
+                            AddDebug("scan");
+                            //if (__instance.fxControl != null)
+                            //{
+                            //    __instance.fxControl.Play(0);
+                            //    break;
+                            //}
+                            break;
+                    }
+                }
+                __result = result;
+                return false;
+            }
+        }
+
         //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug(Player.main.GetBiomeString());
-                //AddDebug("fixMelon " + ConfigToEdit.fixMelon.Value);
+                //AddDebug("BiomeString " + Player.main.GetBiomeString());
+
+                //AddDebug("IsPlayerInVehicle " + Util.IsPlayerInVehicle());
+                //if (Player.main.currentInterior != null)
+                //{
+                //    AddDebug("currentInterior " + __instance.currentInterior.ToString());
+                //    AddDebug("currentInterior name " + __instance.currentInterior.GetGameObject().name);
+                //}
                 if (__instance.currentInterior != null)
                 {
                     //AddDebug("Player currentInterior GetInsideTemperature " +  __instance.currentInterior.GetInsideTemperature());
@@ -89,8 +135,7 @@ namespace Tweaks_Fixes
                         //string name = Language.main.Get(tt);
                         //techTypes.Add(tt.ToString() + "  " + name);
                     }
-                    //AddDebug("CanPlayerEat " + Util.CanPlayerEat());
-                   
+
                     //techTypes.Sort();
                     //foreach (var s in techTypes)
                     //    Util.Log(s);
@@ -149,7 +194,7 @@ namespace Tweaks_Fixes
                     //AddDebug("activeTarget parent " + target.transform.parent.name);
                     //AddDebug("activeTarget " + target.name);
                     if (!target)
-                    { 
+                    {
                         Targeting.GetTarget(Player.main.gameObject, 5f, out target, out float targetDist);
                     }
                     if (target)
@@ -194,13 +239,13 @@ namespace Tweaks_Fixes
 
                 }
             }
-          
+
             public static void printTarget()
             {
                 GameObject target = Player.main.guiHand.activeTarget;
                 //if (Player.main.guiHand.activeTarget)
                 //    AddDebug("activeTarget " + Player.main.guiHand.activeTarget);
-                
+
                 RaycastHit hitInfo = new RaycastHit();
                 if (!target)
                     Util.GetPlayerTarget(111f, out hitInfo, true);
@@ -458,7 +503,7 @@ namespace Tweaks_Fixes
                 {
                     __instance.OnEnvironmentChanged(SkyApplier.GetEnvironment(__instance.gameObject, __instance.anchorSky));
                     //if(__instance.customSkyPrefab)
-                        //Util.Log("OnEnvironmentChanged " + __instance.name + " " + __instance.transform.position.x + " " + __instance.customSkyPrefab.name);
+                    //Util.Log("OnEnvironmentChanged " + __instance.name + " " + __instance.transform.position.x + " " + __instance.customSkyPrefab.name);
                     //Main.Log("OnEnvironmentChanged " + __instance.name + " " + __instance.anchorSky);
                 }
                 if (__instance.emissiveFromPower)
@@ -484,6 +529,23 @@ namespace Tweaks_Fixes
                 //__instance.OnEnvironmentChanged(__instance.sky);
                 //__instance.OnEnvironmentChanged(SkyApplier.GetEnvironment(__instance.gameObject, __instance.anchorSky));
                 //__instance.ApplySkybox();
+            }
+        }
+
+        static IEnumerator PrintMass(TechType techType)
+        {
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType, false);
+            yield return request;
+            GameObject go = request.GetResult();
+            if (go)
+            {
+                Rigidbody rb = go.GetComponent<Rigidbody>();
+                if (rb)
+                {
+                    string name = Language.main.Get(techType);
+                    string s = techType + ", " + name + ", mass " + rb.mass;
+                    massList.Add(s);
+                }
             }
         }
 

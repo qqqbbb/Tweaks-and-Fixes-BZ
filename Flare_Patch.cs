@@ -1,7 +1,7 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using HarmonyLib;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -162,7 +162,7 @@ namespace Tweaks_Fixes
             wf.underwaterGravity = .5f;
             return false;
         }
-      
+
         [HarmonyPrefix]
         [HarmonyPatch("SetFlareActiveState")]
         static bool SetFlareActiveStatePrefix(Flare __instance, bool newFlareActiveState)
@@ -259,7 +259,7 @@ namespace Tweaks_Fixes
                 {
                     LightFlare(__instance);
                     __instance.throwDuration = .6f;
-                }    
+                }
                 if (__instance.usingPlayer != null)
                     __instance.UpdateBubblesFx(__instance.usingPlayer.isUnderwater);
 
@@ -316,7 +316,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Update")]
         static bool UpdatePrefix(Flare __instance)
         {
-            //Main.Message("energyLeft " + __instance.energyLeft);
+            //AddDebug("Flare Update energyLeft " + __instance.energyLeft);
             if (__instance.flareActiveState)
             {
                 //AddDebug("UpdateLight " + __instance.energyLeft);

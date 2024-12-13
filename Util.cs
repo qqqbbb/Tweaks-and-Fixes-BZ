@@ -1,18 +1,52 @@
 ﻿using HarmonyLib;
+using Nautilus.Handlers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
     internal static class Util
     {
+        static Dictionary<TechType, GameObject> prefabs = new Dictionary<TechType, GameObject>();
+        public static bool spawning;
+
+        public static IEnumerator Spawn(TechType techType, Vector3 pos = default, bool fadeIn = false)
+        {
+            //AddDebug("try Spawn " + techType);
+            GameObject prefab;
+            if (prefabs.ContainsKey(techType))
+                prefab = prefabs[techType];
+            else
+            {
+                TaskResult<GameObject> result = new TaskResult<GameObject>();
+                yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
+                prefab = result.Get();
+                prefabs[techType] = prefab;
+            }
+            if (!fadeIn)
+                spawning = true;
+
+            GameObject go = prefab == null ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
+            if (go != null)
+            {
+                if (pos == default)
+                {
+                    Transform camTr = MainCamera.camera.transform;
+                    go.transform.position = camTr.position + camTr.forward * 3f;
+                }
+                go.transform.position = pos;
+                //AddDebug("Spawn " + techType + " " + pos);
+                CrafterLogic.NotifyCraftEnd(go, techType);
+            }
+            spawning = false;
+        }
+
         public static bool CanPlayerEat()
         {
             bool canEat = GameModeManager.GetOption<bool>(GameOption.Hunger) || GameModeManager.GetOption<bool>(GameOption.Thirst);
@@ -175,7 +209,7 @@ namespace Tweaks_Fixes
             //IInteriorSpace currentInterior = Player.main.GetComponentInParent<IInteriorSpace>();
             //if (currentInterior != null)
             //    return currentInterior.GetInsideTemperature();
-            if (Player.main.inExosuit)
+            if (Player.main.currentMountedVehicle)
             {
                 if (ConfigMenu.useRealTempForPlayerTemp.Value && Player.main.currentMountedVehicle.IsPowered())
                     return ConfigToEdit.insideBaseTemp.Value;
@@ -194,6 +228,28 @@ namespace Tweaks_Fixes
                     return ConfigToEdit.insideBaseTemp.Value;
             }
             return Player_Patches.ambientTemperature;
+        }
+
+        public static bool IsPlayerInTruck()
+        {
+            return Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment;
+        }
+
+        public static bool IsPlayerInPrecursor_()
+        {
+            if (PrecursorMoonPoolTrigger.inMoonpool || PrisonManager.IsInsideAquarium(Player.main.transform.position))
+                return true;
+
+            return false;
+        }
+
+        public static bool IsPlayerInPrecursor()
+        {
+            string biomeString = Player.main.GetBiomeString();
+            if (biomeString.StartsWith("precursor", StringComparison.OrdinalIgnoreCase) || biomeString.StartsWith("prison", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return false;
         }
 
         public static bool IsVehicle(GameObject go)
@@ -251,10 +307,7 @@ namespace Tweaks_Fixes
 
         public static bool IsPlayerInVehicle()
         {
-            if (Player.main.inExosuit || Player.main.inHovercraft)
-                return true;
-
-            if (Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment)
+            if (Player.main.currentMountedVehicle || Player.main.inHovercraft || Player.main._currentInterior is SeaTruckSegment)
                 return true;
 
             return false;
@@ -328,8 +381,9 @@ namespace Tweaks_Fixes
         { // need this for seaglide
             while (!uGUI.main.hud.active)
                 yield return null;
+
             yield return new WaitForSeconds(.5f);
-            if (Main.configMain.activeSlot != -1)
+            if (Main.configMain.activeSlot != -1 && Player.main.mode == Player.Mode.Normal)
             {
                 //Inventory.main.quickSlots.SelectImmediate(config.activeSlot);
                 //Inventory.main.quickSlots.DeselectImmediate();
@@ -422,6 +476,11 @@ namespace Tweaks_Fixes
             eatable.waterValue = water;
             if (Food_Patch.decayingFood.Contains(CraftData.GetTechType(go)))
                 eatable.despawns = true;
+        }
+
+        public static float CelciusToFahrenhiet(float celcius)
+        {
+            return celcius * 1.8f + 32f;
         }
 
 

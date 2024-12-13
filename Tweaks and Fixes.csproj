@@ -89,7 +89,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Battery_Patch.cs" />
+    <Compile Include="Camera_Patch.cs" />
     <Compile Include="ConfigMain.cs" />
+    <Compile Include="CreatureDeath_Patch.cs" />
+    <Compile Include="Drop_items_anywhere.cs" />
+    <Compile Include="Knife_Patch.cs" />
     <Compile Include="OptionsMenu.cs" />
     <Compile Include="ConfigMenu.cs" />
     <Compile Include="PropulsionCannon_Patch.cs" />
@@ -135,11 +139,16 @@
     <Compile Include="Base_Patch.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config.cs" />
+    <None Include="Localization\English.json" />
+    <None Include="Localization\Russian.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\SubnauticaZero\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
+    <PostBuildEvent>
+mkdir "C:\GAMES\Steam\steamapps\common\SubnauticaZero\BepInEx\plugins\TweaksAndFixes"
+copy /Y "$(TargetPath)" "C:\GAMES\Steam\steamapps\common\SubnauticaZero\BepInEx\plugins\TweaksAndFixes\$(TargetFileName)"
+mkdir "C:\GAMES\Steam\steamapps\common\SubnauticaZero\BepInEx\plugins\TweaksAndFixes\Localization"
+copy /Y "$(ProjectDir)\Localization\*.*" "C:\GAMES\Steam\steamapps\common\SubnauticaZero\BepInEx\plugins\TweaksAndFixes\Localization"
 	</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

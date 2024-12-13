@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
-using HarmonyLib;
-using static ErrorMessage;
-using System.Collections;
-using FMOD;
+﻿using FMOD;
 using FMOD.Studio;
 using FMODUnity;
+using HarmonyLib;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 using UWE;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -18,139 +18,24 @@ namespace Tweaks_Fixes
         public static PlayerTool equippedTool;
         public static List<PlayerTool> fixedFish = new List<PlayerTool>();
 
-        public static IEnumerator FixDeadFish()
-        {
-            while (!uGUI.main.hud.active)
-                yield return null;
-
-            yield return new WaitForSeconds(0.5f);
-            int activeSlot = Inventory.main.quickSlots.activeSlot;
-            //AddDebug("DeselectImmediate " + Inventory.main.quickSlots.activeSlot);
-            Inventory.main.quickSlots.DeselectImmediate();
-            Inventory.main.quickSlots.Select(activeSlot);
-        }
-
-        [HarmonyPatch(typeof(Knife), "OnToolUseAnim")]
-        class Knife_OnToolUseAnim_Prefix_Patch
-        {
-            public static bool Prefix(Knife __instance, GUIHand hand)
-            {
-                Vector3 position = new Vector3();
-                GameObject closestObj = null;
-                Vector3 normal;
-                UWE.Utils.TraceFPSTargetPosition(Player.main.gameObject, __instance.attackDist, ref closestObj, ref position, out normal);
-                if (closestObj == null)
-                {
-                    InteractionVolumeUser ivu = Player.main.gameObject.GetComponent<InteractionVolumeUser>();
-                    if (ivu != null && ivu.GetMostRecent() != null)
-                        closestObj = ivu.GetMostRecent().gameObject;
-                }
-                if (closestObj)
-                {
-                    GameObject root = null;
-                    LargeWorldEntity lwe = closestObj.GetComponentInParent<LargeWorldEntity>();
-                    if (lwe)
-                        root = lwe.gameObject;
-
-                    //AddDebug("closestObj " + closestObj.name);
-                    //AddDebug("root " + root.name);
-
-                    LiveMixin lm = closestObj.FindAncestor<LiveMixin>();
-
-                    if (lm && Knife.IsValidTarget(lm))
-                    {
-                        bool wasAlive = lm.IsAlive();
-                        lm.TakeDamage(__instance.damage, position, __instance.damageType, Utils.GetLocalPlayer());
-                        __instance.GiveResourceOnDamage(closestObj, lm.IsAlive(), wasAlive);
-                    }
-                    VFXSurface surface = closestObj.GetComponent<VFXSurface>();
-                    if (surface == null && root != null)
-                        surface = root.GetComponent<VFXSurface>();
-
-                    Vector3 euler = MainCameraControl.main.transform.eulerAngles + new Vector3(300f, 90f, 0f);
-                    //if (surface)
-                    //    AddDebug("surface " + surface.surfaceType);
-
-                    VFXSurfaceTypeManager.main.Play(surface, __instance.vfxEventType, position, Quaternion.Euler(euler), Player.main.transform);
-
-                    VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
-                    if (surface)
-                        vfxSurfaceType = surface.surfaceType;
-                    else
-                        vfxSurfaceType = Utils.GetTerrainSurfaceType(position, normal, VFXSurfaceTypes.sand);
-
-                    FMOD.Studio.EventInstance fmodEvent = Utils.GetFMODEvent(__instance.hitSound, __instance.transform.position);
-                    fmodEvent.setParameterValueByIndex(__instance.surfaceParamIndex, (int)vfxSurfaceType);
-                    fmodEvent.start();
-                    fmodEvent.release();
-                }
-                Utils.PlayFMODAsset(Player.main.IsUnderwater() ? __instance.swingWaterSound : __instance.swingSound, __instance.transform.position);
-                return false;
-
-            }
-              
-            public static void Postfix(Knife __instance)
-            {
-                if (!Player.main.guiHand.activeTarget)
-                    return;
-
-                BreakableResource breakableResource = Player.main.guiHand.activeTarget.GetComponent<BreakableResource>();
-                if (breakableResource)
-                {
-                    breakableResource.BreakIntoResources();
-                    //AddDebug("BreakableResource");
-                }
-                Pickupable pickupable = Player.main.guiHand.activeTarget.GetComponent<Pickupable>();
-                if (pickupable)
-                {
-                    TechType techType = pickupable.GetTechType();
-                    if (PickupablePatch.notPickupableResources.Contains(techType))
-                    {
-                        Rigidbody rb = pickupable.GetComponent<Rigidbody>();
-                        if (rb && rb.isKinematic)  // attached to wall
-                            pickupable.OnHandClick(Player.main.guiHand);
-                    }
-                }
-            }
-        }
-        
         [HarmonyPatch(typeof(PlayerTool))]
         class PlayerTool_OnDraw_Patch
         {
-            static float knifeRangeDefault = 0f;
-            static float knifeDamageDefault = 0f;
-
             [HarmonyPostfix]
             [HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(PlayerTool __instance)
             {
                 //AddDebug("OnDraw " + __instance.name);
-                if (Util.IsEatableFish(__instance.gameObject) && !fixedFish.Contains(__instance) && !__instance.GetComponent<LiveMixin>().IsAlive())
-                {
-                    //AddDebug("OnDraw " + __instance.name);
-                    //Inventory.main.quickSlots.DeselectImmediate();
-                    fixedFish.Add(__instance);
-                    UWE.CoroutineHost.StartCoroutine(FixDeadFish());
-                    return;
-                }
+                //if (Util.IsEatableFish(__instance.gameObject) && !fixedFish.Contains(__instance) && !__instance.GetComponent<LiveMixin>().IsAlive())
+                //{
+                //    //AddDebug("OnDraw " + __instance.name);
+                //    //Inventory.main.quickSlots.DeselectImmediate();
+                //    fixedFish.Add(__instance);
+                //    UWE.CoroutineHost.StartCoroutine(FixDeadFish());
+                //    return;
+                //}
                 equippedTool = __instance;
-                Knife knife = __instance as Knife;
-                if (knife)
-                {
-                    if (knifeRangeDefault == 0f)
-                        knifeRangeDefault = knife.attackDist;
-                    if (knifeDamageDefault == 0f)
-                        knifeDamageDefault = knife.damage;
-
-                    knife.attackDist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
-                    knife.damage = knifeDamageDefault * ConfigMenu.knifeDamageMult.Value;
-                    //AddDebug(" attackDist  " + knife.attackDist);
-                    //AddDebug(" damage  " + knife.damage);
-                }
-
             }
-
-
         }
 
         [HarmonyPatch(typeof(BeaconLabel))]
@@ -190,8 +75,8 @@ namespace Tweaks_Fixes
             }
         }
 
-         //[HarmonyPatch(typeof(Pickupable), "Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
-            class Pickupable_Drop_Patch
+        //[HarmonyPatch(typeof(Pickupable), "Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
+        class Pickupable_Drop_Patch
         {
             public static void Postfix(Pickupable __instance)
             {
@@ -200,26 +85,13 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(ScannerTool), "Update")]
-        class ScannerTool_Update_Patch
-        {// SHOW power when equipped
-            private static bool Prefix(ScannerTool __instance)
+        [HarmonyPatch(typeof(ScannerTool), "PlayScanFX")]
+        class ScannerTool_PlayScanFX_Patch
+        {
+            static bool Prefix(ScannerTool __instance)
             {
-                //PlayerTool playerTool = 
-                //bool isDrawn = (bool)PlayerTool_get_isDrawn.Invoke(__instance, new object[] { });
-                if (__instance.isDrawn)
-                {
-                    //float idleTimer = (float)ScannerTool_idleTimer.GetValue(__instance);
-                    //AddDebug("useText1 " + HandReticle.main.useText1);
-                    //AddDebug("useText2 " + HandReticle.main.useText2);
-                    if (__instance.idleTimer > 0f)
-                    {
-                        __instance.idleTimer = Mathf.Max(0f, __instance.idleTimer - Time.deltaTime);
-                        //string buttonFormat = LanguageCache.GetButtonFormat("ScannerSelfScanFormat", GameInput.Button.AltTool);
-                        //               HandReticle.main.SetUseTextRaw(buttonFormat, null);
-                    }
-                }
-                return false;
+                //AddDebug("ScannerTool PlayScanFX ");
+                return ConfigToEdit.scannerFX.Value;
             }
         }
 
@@ -271,18 +143,14 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Welder), "CanWeldTarget")]
-        class Welder_CanWeldTarget_Patch
+        [HarmonyPatch(typeof(BuilderTool), "HasEnergyOrInBase")]
+        class BuilderTool_HasEnergyOrInBase_Patch
         {
-            static void Postfix(Welder __instance, LiveMixin activeWeldTarget, ref bool __result)
+            static void Postfix(BuilderTool __instance, ref bool __result)
             {
-                //if (Main.config.cantRepairVehicleInWater && Player.main.isUnderwater.value && activeWeldTarget)
+                if (!ConfigToEdit.builderToolBuildsInsideWithoutPower.Value && __instance.energyMixin.charge <= 0)
                 {
-                    if (activeWeldTarget.GetComponent<SeaTruckSegment>() != null || activeWeldTarget.GetComponent<Exosuit>() != null)
-                    {
-                        //AddDebug("CanWeldTarget SeaTruckSegment ");
-                        __result = false;
-                    }
+                    __result = false;
                 }
             }
         }

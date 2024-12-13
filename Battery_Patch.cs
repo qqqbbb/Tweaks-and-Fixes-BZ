@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using BepInEx;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +14,8 @@ namespace Tweaks_Fixes
         static EnergyMixin HoverbikeEM;
         static EnergyInterface propCannonEI;
         public static HashSet<PowerRelay> seatruckPRs = new HashSet<PowerRelay>();
+        static Dictionary<string, float> defaultBatteryCharge = new Dictionary<string, float>();
 
-      
         [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
         class EnergyMixin_OnAfterDeserialize_Patch
         {
@@ -26,7 +27,7 @@ namespace Tweaks_Fixes
                     //AddDebug("Hoverbike ConsumeEnergy");
                     amount *= ConfigMenu.vehicleEnergyConsMult.Value;
                 }
-                else if (PlayerToolEM  == __instance)
+                else if (PlayerToolEM == __instance)
                 {
                     //AddDebug(__instance.name + " EnergyMixin ConsumeEnergy");
                     amount *= ConfigMenu.toolEnergyConsMult.Value;
@@ -114,19 +115,25 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Battery))]
-        class Battery_Patch_
+        [HarmonyPatch(typeof(Battery), "OnAfterDeserialize")]
+        class Battery_OnAfterDeserialize_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnProtoDeserialize")]
-            static void OnProtoDeserializePostfix(Battery __instance)
+            static void Postfix(Battery __instance)
             {
-                __instance._capacity *= ConfigMenu.batteryChargeMult.Value;
-                if (__instance.charge > __instance._capacity)
-                    __instance.charge = __instance._capacity;
-                //Main.logger.LogDebug("Battery OnProtoDeserialize " + __instance._capacity);
-                //if (Main.gameLoaded)
-                //    AddDebug("Battery OnProtoDeserialize " + __instance._capacity);
+                if (ConfigMenu.batteryChargeMult.Value == 1f || __instance.name.IsNullOrWhiteSpace())
+                    return;
+
+                //AddDebug(__instance.name + " Battery OnAfterDeserialize " + __instance._capacity);
+                if (!defaultBatteryCharge.ContainsKey(__instance.name))
+                {
+                    defaultBatteryCharge[__instance.name] = __instance._capacity;
+                }
+                if (defaultBatteryCharge.ContainsKey(__instance.name))
+                {
+                    __instance._capacity = defaultBatteryCharge[__instance.name] * ConfigMenu.batteryChargeMult.Value;
+                    if (__instance.charge > __instance._capacity)
+                        __instance.charge = __instance._capacity;
+                }
             }
         }
 
@@ -140,7 +147,7 @@ namespace Tweaks_Fixes
                 //    TechTypeExtensions.FromString(name, out TechType tt, true);
                 //    if (tt != TechType.None && __instance.allowedTech.Contains(tt))
                 //    {
-                        //AddDebug("nonRechargeable " + name);
+                //AddDebug("nonRechargeable " + name);
                 //        __instance.allowedTech.Remove(tt);
                 //    }
                 //}

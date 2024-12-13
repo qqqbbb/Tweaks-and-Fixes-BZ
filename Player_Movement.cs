@@ -11,18 +11,53 @@ namespace Tweaks_Fixes
     internal class Player_Movement
     {
         //static float swimMaxAllowedY = .6f; // .6
-        public static float timeSprintStart = 0f;
-        public static float timeSprinted = 0f;
-        // AlterMaxSpeed AdjustGroundSpeed
+        public static float timeSprintStart ;
+        public static float timeSprinted ;
+        public static float invItemsMass ;
+        public static bool invChanged = true;
+        static Dictionary<TechType, float> itemMassDic = new Dictionary<TechType, float>();
+
+
+        private static float GetInvItemsMass()
+        {
+            //AddDebug("Inventory GetTotalItemCount " + Inventory.main.GetTotalItemCount());
+            float massTotal = 0;
+            foreach (InventoryItem inventoryItem in Inventory.main._container)
+            {
+                //AddDebug("inventoryItem " + inventoryItem._techType);
+                massTotal += GetItemMass(inventoryItem);
+            }
+            foreach (InventoryItem inventoryItem in (IItemsContainer)Inventory.main._equipment)
+            {
+                //AddDebug("equipment " + inventoryItem._techType);
+                massTotal += GetItemMass(inventoryItem);
+            }
+            invItemsMass = massTotal;
+            return massTotal;
+        }
+
+        private static float GetItemMass(InventoryItem inventoryItem)
+        {
+            if (itemMassDic.ContainsKey(inventoryItem._techType))
+                return itemMassDic[inventoryItem._techType];
+            else
+            {
+                Rigidbody rb = inventoryItem.item.GetComponent<Rigidbody>();
+                itemMassDic[inventoryItem._techType] = rb.mass;
+                return rb.mass;
+            }
+        }
+
         public static float GetInvMult()
         {
             float massTotal = 0f;
-            foreach (InventoryItem inventoryItem in Inventory.main.container)
+            if (invChanged)
             {
-                Rigidbody rb = inventoryItem.item.GetComponent<Rigidbody>();
-                if (rb)
-                    massTotal += rb.mass;
+                massTotal = GetInvItemsMass();
+                invChanged = false;
             }
+            else
+                massTotal = invItemsMass;
 
             float mult;
             if (Player.main.IsSwimming())

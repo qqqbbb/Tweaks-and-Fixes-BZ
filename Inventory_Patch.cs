@@ -12,6 +12,30 @@ namespace Tweaks_Fixes
         static InventoryItem selectedItem;
         public static GameInput.Button transferAllItemsButton;
         public static GameInput.Button transferSameItemsButton;
+        private static readonly Type[] componentsToRemoveFromDeadCreature = new Type[]
+{
+        typeof(CreatureFlinch),
+        typeof(CreatureDeath),
+        typeof(SwimInSchool),
+        typeof(SwimRandom),
+        typeof(StayAtLeashPosition),
+        typeof(Breach),
+        typeof(AvoidObstacles),
+        typeof(AvoidTerrain),
+        typeof(FleeOnDamage),
+        typeof(FleeWhenScared),
+        typeof(MoveTowardsTarget),
+        typeof(SwimToFriend),
+        typeof(SwimCloseToTarget),
+        typeof(SwimToMeat),
+        typeof(SwimToTarget),
+        typeof(Scareable),
+        typeof(CreatureFear),
+        typeof(SwimBehaviour),
+        typeof(SplineFollowing),
+        typeof(Locomotion),
+
+};
 
         public static bool MoveAllItems(InventoryItem item)
         {
@@ -51,10 +75,35 @@ namespace Tweaks_Fixes
                 return false;
         }
 
-        [HarmonyPatch(typeof(Inventory), "ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
-        class Inventory_ExecuteItemAction_Patch
+        private static void RemoveComponentsFromDeadCreature(GameObject go)
         {
-            public static bool Prefix(Inventory __instance, InventoryItem item, ItemAction action)
+            LiveMixin liveMixin = go.GetComponent<LiveMixin>();
+            if (liveMixin == null || liveMixin.IsAlive())
+                return;
+            // removing CreatureDeath fixes equipped dead fish moving up
+            foreach (Type componentType in componentsToRemoveFromDeadCreature)
+            {
+                Component component = go.GetComponent(componentType);
+                if (component != null)
+                    UnityEngine.Object.Destroy(component);
+            }
+        }
+
+        [HarmonyPatch(typeof(Inventory))]
+        class Inventory_Patch_
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("OnAddItem")]
+            public static void OnAddItemPostfix(Inventory __instance, InventoryItem item)
+            {
+                if (item.item.GetComponent<Creature>())
+                    RemoveComponentsFromDeadCreature(item.item.gameObject);
+                //Creature creature = item.item.GetComponent<Creature>();
+                //FixPeeperLOD(Creature peeper, bool alive = false)
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
+            public static bool ExecuteItemActionPrefix(Inventory __instance, InventoryItem item, ItemAction action)
             {
                 //AddDebug("ExecuteItemAction AltUseItem " + item.item.GetTechType());
                 //AddDebug("ExecuteItemAction action " + action);

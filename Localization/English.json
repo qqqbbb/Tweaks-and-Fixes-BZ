@@ -1,0 +1,27 @@
+{
+  "TF_toggle_base_lights": "Toggle lights",
+  "TF_crush_depth_equipment": "Increases your safe diving depth by ",
+  "TF_crush_damage_equipment": "Reduces your crush damage by ",
+  "TF_meters": " meters.",
+  "TF_mass": "mass ",
+  "TF_kg": " kg",
+  "TF_throw_flare": "Throw",
+  "TF_light_and_throw_flare": "Light and throw",
+  "TF_light_flare": "Light",
+  "TF_burnt_out_flare": "Burnt out ",
+  "TF_lit_flare": "Lit ",
+  "TF_need_knife_to_break_outcrop": "Need a knife to break it",
+  "TF_need_knife_to_break_free_resource": "Need a knife to break it free",
+  "TF_change_torpedo": " Change torpedo type ",
+  "TF_swivel_chair_left": "Swivel left",
+  "TF_swivel_chair_right": "Swivel right",
+  "TF_bladderfish_tooltip": " Provides some oxygen when consumed raw.",
+  "TF_smallStove_tooltip": "Low-power conduction unit. Can be used to cook fish.",
+  "TF_SeaTruckUpgradeHorsePower_tooltip": "Increases the Seatruck's speed when hauling two or more modules.",
+  "TF_SeaTruckUpgradeHorsePower_my_tooltip": "Increases Seatruck engine's horsepower output and energy consumption by 10%. More than 1 can be installed.",
+  "TF_SeaTruckUpgradeEnergyEfficiency_tooltip": "Reduces vehicle energy consumption by 20%.",
+  "TF_frozen_water": " frozen",
+  "TF_propulsion_cannon_release": "Release "
+
+
+}

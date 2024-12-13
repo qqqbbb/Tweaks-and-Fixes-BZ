@@ -1,9 +1,9 @@
 ﻿using HarmonyLib;
-using UnityEngine;
-using System.Collections.Generic;
-using static ErrorMessage;
-using System.Text;
 using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -50,6 +50,7 @@ namespace Tweaks_Fixes
                 }
             }
         }
+        public static Dictionary<BaseHullStrength, SubRoot> baseHullStrengths = new Dictionary<BaseHullStrength, SubRoot>();
 
         //public static Dictionary<SubRoot, bool> baseBuilt = new Dictionary<SubRoot, bool>();
 
@@ -105,7 +106,7 @@ namespace Tweaks_Fixes
 
             return true;
         }
-         
+
         public static void ToggleBaseLight(SubRoot subRoot)
         {
             if (subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
@@ -120,6 +121,71 @@ namespace Tweaks_Fixes
                     //AddDebug("appliedIntensity " + bcl.appliedIntensity);
                     bcl.ApplyCurrentIntensity();
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(BaseHullStrength))]
+        class BaseHullStrength_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("OnPostRebuildGeometry")]
+            static bool OnPostRebuildGeometryPrefix(BaseHullStrength __instance)
+            {
+                if (ConfigMenu.baseHullStrengthMult.Value == 1)
+                    return true;
+
+                if (!GameModeManager.GetOption<bool>(GameOption.BaseWaterPressureDamage))
+                    return false;
+
+                float strength = BaseHullStrength.InitialStrength * ConfigMenu.baseHullStrengthMult.Value;
+                __instance.victims.Clear();
+                foreach (Int3 cell in __instance.baseComp.AllCells)
+                {
+                    if (__instance.baseComp.GridToWorld(cell).y < 0)
+                    {
+                        Transform cellObject = __instance.baseComp.GetCellObject(cell);
+                        if (cellObject != null)
+                        {
+                            __instance.victims.Add(cellObject.GetComponent<LiveMixin>());
+                            strength += __instance.baseComp.GetHullStrength(cell);
+                        }
+                    }
+                }
+                if (!uGUI.isLoading && GameModeManager.GetOption<bool>(GameOption.BaseWaterPressureDamage) && !Util.Approximately(strength, __instance.totalStrength))
+                    AddMessage(Language.main.GetFormat("BaseHullStrChanged", strength - __instance.totalStrength, strength));
+
+                __instance.totalStrength = strength;
+                return false;
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("CrushDamageUpdate")]
+            static bool CrushDamageUpdatePrefix(BaseHullStrength __instance)
+            {
+                if (!GameModeManager.GetOption<bool>(GameOption.BaseWaterPressureDamage) || __instance.totalStrength >= 0 || __instance.victims.Count <= 0)
+                    return false;
+
+                LiveMixin random = __instance.victims.GetRandom();
+                random.TakeDamage(BaseHullStrength.damagePerCrush, random.transform.position, DamageType.Pressure);
+                int index = 0;
+                if (__instance.totalStrength <= -3.0)
+                    index = 2;
+                else if (__instance.totalStrength <= -2.0)
+                    index = 1;
+
+                if (!baseHullStrengths.ContainsKey(__instance))
+                {
+                    baseHullStrengths[__instance] = __instance.GetComponent<SubRoot>();
+                }
+                else if (baseHullStrengths[__instance] == Player.main.currentSub)
+                {
+                    //AddDebug("Player inside");
+                    if (__instance.crushSounds[index] != null)
+                        Utils.PlayFMODAsset(__instance.crushSounds[index], random.transform);
+
+                    AddMessage(Language.main.GetFormat("BaseHullStrDamageDetected", __instance.totalStrength));
+                }
+                return false;
             }
         }
 
@@ -188,6 +254,7 @@ namespace Tweaks_Fixes
                 //}
             }
 
+
             [HarmonyPostfix]
             [HarmonyPatch("Update")]
             public static void UpdatePostfix(SubRoot __instance)
@@ -202,9 +269,9 @@ namespace Tweaks_Fixes
             [HarmonyPostfix]
             [HarmonyPatch("GetInsideTemperature")]
             public static void GetInsideTemperaturePostfix(SubRoot __instance, ref float __result)
-            { 
+            {
                 //if (Main.config.useRealTempForColdMeter)
-                    __result = ConfigToEdit.insideBaseTemp.Value;
+                __result = ConfigToEdit.insideBaseTemp.Value;
             }
         }
 
@@ -256,10 +323,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(SolarPanel), "OnHandHover")]
-        public static class SolarPanel_OnHandHover_Patch
+        [HarmonyPatch(typeof(SolarPanel))]
+        public static class SolarPanel_Patch
         { // dont show hand cursor
-            static bool Prefix(SolarPanel __instance, GUIHand hand)
+            [HarmonyPrefix]
+            [HarmonyPatch("OnHandHover")]
+            static bool OnHandHoverPrefix(SolarPanel __instance, GUIHand hand)
             {
                 Constructable c = __instance.gameObject.GetComponent<Constructable>();
                 if (!c || !c.constructed)
@@ -268,6 +337,12 @@ namespace Tweaks_Fixes
                 HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
                 //HandReticle.main.SetIcon(HandReticle.IconType.Hand);
                 return false;
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch("Start")]
+            static void StartPrefix(SolarPanel __instance)
+            {
+                __instance.maxDepth = ConfigToEdit.solarPanelMaxDepth.Value;
             }
         }
 
@@ -306,13 +381,6 @@ namespace Tweaks_Fixes
                 LiveMixin liveMixin = pickupable.GetComponent<LiveMixin>();
                 if (liveMixin && !liveMixin.IsAlive())
                     __result = false;
-
-                //TechType tt = CraftData.GetTechType(pickupable.gameObject);
-                //if (tt == TechType.NootFish)
-                //{
-                //    AddDebug(" NootFish ");
-                //    __result = true;
-                //}
             }
         }
 
@@ -389,14 +457,7 @@ namespace Tweaks_Fixes
 
         }
 
-        [HarmonyPatch(typeof(SolarPanel), "Start")]
-        class SolarPanel_Patch
-        {
-            static void Prefix(SolarPanel __instance)
-            {
-                __instance.maxDepth = ConfigToEdit.solarPanelMaxDepth.Value;
-            }
-        }
+
 
 
 

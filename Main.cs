@@ -1,23 +1,23 @@
 ﻿
+using BepInEx;
+using BepInEx.Bootstrap;
+using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
-using System.Reflection;
+using Nautilus.Assets;
+using Nautilus.Assets.Gadgets;
+using Nautilus.Assets.PrefabTemplates;
+using Nautilus.Handlers;
+using Nautilus.Utility;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using System.Text;
-using static ErrorMessage;
-using Nautilus.Handlers;
-using Nautilus.Assets;
-using Nautilus.Utility;
-using Nautilus.Assets.PrefabTemplates;
-using Nautilus.Assets.Gadgets;
-using BepInEx;
-using BepInEx.Logging;
-using BepInEx.Bootstrap;
-using System.Runtime.CompilerServices;
-using BepInEx.Configuration;
 using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text;
+using UnityEngine;
+using static ErrorMessage;
 
 //GameModeManager.GetOption<bool>(GameOption.Hunger)
 //uGUI.isLoading 
@@ -29,7 +29,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.04.0";
+            VERSION = "2.06.0";
         public static Survival survival;
         public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
@@ -78,8 +78,6 @@ namespace Tweaks_Fixes
 
         public static void CleanUp()
         {
-            //loadingDone = false;
-            //canBreathe = false;
             //AddDebug("CleanUp");
             //Log("CleanUp !!!");
             QuickSlots_Patch.invChanged = true;
@@ -93,9 +91,11 @@ namespace Tweaks_Fixes
             fridges.Clear();
             UI_Patches.recyclotrons.Clear();
             //Base_Patch.baseBuilt = new Dictionary<SubRoot, bool>();
+            Base_Patch.baseHullStrengths.Clear();
             Tools_Patch.fixedFish.Clear();
             Battery_Patch.seatruckPRs.Clear();
             configMain.Load();
+            CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
         }
 
         [HarmonyPatch(typeof(Player), "Start")]
@@ -110,13 +110,14 @@ namespace Tweaks_Fixes
             }
         }
 
+
         //[HarmonyPatch(typeof(Player), "TrackTravelStats")]
         class Player_TrackTravelStats_Patch
         {
             static void Postfix(Player __instance)
             {
 
-                    AddDebug("TrackTravelStats");
+                AddDebug("TrackTravelStats");
 
             }
         }
@@ -126,19 +127,11 @@ namespace Tweaks_Fixes
             //AddDebug(" LoadedGameSetup ");
             UWE.CoroutineHost.StartCoroutine(Util.SelectEquippedItem());
             KnownTech.Add(TechType.SnowBall, false, false);
-            //if (ConfigToEdit.fixMelon.Value)
-            {
-                //logger.LogDebug("TechData.Contains MelonPlant " + TechData.Contains(TechType.MelonPlant));
-                //logger.LogDebug("TechData.GetItemSize Seaglide " + TechData.GetItemSize(TechType.Seaglide));
-                //value.Add(TechData.propertyItemSize, itemSize);
-    //            jsonValue1.GetObject(TechData.propertyItemSize, out jsonValue2))
-    //{
-    //                defaultItemSize.x = jsonValue2.GetInt(TechData.propertyX, defaultItemSize.x);
-    //                defaultItemSize.y = jsonValue2.GetInt(TechData.propertyY, defaultItemSize.y);
-    //            }
-    //TechData.entries.Add(TechType.MelonPlant, entry);
+            CreatureDeath_Patch.TryRemoveCorpses();
+            if (PDAScanner.mapping.ContainsKey(TechType.Creepvine))
+            { // unlock fibermesh by scanning creepvine
+                PDAScanner.mapping[TechType.Creepvine].blueprint = TechType.FiberMesh;
             }
-                //TechData.defaultItemSize[TechType.MelonPlant] = new Vector2int(2, 2);
         }
 
         [HarmonyPatch(typeof(WaitScreen), "Hide")]
@@ -155,16 +148,23 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(SaveLoadManager), "ClearSlotAsync")]
-        internal class SaveLoadManager_ClearSlotAsync_Patch
+        [HarmonyPatch(typeof(MainMenuLoadButton), "Delete")]
+        class MainMenuLoadButton_Delete_Patch
         {
-            public static void Postfix(SaveLoadManager __instance, string slotName)
+            static void Postfix(MainMenuLoadButton __instance)
             {
-                //AddDebug("ClearSlotAsync " + slotName);
-                configMain.podPower.Remove(slotName);
-                configMain.lockerNames.Remove(slotName);
-                configMain.Save();
+                //AddDebug("MainMenuLoadButton Delete " + __instance.saveGame);
+                DeleteSaveSlotData(__instance.saveGame);
             }
+        }
+
+        public static void DeleteSaveSlotData(string slotName)
+        {
+            //AddDebug("ClearSlotAsync " + slotName);
+            configMain.podPower.Remove(slotName);
+            configMain.lockerNames.Remove(slotName);
+            configMain.iceFruitsPicked.Remove(slotName);
+            configMain.Save();
         }
 
         static void SaveData()
@@ -207,13 +207,16 @@ namespace Tweaks_Fixes
             Setup();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
-            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
-            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(21f, -39.5f, -364.3f), new Vector3(30f, 50f, 340f)));
-            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo("a3f8c8e0-0a2c-4f9b-b585-8804d15bc04b", new Vector3(-412.3f, -100.79f, -388.2f), new Vector3(310f, 0f, 90f)));
+            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
+            // thermalzone_rock_01_single_a
+            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(21f, -39.5f, -364.3f), new Vector3(30f, 50f, 340f))); // 21 -39.5 -364.3
+            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(-133f, -374f, -1336f), new Vector3(0, 308.571f, 0))); //  -133 -373 -1342
 
-            //CoordinatedSpawnsHandler.Main.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-208f, -376f, -1332f), new Vector3(4f, 114.77f, 0f)));
+            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("a3f8c8e0-0a2c-4f9b-b585-8804d15bc04b", new Vector3(-412.3f, -100.79f, -388.2f), new Vector3(310f, 0f, 90f))); // -412.3 -100.79 -388.2   
 
-            //RecipeData recipeData = new RecipeData();
+            //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-208f, -376f, -1332f), new Vector3(4f, 114.77f, 0f)));
+
+            //RecipeData recipeData = new RecipeData(); 
             //recipeData.Ingredients = new List<Ingredient>()
             //{
             //    new Ingredient(TechType.Titanium, 3),

@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using static ErrorMessage;
 
@@ -460,7 +460,7 @@ namespace Tweaks_Fixes
             }
 
         }
-        
+
         [HarmonyPatch(typeof(Eatable))]
         class Eatable_patch
         {
@@ -477,7 +477,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             static bool AwakePrefix(Eatable __instance)
             {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //Main.logger.LogDebug("Eatable Awake " + tt);
                 if (__instance.GetComponent<SnowBall>())
                 {
@@ -617,7 +617,7 @@ namespace Tweaks_Fixes
 
 
         }
-         
+
         [HarmonyPatch(typeof(Fridge))]
         class Fridge_patch
         {

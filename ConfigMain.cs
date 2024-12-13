@@ -29,10 +29,9 @@ namespace Tweaks_Fixes
         public bool escapePodSmokeOut;
         public HashSet<TechType> notPickupableResources = new HashSet<TechType>
         {TechType.Salt, TechType.Quartz, TechType.AluminumOxide, TechType.Lithium , TechType.Sulphur, TechType.Diamond, TechType.Kyanite, TechType.Magnetite, TechType.Nickel, TechType.UraniniteCrystal  };
-        public Dictionary<string, Dictionary<int, bool>> openedWreckDoors = new Dictionary<string, Dictionary<int, bool>>();
         public Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>> lockerNames = new Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>>();
         public float medKitHPtoHeal = 0f;
-        public Dictionary<string, bool> iceFruitPickedState = new Dictionary<string, bool>();
+        public Dictionary<string, HashSet<Vector3Int>> iceFruitsPicked = new Dictionary<string, HashSet<Vector3Int>>();
 
         public HashSet<TechType> predatorExclusion = new HashSet<TechType> { TechType.Crash };
         public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }

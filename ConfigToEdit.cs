@@ -1,10 +1,10 @@
-﻿using System;
+﻿using BepInEx.Configuration;
+using Nautilus.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using BepInEx.Configuration;
-using Nautilus.Json;
 using UnityEngine;
 
 namespace Tweaks_Fixes
@@ -73,8 +73,16 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> disableHints;
         public static ConfigEntry<bool> dropHeldTool;
         public static ConfigEntry<int> freeTorpedos;
+        public static ConfigEntry<bool> builderToolBuildsInsideWithoutPower;
+        public static ConfigEntry<bool> cameraBobbing;
+        public static ConfigEntry<bool> cameraShake;
+        public static ConfigEntry<bool> removeDeadCreaturesOnLoad;
+        public static ConfigEntry<bool> scannerFX;
+        public static ConfigEntry<bool> dropItemsAnywhere;
+        public static ConfigEntry<bool> showTempFahrenhiet;
 
-        
+
+
 
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
         public static AcceptableValueRange<int> percentRange = new AcceptableValueRange<int>(0, 100);
@@ -100,7 +108,7 @@ namespace Tweaks_Fixes
             eatableWaterValue = Main.configToEdit.Bind("", "Eatable component water value", "HangingFruit 5", "Items from this list will be made eatable. The format is: item ID, space, water value. Every entry is separated by comma.");
 
             eatingOutsideCold = Main.configToEdit.Bind("", "Warmth lost when eating ouside", 0, "You will lose this amount of warmth when eating ouside.");
-            
+
             fixMelon = Main.configToEdit.Bind("", "Fix melon and Preston plant", false, "If true, you will be able to plant only 1 Preston plant or melon in a pot and only 4 in a planter.");
             randomPlantRotation = Main.configToEdit.Bind("", "Random plant rotation", true, "If true plants in planters to have random rotation.");
             silentReactor = Main.configToEdit.Bind("", "Silent nuclear reactor", false, "If true nuclear reactor will be silent.");
@@ -110,7 +118,7 @@ namespace Tweaks_Fixes
             craftWithoutBattery = Main.configToEdit.Bind("", "Craft without battery", false, "If true your newly crafted tools and vehicles will not have batteries in them.");
             builderPlacingWhenFinishedBuilding = Main.configToEdit.Bind("", "Builder tool placing mode when finished building", true, "If false your builder tool will exit placing mode when you finish building.");
             crushDamageScreenEffect = Main.configToEdit.Bind("", "Crush damage screen effect", true, "If false there will be no screen effects when player takes crush damage.");
-            disableGravityForExosuit = Main.configToEdit.Bind("", "Disable gravity for prawn suit", false, "If true prawn suit will ignore gravity when you are not piloting it. Use this if your prawn suit falls through the ground.");
+            disableGravityForExosuit = Main.configToEdit.Bind("", "Disable gravity for prawn suit", false, "If true, prawn suit will ignore gravity when you are not piloting it. Use this if your prawn suit falls through the ground.");
 
             //exosuitDealDamageMinSpeed = Main.configB.Bind("", "Prawn suit min speed to deal damage", 7f, "Min speed in meters per second at which prawn suit deals damage when colliding with objects. Works only if 'replaceDealDamageOnImpactScript' setting is true.");
             //exosuitTakeDamageMinSpeed = Main.configB.Bind("", "Prawn suit min speed to take damage", 7f, "Min speed in meters per second at which prawn suit takes damage when colliding with objects. Works only if 'replaceDealDamageOnImpactScript' setting is true.");
@@ -119,7 +127,7 @@ namespace Tweaks_Fixes
             //seamothTakeDamageMinSpeed = Main.configB.Bind("", "Seamoth min speed to take damage", 7f, "Min speed in meters per second at which seamoth takes damage when colliding with objects. Works only if 'replaceDealDamageOnImpactScript' setting is true.");
             //seamothTakeDamageMinMass = Main.configB.Bind("", "Min mass that can damage seamoth", 5f, "Min mass in kg for objects that can damage seamoth when colliding with it. Works only if 'replaceDealDamageOnImpactScript' setting is true.");
             solarPanelMaxDepth = Main.configToEdit.Bind("", "Solar panel max depth", 250f, "Depth in meters below which solar panel does not produce power.");
-            
+
             canReplantMelon = Main.configToEdit.Bind("", "Can replant melon", true, "If false gel sack and melon can't be replanted.");
             brinewingAttackColdDamage = Main.configToEdit.Bind("", "Brinewing freeze damage", 0, "When this is not 0 brinewing attack will drain your cold meter by this amount instead of freezing you.");
 
@@ -129,11 +137,11 @@ namespace Tweaks_Fixes
             respawnTime = Main.configToEdit.Bind("", "Creature respawn time", "", "Number of days it takes a creature to respawn. The format is: creature ID, space, number of days it takes to respawn. By default fish and big creatures respawn in 12 hours, leviathans respawn after 1 day.");
             warmKelpWater = Main.configToEdit.Bind("", "Warm kelp water", true, "Water is always warm near kelps. Set this to false to disable it.");
             brinicleDaysToGrow = Main.configToEdit.Bind("", "Brinicle growth time", 0, "Number of days it takes a brinicle to grow. Set this to 0 to use vanilla game value.");
-            replaceDealDamageOnImpactScript = Main.configToEdit.Bind("", "Replace DealDamageOnImpact script", true, "Replace script that handles vehicle collisions.");
+            replaceDealDamageOnImpactScript = Main.configToEdit.Bind("", "Replace DealDamageOnImpact script", false, "Replace script that handles vehicle collisions.");
             vehiclesTakeDamageOnImpact = Main.configToEdit.Bind("", "Vehicles take damage from collisions", true, "Works only if 'Replace DealDamageOnImpact script' is true");
             exosuitTakesDamageFromCollisions = Main.configToEdit.Bind("", "Prawn suit takes damage from collisions", true, "Works only if 'Replace DealDamageOnImpact script' is true");
             vehiclesDealDamageOnImpact = Main.configToEdit.Bind("", "Vehicles deal damage when colliding", true, "Works only if 'Replace DealDamageOnImpact script' is true");
-            exosuitTakesDamageWhenCollidingWithTerrain = Main.configToEdit.Bind("", "Prawn suit takes damage when colliding with terrain", true, "Works only if 'Replace DealDamageOnImpact script' is true");
+            exosuitTakesDamageWhenCollidingWithTerrain = Main.configToEdit.Bind("", "Prawn suit takes damage when colliding with terrain", false, "Works only if 'Replace DealDamageOnImpact script' is true");
             decayingFood = Main.configToEdit.Bind("", "Decaying food", "SpicyFruitSalad", "Comma separated list of food item IDs. Food from this list will decay.");
             craftVehicleUpgradesOnlyInMoonpool = Main.configToEdit.Bind("", "Only Vehicle upgrade console can craft vehicle upgrades", false, "Fabricator will not be able to craft vehicle upgrades if this is true.");
             warmTemp = Main.configToEdit.Bind("", "Warm temperature", 15, "Player is warm when ambient temperature is above this celsius value.");
@@ -143,12 +151,16 @@ namespace Tweaks_Fixes
             rockPuncherChanceToFindRock = Main.configToEdit.Bind("", "Rock puncher chance percent to find rock", 20, new ConfigDescription("", percentRange));
             lowOxygenWarning = Main.configToEdit.Bind("", "Low oxygen onscreen warning", true);
             lowOxygenAudioWarning = Main.configToEdit.Bind("", "Low oxygen audio warning", true);
-
             disableHints = Main.configToEdit.Bind("", "Disable tutorial messages", true, "This disables messages that tell you to 'eat something', 'break limestone', etc. Game has to be reloaded after changing this.");
-
             dropHeldTool = Main.configToEdit.Bind("", "Drop held tool when taking damage", false, "Chance percent to drop your tool is equal to amount of damage taken.");
-
             freeTorpedos = Main.configToEdit.Bind("", "Free torpedos", 2, "Number of torpedos you get when installing new Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo Arm.");
+            builderToolBuildsInsideWithoutPower = Main.configToEdit.Bind("", "Builder tool does not need power when building inside", true);
+            cameraBobbing = Main.configToEdit.Bind("", "Camera bobbing when swimming", false);
+            cameraShake = Main.configToEdit.Bind("", "Camera shake", true, "This toggle camera shaking.");
+            removeDeadCreaturesOnLoad = Main.configToEdit.Bind("", "Remove dead creatures when loading saved game", true, "");
+            scannerFX = Main.configToEdit.Bind("", "Wierd visual effect on objects being scanned", true, "");
+            dropItemsAnywhere = Main.configToEdit.Bind("", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world, drop items anywhere except seatruck and grab items in your base with propulsion cannon.");
+            showTempFahrenhiet = Main.configToEdit.Bind("", "Show temperature in Fahrenhiet instead of Celcius", false, "");
 
             transferAllItemsButton = Main.configToEdit.Bind("", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             transferSameItemsButton = Main.configToEdit.Bind("", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
@@ -156,7 +168,7 @@ namespace Tweaks_Fixes
             //Main.logger.LogMessage("ConfigToEdit bind end ");
         }
 
-        private static Dictionary<TechType, int> ParseIntDicFromString (string input)
+        private static Dictionary<TechType, int> ParseIntDicFromString(string input)
         {
             Dictionary<TechType, int> dic = new Dictionary<TechType, int>();
             string[] entries = input.Split(',');
@@ -254,10 +266,10 @@ namespace Tweaks_Fixes
             Pickupable_Patch.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
             Pickupable_Patch.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
             Drop_Pod_Patch.newGameLoot = ParseIntDicFromString(newGameLoot.Value);
-            Creature_Patch.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
-            Creature_Patch.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
+            CreatureDeath_Patch.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
+            CreatureDeath_Patch.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
             Food_Patch.decayingFood = ParseSetFromString(decayingFood.Value);
-            Creature_Patch.respawnTime = ParseIntDicFromString(respawnTime.Value);
+            CreatureDeath_Patch.respawnTime = ParseIntDicFromString(respawnTime.Value);
 
             Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
             Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);

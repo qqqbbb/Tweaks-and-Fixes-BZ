@@ -66,14 +66,14 @@ namespace Tweaks_Fixes
                     }
                     else if (__instance.id == "Root")
                     { // upgrades from senna mods will be added to root if Upgrades node removed from fabricator
-                        if ( node.id == "SeaTruckSpeedMK1" || node.id == "SeaTruckSpeedMK2" || node.id == "SeaTruckSpeedMK3" || node.id == "SeaTruckArmorMK1" || node.id == "SeaTruckArmorMK2" || node.id == "SeaTruckArmorMK3" || node.id == "SeaTruckDepthMK4" || node.id == "SeaTruckDepthMK5" || node.id == "SeaTruckDepthMK6")
+                        if (node.id == "SeaTruckSpeedMK1" || node.id == "SeaTruckSpeedMK2" || node.id == "SeaTruckSpeedMK3" || node.id == "SeaTruckArmorMK1" || node.id == "SeaTruckArmorMK2" || node.id == "SeaTruckArmorMK3" || node.id == "SeaTruckDepthMK4" || node.id == "SeaTruckDepthMK5" || node.id == "SeaTruckDepthMK6")
                             return false;
                     }
                 }
                 return true;
             }
         }
-        
+
         [HarmonyPatch(typeof(CrafterLogic), "NotifyCraftEnd")]
         class CrafterLogic_NotifyCraftEnd_Patch
         {
@@ -90,8 +90,8 @@ namespace Tweaks_Fixes
                 Battery battery = target.GetComponent<Battery>();
                 if (battery)
                 {
-                    if (ConfigMenu.batteryChargeMult.Value != 1f)
-                        battery._capacity *= ConfigMenu.batteryChargeMult.Value;
+                    //if (ConfigMenu.batteryChargeMult.Value != 1f)
+                    //    battery._capacity *= ConfigMenu.batteryChargeMult.Value;
                     //AddDebug("crafterOpen");
                     float mult = ConfigMenu.craftedBatteryCharge.Value * .01f;
                     battery._charge = battery._capacity * mult;
@@ -106,7 +106,7 @@ namespace Tweaks_Fixes
         {
             [HarmonyPrefix]
             [HarmonyPatch("ConsumeResourcesForRecipe")]
-            static void Prefix(Inventory __instance, TechType techType, uGUI_IconNotifier.AnimationDone endFunc )
+            static void Prefix(Inventory __instance, TechType techType, uGUI_IconNotifier.AnimationDone endFunc)
             {
                 crafting = true;
                 //AddDebug("ConsumeResourcesForRecipe");

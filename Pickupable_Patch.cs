@@ -126,7 +126,7 @@ namespace Tweaks_Fixes
             { // not checking savegame slot
                 if (uGUI.isLoading)
                     return;
-                
+
                 if (Main.configMain.medKitHPtoHeal > 0 && Time.time > healTime)
                 {
                     healTime = Time.time + 1f;
@@ -250,7 +250,7 @@ namespace Tweaks_Fixes
                 //    return false;
                 //}
 
-                 if (canBindItem && !usingController)
+                if (canBindItem && !usingController)
                     TooltipFactory.WriteAction(sb, TooltipFactory.stringKeyRange15, TooltipFactory.stringBindQuickSlot);
                 if (itemAction4 != ItemAction.None)
                     TooltipFactory.WriteAction(sb, TooltipFactory.stringButton3, TooltipFactory.GetUseActionString(itemAction4));

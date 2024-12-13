@@ -1,17 +1,15 @@
 ﻿using HarmonyLib;
-using UnityEngine;
 using System.Collections.Generic;
-using static ErrorMessage;
 using System.Runtime.CompilerServices;
+using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     class Creature_Patch
     {
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
-        public static HashSet<TechType> notRespawningCreatures = new HashSet<TechType> { };
-        public static HashSet<TechType> notRespawningCreaturesIfKilledByPlayer = new HashSet<TechType> { };
-        internal static Dictionary<TechType, int> respawnTime = new Dictionary<TechType, int> ();
+
         public static ConditionalWeakTable<SwimBehaviour, string> fishSBs = new ConditionalWeakTable<SwimBehaviour, string>();
 
         [HarmonyPatch(typeof(FleeOnDamage), "OnTakeDamage")]
@@ -49,7 +47,7 @@ namespace Tweaks_Fixes
                         damage *= 35f;
                     __instance.accumulatedDamage += damage;
                     //if (__instance.gameObject == Testing.goToTest)
-                        //AddDebug(__instance.name + " accumulatedDamage " + __instance.accumulatedDamage + " damageThreshold " + __instance.damageThreshold);
+                    //AddDebug(__instance.name + " accumulatedDamage " + __instance.accumulatedDamage + " damageThreshold " + __instance.damageThreshold);
 
                     __instance.lastDamagePosition = damageInfo.position;
                     if (ConfigMenu.creatureFleeUseDamageThreshold.Value && __instance.accumulatedDamage <= __instance.damageThreshold)
@@ -62,7 +60,7 @@ namespace Tweaks_Fixes
                 if (doFlee)
                 {
                     //if (__instance.gameObject == Testing.goToTest)
-                        //AddDebug(__instance.name + " Flee " + __instance.fleeDuration);
+                    //AddDebug(__instance.name + " Flee " + __instance.fleeDuration);
 
                     __instance.timeToFlee = Time.time + __instance.fleeDuration;
                     __instance.creature.Scared.Add(1f);
@@ -102,7 +100,7 @@ namespace Tweaks_Fixes
                 { // ray does not hit terrain if cast from underneath. Cast from player to avoid it.
                     Vector3 dir = go.transform.position - __instance.transform.position;
                     Vector3 rhs = __instance.eyesOnTop ? __instance.transform.up : __instance.transform.forward;
-                    if ((Util.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(dir.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(go.transform.position, __instance.transform.position,  Voxeland.GetTerrainLayerMask()))
+                    if ((Util.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(dir.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(go.transform.position, __instance.transform.position, Voxeland.GetTerrainLayerMask()))
                         __result = true;
                 }
             }
@@ -116,52 +114,6 @@ namespace Tweaks_Fixes
             {
                 VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
                 surface.surfaceType = VFXSurfaceTypes.organic;
-            }
-        }
-
-        [HarmonyPatch(typeof(CreatureDeath))]
-        class CreatureDeath_Patch
-        {
-            //static HashSet<TechType> creatureDeaths = new HashSet<TechType>();
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
-            static void StartPostfix(CreatureDeath __instance)
-            {
-                TechType techType = CraftData.GetTechType(__instance.gameObject);
-                //if (!creatureDeaths.Contains(techType))
-                //{
-                //    creatureDeaths.Add(techType);
-                //    Main.logger.LogMessage("CreatureDeath " + techType + " respawns " + __instance.respawn+ " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature + " respawnInterval " + __instance.respawnInterval);
-                //}
-                __instance.respawn = !notRespawningCreatures.Contains(techType);
-                __instance.respawnOnlyIfKilledByCreature = notRespawningCreaturesIfKilledByPlayer.Contains(techType);
-                //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawn " + __instance.respawn);
-                //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
-                if (respawnTime.ContainsKey(techType))
-                    __instance.respawnInterval = respawnTime[techType] * Main.dayLengthSeconds;
-            }
-            [HarmonyPostfix]
-            [HarmonyPatch("OnTakeDamage")]
-            static void OnTakeDamagePostfix(CreatureDeath __instance, DamageInfo damageInfo)
-            {
-                //AddDebug("OnTakeDamage " + damageInfo.dealer.name);
-                if (!ConfigToEdit.heatBladeCooks.Value && damageInfo.type == DamageType.Heat && damageInfo.dealer == Player.mainObject)
-                    __instance.lastDamageWasHeat = false;
-            }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("OnKill")]
-            static void OnKillPrefix(CreatureDeath __instance)
-            {
-                //AddDebug(__instance.name + " OnKill");
-            }
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnKill")]
-            static void OnKillPostfix(CreatureDeath __instance)
-            {
-                //AddDebug("OnKill ");
-                AquariumFish aquariumFish = __instance.GetComponent<AquariumFish>();
-                if (aquariumFish)
-                    UnityEngine.Object.Destroy(aquariumFish);
             }
         }
 
@@ -227,50 +179,6 @@ namespace Tweaks_Fixes
                 {
                     VFXSurface sfxs = tr.gameObject.AddComponent<VFXSurface>();
                     sfxs.surfaceType = VFXSurfaceTypes.organic;
-                }
-            }
-        }
-
-
-
-        //[HarmonyPatch(typeof(CreatureDeath), nameof(CreatureDeath.OnKill))]
-        class CreatureDeath_OnKill_Patch
-        {
-            public static void Postfix(CreatureDeath __instance)
-            {
-                //AddDebug("respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
-                Stalker stalker = __instance.GetComponent<Stalker>();
-                //ReaperLeviathan reaper = __instance.GetComponent<ReaperLeviathan>();
-                //SandShark sandShark = __instance.GetComponent<SandShark>();
-                //if (sandShark)
-                //{
-                //Animator animator = __instance.GetComponentInChildren<Animator>();
-                //animator.GetCurrentAnimatorStateInfo(animator.layerCount -1);
-                //if (animator != null)
-                //    animator.enabled = false;
-                //}
-                //if (reaper != null)
-                //{
-                //Animator animator = __instance.GetComponentInChildren<Animator>();
-                //if (animator != null)
-                //    animator.enabled = false;
-                //}
-                if (stalker != null)
-                {
-                    //Main.Log("Stalker kill");
-                    Animator animator = __instance.GetComponentInChildren<Animator>();
-                    //AnimateByVelocity animByVelocity = __instance.GetComponentInChildren<AnimateByVelocity>();
-                    if (animator != null)
-                    {
-                        animator.enabled = false;
-                        //animator.enabled = true;
-                        //animator.SetFloat(AnimateByVelocity.animSpeed, 0.0f);
-                        //animator.SetFloat(AnimateByVelocity.animPitch, 0.0f);
-                        //animator.SetFloat(AnimateByVelocity.animTilt, 0.0f);
-                        //SafeAnimator.SetBool(animator, "dead", true);
-                    }
-                    CollectShiny collectShiny = __instance.GetComponent<CollectShiny>();
-                    collectShiny?.DropShinyTarget();
                 }
             }
         }

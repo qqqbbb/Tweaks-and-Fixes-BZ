@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections;
-using UnityEngine;
-using HarmonyLib;
-using System.Text;
-using static ErrorMessage;
+﻿using HarmonyLib;
 using Nautilus.Handlers;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -14,7 +14,7 @@ namespace Tweaks_Fixes
         static bool textInput = false;
         static bool chargerOpen = false;
 
-        public static Dictionary<ItemsContainer, Recyclotron> recyclotrons = new Dictionary<ItemsContainer, Recyclotron>() ;
+        public static Dictionary<ItemsContainer, Recyclotron> recyclotrons = new Dictionary<ItemsContainer, Recyclotron>();
         static Recyclotron openRecyclotron = null;
         static List<TechType> landPlantSeeds = new List<TechType> { TechType.HeatFruit, TechType.PurpleVegetable, TechType.FrozenRiverPlant2Seeds, TechType.LeafyFruit, TechType.HangingFruit, TechType.MelonSeed, TechType.SnowStalkerFruit, TechType.PinkFlowerSeed, TechType.PurpleRattleSpore, TechType.OrangePetalsPlantSeed }; // obsolete plants can be found
         static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.SmallMaroonPlantSeed, TechType.TwistyBridgesMushroomChunk, TechType.JellyPlantSeed, TechType.PurpleBranchesSeed, TechType.RedBushSeed, TechType.GenericRibbonSeed, TechType.GenericSpiralChunk, TechType.SpottedLeavesPlantSeed, TechType.PurpleStalkSeed, TechType.DeepLilyShroomSeed };
@@ -47,6 +47,7 @@ namespace Tweaks_Fixes
         static public string exosuitChangeTorpedoButton = string.Empty;
         static public string propCannonEatString = string.Empty;
         static public string pickupString = string.Empty;
+        static public string constructorString = string.Empty;
 
         static public string bladderfishTooltip = Language.main.Get("Tooltip_Bladderfish") + Language.main.Get("TF_bladderfish_tooltip");
 
@@ -66,7 +67,7 @@ namespace Tweaks_Fixes
             // vanilla desc does not tell percent
             LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeEnergyEfficiency, Language.main.Get("TF_SeaTruckUpgradeEnergyEfficiency_tooltip"));
         }
-        
+
         static void GetStrings()
         {
             //AddDebug("GetStrings");
@@ -99,6 +100,7 @@ namespace Tweaks_Fixes
             slot1Plus2Button = slot1Button + slot2Button;
             Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
             exosuitChangeTorpedoButton = Language.main.Get("TF_change_torpedo") + "(" + deconstructButton + ")";
+            constructorString = Language.main.Get("Climb") + "(" + leftHandButton + "), " + LanguageCache.GetPackUpText(TechType.Constructor) + " (" + rightHandButton + ")";
         }
 
         [HarmonyPatch(typeof(Recyclotron), "Start")]
@@ -120,7 +122,7 @@ namespace Tweaks_Fixes
                 if (__instance.storageContainer.container.allowedTech == null)
                 {
                     //AddDebug("Aquarium allowedTech == null ");
-                    __instance.storageContainer.container.allowedTech = new HashSet<TechType> {TechType.Bladderfish, TechType.Boomerang, TechType.ArcticPeeper,  TechType.Hoopfish, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.Spinefish, TechType.SpinnerFish, TechType.Symbiote, TechType.Triops};
+                    __instance.storageContainer.container.allowedTech = new HashSet<TechType> { TechType.Bladderfish, TechType.Boomerang, TechType.ArcticPeeper, TechType.Hoopfish, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.Spinefish, TechType.SpinnerFish, TechType.Symbiote, TechType.Triops };
                 }
             }
         }
@@ -155,7 +157,7 @@ namespace Tweaks_Fixes
                     if (!openRecyclotron.IsAllowedToAdd(item.item, false))
                         __instance.items[item].SetChroma(0f);
                 }
-                else if(chargerOpen)
+                else if (chargerOpen)
                 {
                     Battery battery = item.item.GetComponent<Battery>();
                     if (battery && battery.charge == battery.capacity)
@@ -238,7 +240,7 @@ namespace Tweaks_Fixes
                         }
                         return;
                     }
-                    else if(Main.fridges.Contains(container))
+                    else if (Main.fridges.Contains(container))
                     {
                         foreach (var pair in __instance.inventory.items)
                         {
@@ -321,11 +323,11 @@ namespace Tweaks_Fixes
                     GUIHand.Send(guiHand.activeTarget, HandTargetEventType.Hover, guiHand);
                 }
                 else if (olayerTool is Knife)
-                { 
+                {
                     //HandReticle.main.SetText(HandReticle.TextType.Hand, Main.config.translatableStrings[18], false, GameInput.Button.RightHand);
                 }
                 else
-                    HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_free_resource")); 
+                    HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_free_resource"));
             }
 
             [HarmonyPrefix]
@@ -354,7 +356,7 @@ namespace Tweaks_Fixes
                 __instance.UpdateInput(GameInput.Button.Exit);
                 __instance.UpdateInput(button6);
                 __instance.UpdateInput(button7);
-        
+
                 if (AvatarInputHandler.main.IsEnabled() && !uGUI.isIntro && !uGUI.isLoading)
                 {
                     uGUI_PopupNotification popupNotification = uGUI_PopupNotification.main;
@@ -426,7 +428,7 @@ namespace Tweaks_Fixes
                     else if (!string.IsNullOrEmpty(text))
                         HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
 
-      
+
                     if (AvatarInputHandler.main.IsEnabled() && !__instance.IsPDAInUse())
                     {
                         if (__instance.grabMode == GUIHand.GrabMode.None)
@@ -572,7 +574,7 @@ namespace Tweaks_Fixes
                 __instance.player.GetPDA().Open();
                 return false;
             }
-              
+
             [HarmonyPostfix]
             [HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GUIHand __instance)
@@ -670,7 +672,7 @@ namespace Tweaks_Fixes
                 }
                 //AddDebug("OnUpdate " + __instance.activeTarget.name);
                 LiveMixin liveMixin = __instance.activeTarget.GetComponentInParent<LiveMixin>();
-                if ( liveMixin && !liveMixin.IsAlive())
+                if (liveMixin && !liveMixin.IsAlive())
                 {
                     //AddDebug("health " + liveMixin.health);
                     Pickupable pickupable = liveMixin.GetComponent<Pickupable>();
@@ -703,7 +705,7 @@ namespace Tweaks_Fixes
 
         }
 
-        [HarmonyPatch(typeof(Targeting), "GetTarget", new Type[] { typeof(float), typeof(GameObject), typeof(float) }, new[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out})]
+        [HarmonyPatch(typeof(Targeting), "GetTarget", new Type[] { typeof(float), typeof(GameObject), typeof(float) }, new[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out })]
         class Targeting_GetTarget_Patch
         {
             public static void Postfix(Targeting __instance, ref GameObject result, ref bool __result)
@@ -769,7 +771,7 @@ namespace Tweaks_Fixes
             static bool Prefix(uGUI_FeedbackCollector __instance)
             {
                 //AddDebug("uGUI_FeedbackCollector HintShow");
-                    return !ConfigToEdit.disableHints.Value;
+                return !ConfigToEdit.disableHints.Value;
             }
         }
 
@@ -811,7 +813,7 @@ namespace Tweaks_Fixes
                 if (string.IsNullOrEmpty(altToolButton))
                     GetStrings();
             }
-         
+
             [HarmonyPostfix]
             [HarmonyPatch("OnLanguageChanged")]
             static void OnLanguageChangedPostfix()
@@ -820,7 +822,7 @@ namespace Tweaks_Fixes
                 //Main.languageCheck = Language.main.GetCurrentLanguage() == "English" || Main.config.translatableStrings[0] != "Burnt out ";
                 GetStrings();
             }
-       
+
             [HarmonyPostfix]
             [HarmonyPatch("OnBindingsChanged")]
             static void OnBindingsChangedPostfix()
@@ -828,7 +830,7 @@ namespace Tweaks_Fixes
                 //AddDebug("TooltipFactory OnBindingsChanged ");
                 GetStrings();
             }
-       
+
             [HarmonyPrefix]
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPrefix(StringBuilder sb, TechType techType, GameObject obj)
@@ -936,7 +938,7 @@ namespace Tweaks_Fixes
                     TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PrecursorIonBattery"));
                 else if (techType == TechType.PrecursorIonPowerCell)
                     TooltipFactory.WriteDescription(sb, Language.main.Get("Tooltip_PrecursorIonPowerCell"));
-                else if(techType == TechType.FirstAidKit)
+                else if (techType == TechType.FirstAidKit)
                 {
                     sb.Clear();
                     string name = Language.main.Get(techType);
@@ -1253,7 +1255,7 @@ namespace Tweaks_Fixes
                 //AddDebug("SetTextRaw " + type + " " + text);
                 if (ConfigToEdit.disableUseText.Value && (type == HandReticle.TextType.Use || type == HandReticle.TextType.UseSubscript))
                     return false;
-                
+
                 return true;
             }
         }
@@ -1282,11 +1284,34 @@ namespace Tweaks_Fixes
             public static void Postfix(uGUI_EncyclopediaTab __instance) => __instance.contentScrollRect.verticalNormalizedPosition = 1f;
         }
 
-        //[HarmonyPatch(typeof(StartScreen), "TryToShowDisclaimer")] 
-        public static class StartScreenPatch
+
+        [HarmonyPatch(typeof(uGUI_ExosuitHUD), "Update")]
+        public static class uGUI_ExosuitHUD_Patch
         {
-            public static bool Prefix(StartScreen __instance) => false;
+            static string tempSuffix;
+            static int lastTemperature = int.MinValue;
+            public static void Postfix(uGUI_ExosuitHUD __instance)
+            {
+                if (ConfigToEdit.showTempFahrenhiet.Value && Player.main.currentMountedVehicle is Exosuit)
+                {
+                    if (__instance.lastTemperature == lastTemperature)
+                        return;
+
+                    __instance.textTemperature.text = IntStringCache.GetStringForInt((int)Util.CelciusToFahrenhiet(__instance.lastTemperature));
+                    if (tempSuffix == null)
+                    {
+                        __instance.textTemperatureSuffix.text = __instance.textTemperatureSuffix.text.Replace("°C", "°F");
+                        tempSuffix = __instance.textTemperatureSuffix.text;
+                    }
+                    else
+                        __instance.textTemperatureSuffix.text = tempSuffix;
+
+                    lastTemperature = __instance.lastTemperature;
+                }
+            }
         }
+
+
 
     }
 }

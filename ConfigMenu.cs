@@ -41,10 +41,11 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> exosuitMoveTweaks;
         public static ConfigEntry<bool> seatruckMoveTweaks;
         public static ConfigEntry<bool> useBestLOD;
-        
+
         public static ConfigEntry<int> crushDepth;
-        public static ConfigEntry<float> crushDamageMult;
+        public static ConfigEntry<float> crushDamage;
         public static ConfigEntry<float> vehicleCrushDamageMult;
+        public static ConfigEntry<float> crushDamageProgression;
         public static ConfigEntry<EmptyVehiclesCanBeAttacked> emptyVehiclesCanBeAttacked;
         public static ConfigEntry<int> hungerUpdateInterval;
         public static ConfigEntry<bool> newHungerSystem;
@@ -65,9 +66,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> damageImpactEffect;
         public static ConfigEntry<bool> damageScreenFX;
         public static ConfigEntry<int> stalkerLoseToothChance;
-        //public static ConfigEntry<bool> disableHints;
         public static ConfigEntry<bool> realOxygenCons;
-        public static ConfigEntry<bool> cameraBobbing;
         public static ConfigEntry<int> decoyLifeTime;
         public static ConfigEntry<int> decoyHP;
         public static ConfigEntry<int> dropPodMaxPower;
@@ -78,8 +77,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> invMultLand;
         public static ConfigEntry<float> waterFreezeRate;
         public static ConfigEntry<int> snowballWater;
+        public static ConfigEntry<float> baseHullStrengthMult;
+        public static ConfigEntry<float> drillDamageMult;
 
-        
 
 
         public static void Bind()
@@ -114,9 +114,14 @@ namespace Tweaks_Fixes
             hoverbikeMoveTweaks = Main.configMenu.Bind("", "Snowfox movement tweaks", false, "Snowfox can move on water as good as on land. Its backward and sideways speed is halved. You can boost for as long as you hold the sprint button. Power consumption is doubled when boosting.");
             exosuitMoveTweaks = Main.configMenu.Bind("", "Prawn suit movement tweaks", false, "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power. Vertical speed is reduced when using thrusters. Can't use thrusters to hover above ground when out of water.");
             seatruckMoveTweaks = Main.configMenu.Bind("", "Seatruck movement tweaks", false, "Seatruck's vertical, sideways and backward speed is halved. Afterburner is active for as long as you hold the 'sprint' key but consumes twice more power. Horsepower upgrade increases seatruck's speed by 10%. You can install more than 1 Horsepower upgrade.");
-            crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage. Does not work if crush damage multiplier is 0.");
-            crushDamageMult = Main.configMenu.Bind("", "Crush damage multiplier", 0f, "Every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.");
-            vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 0f, "Every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.");
+            //crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage. Does not work if crush damage multiplier is 0.");
+            //crushDamageMult = Main.configMenu.Bind("", "Crush damage multiplier", 0f, "Every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.");
+            //vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 0f, "Every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.");
+            crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage. Does not work if crush damage slider is at 0.");
+            crushDamage = Main.configMenu.Bind("", "Crush damage", 0f, "Player takes this damage when below crush depth.");
+            crushDamageProgression = Main.configMenu.Bind("", "Crush damage progression", 0f, "This value will be added to player's and vrhicles' crush damage for every meter below crush depth.");
+            vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 1f, "Vehicle crush damage will be multiplied by this.");
+
             emptyVehiclesCanBeAttacked = Main.configMenu.Bind("", "Unmanned vehicles can be attacked", EmptyVehiclesCanBeAttacked.Vanilla, "By default unmanned seamoth or prawn suit can be attacked but cyclops can not.");
             hungerUpdateInterval = Main.configMenu.Bind("", "Hunger update interval", 10, "Time in seconds it takes your hunger and thirst to update.");
             newHungerSystem = Main.configMenu.Bind("", "New hunger system", false, "You do not regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it is 190 you lose 90%.");
@@ -133,23 +138,24 @@ namespace Tweaks_Fixes
             creatureFleeChanceBasedOnHealth = Main.configMenu.Bind("", "Creature flee chance depends on its health", false, "Only creatures's health will be used to decide if it should flee when under attack. Creature with 90% health has 10% chance to flee. Creature with 10% health has 90% chance to flee. This setting overrides both 'Creature flee chance percent' and 'Damage threshold for fleeing creatures'.");
             waterparkCreaturesBreed = Main.configMenu.Bind("", "Creatures in alien containment can breed", true);
             noFishCatching = Main.configMenu.Bind("", "Can not catch fish with bare hands", false, "To catch fish you will have to use knife, propulsion cannon, stasis rifle or grav trap. Does not apply if you are inside alien containment.");
-            noBreakingWithHand = Main.configMenu.Bind("", "Can not break outcrop with bare hands", false, "You will have to use a knife to break outcrops or collect resources attached to rock or seabed.");
+            noBreakingWithHand = Main.configMenu.Bind("", "Can not break outcrop with bare hands", false, "You will have to use a knife or propulsion cannon to break outcrops or collect resources attached to rock or seabed. To craft your first knife pick up scrap metal next to your crashed ship.");
             damageImpactEffect = Main.configMenu.Bind("", "Player impact damage screen effects", true, "This toggles cracks on your swimming mask when you take damage.");
             damageScreenFX = Main.configMenu.Bind("", "Player damage screen effects", true, "This toggles red screen effects when you take damage.");
             stalkerLoseToothChance = Main.configMenu.Bind("", "Chance percent for stalker to lose its tooth", 50, "Probability percent for stalker to lose its tooth when it bites something hard.");
 
             realOxygenCons = Main.configMenu.Bind("", "Realistic oxygen consumption", false, "Vanilla oxygen consumption without rebreather has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth above 100 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be equal to vanilla max oxygen consumption and will increase as you dive deeper.");
-            cameraBobbing = Main.configMenu.Bind("", "Camera bobbing when swimming", true);
             dropPodMaxPower = Main.configMenu.Bind("", "Drop pod max power", 0, "If this is not 0, your drop pod's max power will be set to this. Drop pod's power will regenerate during the day. The game has to be reloaded after changing this.");
             batteryChargeMult = Main.configMenu.Bind("", "Battery charge multiplier", 1f, "Max charge of batteries and power cells will be multiplied by this. Game has to be reloaded after changing this.");
             craftedBatteryCharge = Main.configMenu.Bind("", "Crafted battery charge percent", 100, "Charge percent of batteries and power cells you craft will be set to this.");
             dropItemsOnDeath = Main.configMenu.Bind("", "Drop items when you die", DropItemsOnDeath.Vanilla);
             invMultWater = Main.configMenu.Bind("", "Inventory weight multiplier in water", 0f, "When this is not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
             invMultLand = Main.configMenu.Bind("", "Inventory weight multiplier on land", 0f, "When this is not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
-            waterFreezeRate = Main.configMenu.Bind("", "Water freeze rate multiplier", 1f, "Bottled water will freeze at this rate if ambient temperature is below 0 C°. The game has to be reloaded after changing this.");
+            waterFreezeRate = Main.configMenu.Bind("", "Water freeze rate multiplier", 0f, "Bottled water will freeze at this rate if ambient temperature is below 0 C°. The game has to be reloaded after changing this.");
             snowballWater = Main.configMenu.Bind("", "Snowball water value", 0, "When you eat a snowball, you will get this amount of water and lose this amount of warmth. The game has to be reloaded after changing this.");
+            baseHullStrengthMult = Main.configMenu.Bind("", "Base hull strength multiplier", 1f, "");
+            drillDamageMult = Main.configMenu.Bind("", "Prawn suit drill arm damage multiplier", 1f, "");
 
-            
+
 
         }
 
