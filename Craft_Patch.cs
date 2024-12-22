@@ -13,14 +13,13 @@ namespace Tweaks_Fixes
         static float hoverBikeBuildTime = 0f;
         static float timeDecayStart = 0f;
 
-        [HarmonyPatch(typeof(Crafter), "Craft")]
-        class Crafter_Craft_Patch
+        [HarmonyPatch(typeof(CrafterLogic), "Craft")]
+        class CCrafterLogic_Craft_Patch
         {
-            static void Prefix(Crafter __instance, TechType techType, ref float duration)
+            static void Prefix(CrafterLogic __instance, TechType techType, ref float craftTime)
             {
                 //AddDebug("Craft " + techType);
-                duration *= ConfigMenu.craftTimeMult.Value;
-                //return true;
+                craftTime *= ConfigMenu.craftTimeMult.Value;
             }
         }
 

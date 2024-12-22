@@ -1,12 +1,12 @@
-﻿using Nautilus.Json;
-using Nautilus.Options.Attributes;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using BepInEx;
 using Nautilus.Commands;
 using Nautilus.Handlers;
+using Nautilus.Json;
 using Nautilus.Options;
+using Nautilus.Options.Attributes;
+using System.Collections.Generic;
 using System.IO;
-using BepInEx;
+using UnityEngine;
 using static ErrorMessage;
 
 
@@ -26,7 +26,6 @@ namespace Tweaks_Fixes
         public bool seaglideMap = false;
         public int subThrottleIndex = -1;
         public int activeSlot = -1;
-        public bool escapePodSmokeOut;
         public HashSet<TechType> notPickupableResources = new HashSet<TechType>
         {TechType.Salt, TechType.Quartz, TechType.AluminumOxide, TechType.Lithium , TechType.Sulphur, TechType.Diamond, TechType.Kyanite, TechType.Magnetite, TechType.Nickel, TechType.UraniniteCrystal  };
         public Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>> lockerNames = new Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>>();
@@ -34,9 +33,9 @@ namespace Tweaks_Fixes
         public Dictionary<string, HashSet<Vector3Int>> iceFruitsPicked = new Dictionary<string, HashSet<Vector3Int>>();
 
         public HashSet<TechType> predatorExclusion = new HashSet<TechType> { TechType.Crash };
-        public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }
-        public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, Only_if_lights_on }
-        public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
+        //public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }
+        //public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, Only_if_lights_on }
+        //public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
         public Dictionary<string, float> podPower = new Dictionary<string, float>();
         //public Dictionary<string, HashSet<string>> objectsSurvivedDespawn = new Dictionary<string, HashSet<string>> { };
         //public HashSet<string> objectsDespawned = new HashSet<string> { };

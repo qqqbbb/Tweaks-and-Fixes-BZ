@@ -274,18 +274,23 @@ namespace Tweaks_Fixes
                 if (equipment != null)
                 {
                     //AddDebug(" equipment  ");
-                    bool charger = equipment.GetCompatibleSlot(EquipmentType.BatteryCharger, out string s) || equipment.GetCompatibleSlot(EquipmentType.PowerCellCharger, out string ss);
+                    bool chargerOpen = equipment.GetCompatibleSlot(EquipmentType.BatteryCharger, out string s) || equipment.GetCompatibleSlot(EquipmentType.PowerCellCharger, out string ss);
                     //AddDebug("charger " + charger);
                     foreach (var pair in __instance.inventory.items)
                     {
-                        EquipmentType itemType = TechData.GetEquipmentType(pair.Key.item.GetTechType());
+                        TechType tt = pair.Key.item.GetTechType();
+                        EquipmentType itemType = TechData.GetEquipmentType(tt);
                         //AddDebug(pair.Key.item.GetTechType() + " " + equipmentType);
                         string slot = string.Empty;
                         if (equipment.GetCompatibleSlot(itemType, out slot))
                         {
-                            if (charger)
+                            if (chargerOpen)
                             {
-                                chargerOpen = true;
+                                if (Battery_Patch.notRechargableBatteries.Contains(tt))
+                                {
+                                    pair.Value.SetChroma(0f);
+                                    continue;
+                                }
                                 Battery battery = pair.Key.item.GetComponent<Battery>();
                                 if (battery && battery.charge == battery.capacity)
                                     pair.Value.SetChroma(0f);

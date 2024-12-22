@@ -80,7 +80,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> scannerFX;
         public static ConfigEntry<bool> dropItemsAnywhere;
         public static ConfigEntry<bool> showTempFahrenhiet;
-
+        public static ConfigEntry<string> notRechargableBatteries;
 
 
 
@@ -116,6 +116,7 @@ namespace Tweaks_Fixes
             newStorageUI = Main.configToEdit.Bind("", "New storage UI", true);
             disableUseText = Main.configToEdit.Bind("", "Disable quickslots text", false, "If true text above your quickslots will be disabled.");
             craftWithoutBattery = Main.configToEdit.Bind("", "Craft without battery", false, "If true your newly crafted tools and vehicles will not have batteries in them.");
+            notRechargableBatteries = Main.configToEdit.Bind("", "Not rechargable batteries", "", "Comma separated list of battery IDs. Batteries from this list can not be recharged");
             builderPlacingWhenFinishedBuilding = Main.configToEdit.Bind("", "Builder tool placing mode when finished building", true, "If false your builder tool will exit placing mode when you finish building.");
             crushDamageScreenEffect = Main.configToEdit.Bind("", "Crush damage screen effect", true, "If false there will be no screen effects when player takes crush damage.");
             disableGravityForExosuit = Main.configToEdit.Bind("", "Disable gravity for prawn suit", false, "If true, prawn suit will ignore gravity when you are not piloting it. Use this if your prawn suit falls through the ground.");
@@ -274,7 +275,7 @@ namespace Tweaks_Fixes
             Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
             Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);
             Enum.TryParse(quickslotButton.Value.ToString(), out QuickSlots_Patch.quickslotButton);
-
+            Battery_Patch.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
             //Main.logger.LogInfo("decayingFood str  " + decayingFood.Value);
             //Main.logger.LogInfo("decayingFood.Count  " + Food_Patch.decayingFood.Count);
         }

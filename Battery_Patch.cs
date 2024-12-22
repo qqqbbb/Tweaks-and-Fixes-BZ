@@ -15,6 +15,8 @@ namespace Tweaks_Fixes
         static EnergyInterface propCannonEI;
         public static HashSet<PowerRelay> seatruckPRs = new HashSet<PowerRelay>();
         static Dictionary<string, float> defaultBatteryCharge = new Dictionary<string, float>();
+        public static HashSet<TechType> notRechargableBatteries = new HashSet<TechType>();
+
 
         [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
         class EnergyMixin_OnAfterDeserialize_Patch
@@ -137,22 +139,27 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Charger), "Start")]
+
+        [HarmonyPatch(typeof(Charger), "Start")]
         class Charger_Start_Patch
         {
             static void Postfix(Charger __instance)
             {
-                //foreach (string name in Main.config.nonRechargeable)
-                //{
-                //    TechTypeExtensions.FromString(name, out TechType tt, true);
-                //    if (tt != TechType.None && __instance.allowedTech.Contains(tt))
-                //    {
-                //AddDebug("nonRechargeable " + name);
-                //        __instance.allowedTech.Remove(tt);
-                //    }
-                //}
+                //AddDebug(__instance.name + " Charger Start");
+                foreach (TechType tt in notRechargableBatteries)
+                {
+                    if (__instance.allowedTech.Contains(tt))
+                    {
+                        __instance.allowedTech.Remove(tt);
+                        //AddDebug("remove " + tt + " from " + __instance.name);
+                    }
+                }
+                //Main.logger.LogMessage(__instance.name + " Charger Start");
+                //foreach (var tt in __instance.allowedTech)
+                //    Main.logger.LogMessage(__instance.name + " allowedTech " + tt);
             }
         }
+
         //[HarmonyPatch(typeof(Charger), "IsAllowedToAdd")]
         class Charger_IsAllowedToAdd_Patch
         {

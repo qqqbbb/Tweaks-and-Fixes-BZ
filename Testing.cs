@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -74,7 +75,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Player), "Update")]
+        [HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
@@ -128,6 +129,18 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+
+                    if (Main.configMain.notPickupableResources == null)
+                        AddDebug(" notPickupableResources == null ");
+
+                    if (ConfigMenu.dropItemsOnDeath == null)
+                        AddDebug(" dropItemsOnDeath == null ");
+
+
+
+                    AddDebug(" Save ");
+                    Main.configMain.Save();
+                    AddDebug(" Save  !!! ");
                     //List<string> techTypes = new List<string>();
                     //foreach (TechType tt in Enum.GetValues(typeof(TechType)))
                     {
@@ -135,7 +148,6 @@ namespace Tweaks_Fixes
                         //string name = Language.main.Get(tt);
                         //techTypes.Add(tt.ToString() + "  " + name);
                     }
-
                     //techTypes.Sort();
                     //foreach (var s in techTypes)
                     //    Util.Log(s);

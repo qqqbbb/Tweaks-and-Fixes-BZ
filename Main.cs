@@ -29,7 +29,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.06.0";
+            VERSION = "2.07.0";
         public static Survival survival;
         public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
@@ -169,18 +169,20 @@ namespace Tweaks_Fixes
 
         static void SaveData()
         {
-            //AddDebug("SaveData " + Inventory.main.quickSlots.activeSlot);
+            AddDebug("SaveData activeSlot " + Inventory.main.quickSlots.activeSlot);
+            logger.LogMessage("SaveData activeSlot " + Inventory.main.quickSlots.activeSlot);
             //Main.config.activeSlot = Inventory.main.quickSlots.activeSlot;
             //if (Player.main.mode == Player.Mode.Normal)
             //    config.playerCamRot = MainCameraControl.main.viewModel.localRotation.eulerAngles.y;
             //else
             //    config.playerCamRot = -1f;
-
-            if (Drop_Pod_Patch.podPowerSource)
+            if (Drop_Pod_Patch.podPowerSource && configMain.podPower != null)
                 configMain.podPower[SaveLoadManager.main.currentSlot] = Drop_Pod_Patch.podPowerSource.power;
+
 
             configMain.activeSlot = Inventory.main.quickSlots.activeSlot;
             InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
+
             if (heldItem != null)
             {
                 VehicleInterface_MapController mc = heldItem.item.GetComponent<VehicleInterface_MapController>();
@@ -194,8 +196,22 @@ namespace Tweaks_Fixes
             //    config.activeSlot = -1;
 
             //config.crushDepth -= Crush_Damage.extraCrushDepth;
-            configMain.Save();
+            //configMain.Save();
             //config.crushDepth += Crush_Damage.extraCrushDepth;
+        }
+
+        //[HarmonyPatch(typeof(IngameMenu), "SaveGameAsync")]
+        class IngameMenu_SaveGameAsync_Patch
+        {
+            static void Postfix(IngameMenu __instance)
+
+            {
+                AddDebug("IngameMenu SaveGameAsync ");
+                configMain.Save();
+                AddDebug("IngameMenu SaveGameAsync !!! ");
+                //DeleteSaveSlotData(__instance.saveGame);
+
+            }
         }
 
         private void Start()
