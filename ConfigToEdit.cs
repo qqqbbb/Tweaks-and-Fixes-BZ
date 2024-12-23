@@ -81,6 +81,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> dropItemsAnywhere;
         public static ConfigEntry<bool> showTempFahrenhiet;
         public static ConfigEntry<string> notRechargableBatteries;
+        public static ConfigEntry<bool> vehiclesHurtCreatures;
 
 
 
@@ -120,7 +121,7 @@ namespace Tweaks_Fixes
             builderPlacingWhenFinishedBuilding = Main.configToEdit.Bind("", "Builder tool placing mode when finished building", true, "If false your builder tool will exit placing mode when you finish building.");
             crushDamageScreenEffect = Main.configToEdit.Bind("", "Crush damage screen effect", true, "If false there will be no screen effects when player takes crush damage.");
             disableGravityForExosuit = Main.configToEdit.Bind("", "Disable gravity for prawn suit", false, "If true, prawn suit will ignore gravity when you are not piloting it. Use this if your prawn suit falls through the ground.");
-
+            vehiclesHurtCreatures = Main.configToEdit.Bind("", "Vehicles hurt creatures", true, "Vehicles will not hurt creatures when colliding with them if this is false.");
             //exosuitDealDamageMinSpeed = Main.configB.Bind("", "Prawn suit min speed to deal damage", 7f, "Min speed in meters per second at which prawn suit deals damage when colliding with objects. Works only if 'replaceDealDamageOnImpactScript' setting is true.");
             //exosuitTakeDamageMinSpeed = Main.configB.Bind("", "Prawn suit min speed to take damage", 7f, "Min speed in meters per second at which prawn suit takes damage when colliding with objects. Works only if 'replaceDealDamageOnImpactScript' setting is true.");
             //exosuitTakeDamageMinMass = Main.configB.Bind("", "Min mass that can damage prawn suit", 5f, "Min mass in kg for objects that can damage prawn suit when colliding with it. Works only if 'replaceDealDamageOnImpactScript' setting is true.");

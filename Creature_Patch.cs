@@ -9,6 +9,7 @@ namespace Tweaks_Fixes
     class Creature_Patch
     {
         public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
+        public static HashSet<TechType> creatureTT = new HashSet<TechType> { };
 
         public static ConditionalWeakTable<SwimBehaviour, string> fishSBs = new ConditionalWeakTable<SwimBehaviour, string>();
 
@@ -77,6 +78,8 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Start")]
             public static void StartPostfix(Creature __instance)
             {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                creatureTT.Add(tt);
                 VFXSurface vFXSurface = __instance.GetComponent<VFXSurface>();
                 if (vFXSurface == null)
                 {

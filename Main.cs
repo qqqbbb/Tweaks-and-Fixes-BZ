@@ -29,7 +29,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.07.0";
+            VERSION = "2.08.0";
         public static Survival survival;
         public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
@@ -132,6 +132,7 @@ namespace Tweaks_Fixes
             { // unlock fibermesh by scanning creepvine
                 PDAScanner.mapping[TechType.Creepvine].blueprint = TechType.FiberMesh;
             }
+
         }
 
         [HarmonyPatch(typeof(WaitScreen), "Hide")]
@@ -169,35 +170,25 @@ namespace Tweaks_Fixes
 
         static void SaveData()
         {
-            AddDebug("SaveData activeSlot " + Inventory.main.quickSlots.activeSlot);
-            logger.LogMessage("SaveData activeSlot " + Inventory.main.quickSlots.activeSlot);
-            //Main.config.activeSlot = Inventory.main.quickSlots.activeSlot;
-            //if (Player.main.mode == Player.Mode.Normal)
-            //    config.playerCamRot = MainCameraControl.main.viewModel.localRotation.eulerAngles.y;
-            //else
-            //    config.playerCamRot = -1f;
+            //AddDebug("SaveData activeSlot " + Inventory.main.quickSlots.activeSlot);
+            //logger.LogMessage("SaveData activeSlot " + Inventory.main.quickSlots.activeSlot);
+            configMain.screenRes = new Screen_Resolution_Fix.ScreenRes(Screen.currentResolution.width, Screen.currentResolution.height, Screen.fullScreen);
             if (Drop_Pod_Patch.podPowerSource && configMain.podPower != null)
                 configMain.podPower[SaveLoadManager.main.currentSlot] = Drop_Pod_Patch.podPowerSource.power;
-
 
             configMain.activeSlot = Inventory.main.quickSlots.activeSlot;
             InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
 
             if (heldItem != null)
             {
-                VehicleInterface_MapController mc = heldItem.item.GetComponent<VehicleInterface_MapController>();
+                var mc = heldItem.item.GetComponent<VehicleInterface_MapController>();
                 if (mc)
                 {
                     //AddDebug(" save seaglide");
                     configMain.seaglideMap = mc.mapActive;
                 }
             }
-            //if (heldItem.item.GetTechType() == TechType.Seaglide)
-            //    config.activeSlot = -1;
-
-            //config.crushDepth -= Crush_Damage.extraCrushDepth;
-            //configMain.Save();
-            //config.crushDepth += Crush_Damage.extraCrushDepth;
+            configMain.Save();
         }
 
         //[HarmonyPatch(typeof(IngameMenu), "SaveGameAsync")]

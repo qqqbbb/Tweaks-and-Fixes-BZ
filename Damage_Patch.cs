@@ -411,6 +411,12 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
+
+                if (dealer && !ConfigToEdit.vehiclesHurtCreatures.Value && Creature_Patch.creatureTT.Contains(techType) && Util.IsVehicle(dealer))
+                {
+                    //AddDebug("CalculateDamage by " + dealer.name + " to " + techType);
+                    __result = 0;
+                }
                 //else if (target.GetComponent<BaseCell>())
                 //    AddDebug("base takes damage");
                 //else if (Main.config.damageMult > 1)

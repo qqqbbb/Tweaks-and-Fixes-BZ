@@ -12,7 +12,7 @@ namespace Tweaks_Fixes
     {
         //static HashSet<SubRoot> cyclops = new HashSet<SubRoot>();
         //static Dictionary<AttackCyclops, AggressiveWhenSeeTarget> attackCyclopsAWST = new Dictionary<AttackCyclops, AggressiveWhenSeeTarget>();
-        
+        public static HashSet<TechType> predatorExclusion = new HashSet<TechType> { TechType.Crash };
 
         public static bool IsVehiclePowered(GameObject go)
         {
@@ -59,7 +59,7 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        public static bool IsVehicleMoving(GameObject go) 
+        public static bool IsVehicleMoving(GameObject go)
         {
             Vehicle vehicle = go.GetComponent<Vehicle>();
             SeaTruckSegment sts = go.GetComponent<SeaTruckSegment>();
@@ -85,7 +85,7 @@ namespace Tweaks_Fixes
                 //if (__instance.maxSearchRings > 1)
                 //    AddDebug(__instance.name + " maxSearchRings " + __instance.maxSearchRings);
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
-                if (__instance.targetType != EcoTargetType.Shark || aggrMult <= 1 || Main.configMain.predatorExclusion.Contains(__instance.myTechType))
+                if (__instance.targetType != EcoTargetType.Shark || aggrMult <= 1 || predatorExclusion.Contains(__instance.myTechType))
                     return true;
 
                 int searchRings = Mathf.RoundToInt(__instance.maxSearchRings * aggrMult);
@@ -100,7 +100,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("IsTargetValid", new Type[] { typeof(GameObject) })]
             public static bool IsTargetValidPrefix(GameObject target, AggressiveWhenSeeTarget __instance, ref bool __result)
             {
-                if (__instance.targetType != EcoTargetType.Shark || Main.configMain.predatorExclusion.Contains(__instance.myTechType))
+                if (__instance.targetType != EcoTargetType.Shark || predatorExclusion.Contains(__instance.myTechType))
                     return true;
 
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
@@ -116,7 +116,7 @@ namespace Tweaks_Fixes
                 }
                 if (Util.IsVehicle(target))
                 {
-                    if (aggrMult == 0 )
+                    if (aggrMult == 0)
                     {
                         __result = false;
                         return false;
@@ -193,7 +193,7 @@ namespace Tweaks_Fixes
                 if (EcoRegionManager.main == null || !__instance.gameObject.activeInHierarchy || !__instance.enabled)
                     return false;
 
-                if (__instance.targetType != EcoTargetType.Shark || Main.configMain.predatorExclusion.Contains(__instance.myTechType))
+                if (__instance.targetType != EcoTargetType.Shark || predatorExclusion.Contains(__instance.myTechType))
                     return true;
 
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
@@ -241,7 +241,7 @@ namespace Tweaks_Fixes
             }
 
         }
-          
+
         [HarmonyPatch(typeof(AttackLastTarget), "CanAttackTarget")]
         class AttackLastTarget_CanAttackTarget_Patch
         {
@@ -384,7 +384,7 @@ namespace Tweaks_Fixes
             {
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
 
-                if (aggrMult == 0f || Main.configMain.predatorExclusion.Contains(CraftData.GetTechType(__instance.gameObject)))
+                if (aggrMult == 0f || predatorExclusion.Contains(CraftData.GetTechType(__instance.gameObject)))
                     __result = false;
             }
         }
@@ -434,7 +434,7 @@ namespace Tweaks_Fixes
                     return false;
 
                 TechType myTT = CraftData.GetTechType(__instance.gameObject);
-                if (Main.configMain.predatorExclusion.Contains(myTT))
+                if (predatorExclusion.Contains(myTT))
                     return false;
 
                 Vehicle vehicle = main.GetVehicle();
@@ -480,7 +480,7 @@ namespace Tweaks_Fixes
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
                 if (aggrMult == 0f || !Util.IsVehicle(target))
                     return false;
-                
+
                 if (Util.IsPlayerInVehicle())
                     return true;
                 else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on && IsLightOn(target))
@@ -488,7 +488,7 @@ namespace Tweaks_Fixes
                 else
                     return ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Yes;
             }
-          
+
             [HarmonyPrefix]
             [HarmonyPatch("CanDealDamageTo")]
             public static bool CanDealDamageToPrefix(MeleeAttack __instance, GameObject target, ref bool __result)
@@ -533,7 +533,7 @@ namespace Tweaks_Fixes
         }
 
 
-        
+
     }
 }
 

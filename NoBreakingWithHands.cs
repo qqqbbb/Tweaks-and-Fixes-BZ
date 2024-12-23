@@ -69,7 +69,7 @@ namespace Tweaks_Fixes
             }
             else
                 HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_outcrop"));
-            
+
             return false;
         }
 
@@ -81,7 +81,7 @@ namespace Tweaks_Fixes
     public static class PickupablePatch
     {
         public static HashSet<TechType> notPickupableResources = new HashSet<TechType>
-        {{TechType.Salt}, {TechType.Quartz}, {TechType.AluminumOxide}, {TechType.Lithium} , {TechType.Sulphur}, {TechType.Diamond}, {TechType.Kyanite}, {TechType.Magnetite}, {TechType.Nickel}, {TechType.UraniniteCrystal}  };
+        {TechType.Salt, TechType.Quartz, TechType.AluminumOxide, TechType.Lithium, TechType.Sulphur, TechType.Diamond, TechType.Kyanite, TechType.Magnetite, TechType.Nickel, TechType.UraniniteCrystal  };
 
         [HarmonyPrefix]
         [HarmonyPatch("OnHandClick")] // OnHandHover handled by GUIHand.OnUpdate

@@ -75,7 +75,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Player), "Update")]
+        //[HarmonyPatch(typeof(Player), "Update")]
         class Player_Update_Patch
         {
             static void Postfix(Player __instance)
@@ -130,17 +130,14 @@ namespace Tweaks_Fixes
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
 
-                    if (Main.configMain.notPickupableResources == null)
-                        AddDebug(" notPickupableResources == null ");
-
                     if (ConfigMenu.dropItemsOnDeath == null)
                         AddDebug(" dropItemsOnDeath == null ");
-
 
 
                     AddDebug(" Save ");
                     Main.configMain.Save();
                     AddDebug(" Save  !!! ");
+
                     //List<string> techTypes = new List<string>();
                     //foreach (TechType tt in Enum.GetValues(typeof(TechType)))
                     {
