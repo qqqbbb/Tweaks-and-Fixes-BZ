@@ -5,7 +5,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -1297,7 +1299,10 @@ namespace Tweaks_Fixes
             static int lastTemperature = int.MinValue;
             public static void Postfix(uGUI_ExosuitHUD __instance)
             {
-                if (ConfigToEdit.showTempFahrenhiet.Value && Player.main.currentMountedVehicle is Exosuit)
+                if (!Main.gameLoaded)
+                    return;
+                //AddDebug("uGUI_ExosuitHUD Update ");
+                if (ConfigToEdit.showTempFahrenhiet.Value && Player.main.currentMountedVehicle != null && Player.main.currentMountedVehicle is Exosuit)
                 {
                     if (__instance.lastTemperature == lastTemperature)
                         return;
@@ -1316,6 +1321,49 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(ThermalPlant))]
+        public static class ThermalPlant_Patch
+        {
+
+            [HarmonyPostfix, HarmonyPatch("UpdateUI")]
+            public static void UpdateUIPostfix(ThermalPlant __instance)
+            {
+                //AddDebug("ThermalPlant UpdateUI");
+                if (!Main.gameLoaded)
+                    return;
+
+                if (ConfigToEdit.showTempFahrenhiet.Value)
+                {
+                    __instance.temperatureText.text = (int)Util.CelciusToFahrenhiet(__instance.temperature) + "°F";
+                }
+            }
+
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            public static void StartPostfix(ThermalPlant __instance)
+            {
+                //AddDebug("ThermalPlant Start");
+                CoroutineHost.StartCoroutine(FixTempDisplay(__instance.gameObject));
+            }
+
+            [HarmonyPrefix, HarmonyPatch("OnHandHover")]
+            public static bool OnHandHoverPrefix(ThermalPlant __instance, GUIHand hand)
+            {
+                if (!__instance.constructable.constructed)
+                    return false;
+
+                HandReticle.main.SetText(HandReticle.TextType.Hand, Language.main.GetFormat<int, int>("ThermalPlantStatus", Mathf.RoundToInt(__instance.powerSource.GetPower()), Mathf.RoundToInt(__instance.powerSource.GetMaxPower())), false);
+                HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
+                //HandReticle.main.SetIcon(HandReticle.IconType.Interact);
+                return false;
+            }
+
+            public static IEnumerator FixTempDisplay(GameObject go)
+            {// fix disappearing temp display
+                yield return new WaitForSeconds(2);
+                go.SetActive(false);
+                go.SetActive(true);
+            }
+        }
 
 
     }

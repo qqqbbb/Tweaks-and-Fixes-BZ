@@ -48,7 +48,7 @@ namespace Tweaks_and_Fixes
         [HarmonyPatch("Update")]
         static void UpdatePostfix(Constructor __instance)
         {
-            if (Player.main.transform.position.y > 1f)
+            if (Main.gameLoaded && Player.main.transform.position.y > 1f)
                 __instance.climbTrigger.SetActive(false);
         }
     }

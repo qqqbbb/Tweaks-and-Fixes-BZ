@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -298,7 +297,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("StartFading")]
         public static bool StartFadingPrefix(LargeWorldEntity __instance)
         {
-            if (uGUI.isLoading)
+            if (!Main.gameLoaded)
                 return false;
 
             //AddDebug(__instance.name + " StartFading ");

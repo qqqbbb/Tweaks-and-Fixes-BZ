@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UWEXR;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -129,14 +129,14 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+                    PlayerTool tool = Inventory.main.GetHeldTool();
+                    //AddDebug(" invItemsMod " + Player_Movement.invItemsMod);
+                    //AddDebug(" IsOneHanded " + Util.IsOneHanded(tool));
+                    //AddDebug(" equipmentSpeedMod " + Player_Movement.equipmentSpeedMod);
+                    //AddDebug(" toolMod " + Player_Movement.toolMod);
+                    if (tool)
+                        AddDebug(" IsOneHanded " + Util.IsOneHanded(tool));
 
-                    if (ConfigMenu.dropItemsOnDeath == null)
-                        AddDebug(" dropItemsOnDeath == null ");
-
-
-                    AddDebug(" Save ");
-                    Main.configMain.Save();
-                    AddDebug(" Save  !!! ");
 
                     //List<string> techTypes = new List<string>();
                     //foreach (TechType tt in Enum.GetValues(typeof(TechType)))

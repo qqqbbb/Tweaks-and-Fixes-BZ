@@ -12,8 +12,16 @@ namespace Tweaks_Fixes
         public static bool boosting = false;
 
         [HarmonyPatch(typeof(Hoverbike))]
-        class HoverboardMotor_HoverEngines_Patch
+        class HoverboardMotor_Patch
         {
+            static float defaultEnginePowerConsumption;
+
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            static void StartPostfix(Hoverbike __instance)
+            {
+                defaultEnginePowerConsumption = __instance.enginePowerConsumption;
+            }
             [HarmonyPrefix]
             [HarmonyPatch("HoverEngines")]
             static bool HoverEnginesPrefix(Hoverbike __instance)
@@ -34,7 +42,7 @@ namespace Tweaks_Fixes
                 bool jumping = false;
                 bool boosting = false;
                 if (__instance.isPiloting)
-                    //if (__instance.isPiloting && !__instance.overWater)
+                //if (__instance.isPiloting && !__instance.overWater)
                 {
                     jumping = GameInput.GetButtonHeld(GameInput.Button.Jump);
                     //if (jumping && __instance.jumpReset && (__instance.wasOnGround && __instance.jumpEnabled))
@@ -186,22 +194,17 @@ namespace Tweaks_Fixes
 
             [HarmonyPrefix]
             [HarmonyPatch("UpdateEnergy")]
-            static bool UpdateEnergyPrefix(Hoverbike __instance)
+            static void UpdateEnergyPrefix(Hoverbike __instance)
             {
                 //AddDebug("maxEnergy " + __instance.energyMixin.maxEnergy);
-                //AddDebug("capacity " + __instance.energyMixin.capacity);
-                //AddDebug("charge " + __instance.energyMixin.charge);
-                if (!__instance.appliedThrottle)
-                    return false;
-
-                if (boosting)
-                    __instance.energyMixin.ConsumeEnergy(Time.deltaTime * __instance.enginePowerConsumption * 2f);
+                if (__instance.appliedThrottle && GameInput.GetButtonHeld(GameInput.Button.Sprint))
+                    __instance.enginePowerConsumption = defaultEnginePowerConsumption * 2;
                 else
-                    __instance.energyMixin.ConsumeEnergy(Time.deltaTime * __instance.enginePowerConsumption);
-                return false;
+                    __instance.enginePowerConsumption = defaultEnginePowerConsumption;
+                //AddDebug("enginePowerConsumption " + __instance.enginePowerConsumption);
             }
 
-            [HarmonyPrefix] // fixed
+            [HarmonyPrefix]
             [HarmonyPatch("PhysicsMove")]
             static bool PhysicsMovePrefix(Hoverbike __instance)
             {// move on water, halve strafe and backward speed
@@ -227,7 +230,7 @@ namespace Tweaks_Fixes
                 moveDirection.y = 0f;
                 moveDirection.Normalize();
                 if (ConfigMenu.hoverbikeMoveTweaks.Value)
-                { 
+                {
                     moveDirection.x *= .5f;
                     if (moveDirection.z < 0f)
                         moveDirection.z *= .5f;
@@ -238,7 +241,7 @@ namespace Tweaks_Fixes
                     accel = __instance.horizMoveDir * (__instance.forwardAccel / __instance.waterDampening);
 
                 accel *= ConfigMenu.hoverbikeSpeedMult.Value;
-                 __instance.rb.AddForce(accel);
+                __instance.rb.AddForce(accel);
                 return false;
             }
 

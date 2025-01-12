@@ -1,16 +1,14 @@
 ﻿
 using HarmonyLib;
-using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 using static ErrorMessage;
-using static Story.ToggleMusicTrackData;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
-{ 
+{
     [HarmonyPatch(typeof(Exosuit))]
     class Exosuit_Patch
     {
@@ -178,8 +176,8 @@ namespace Tweaks_Fixes
             }
             //if (torpedoStorage == null)
             //    AddDebug("GetTorpedoName torpedoStorage == null");
-            List <TorpedoType> torpedoTypes = new List <TorpedoType>(exosuit.torpedoTypes);
-            List <TorpedoType> torpedos = GetTorpedos(exosuit, torpedoStorage);
+            List<TorpedoType> torpedoTypes = new List<TorpedoType>(exosuit.torpedoTypes);
+            List<TorpedoType> torpedos = GetTorpedos(exosuit, torpedoStorage);
             if (!next)
             {
                 if (selectedTorpedo != null)
@@ -222,9 +220,9 @@ namespace Tweaks_Fixes
                 return "";
 
             string name = Language.main.Get(TechType.ExosuitTorpedoArmModule);
-            name = name.Replace(exosuitName, "");
-            name = name.TrimStart();
-            name = name[0].ToString().ToUpper() + name.Substring(1);
+            if (Language.main.GetCurrentLanguage() == "English")
+                name = ShortenArmName(name);
+
             return name;
         }
 
@@ -232,6 +230,8 @@ namespace Tweaks_Fixes
         {
             //AddDebug("GetArmNames Left Arm " + exosuit.currentLeftArmType);
             //AddDebug("GetArmNames Right Arm " + exosuit.currentRightArmType);
+            //AddDebug("GetArmNames GetCurrentLanguage " + Language.main.GetCurrentLanguage());
+
             if (exosuit.currentLeftArmType == TechType.ExosuitTorpedoArmModule)
             {
                 //AddDebug("GetArmNames left torpedo" );
@@ -246,9 +246,8 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("GetNames TooltipFactory.stringLeftHand " + uGUI.FormatButton(GameInput.Button.LeftHand));
                 leftArm = Language.main.Get(exosuit.currentLeftArmType);
-                leftArm = leftArm.Replace(exosuitName, "");
-                leftArm = leftArm.TrimStart();
-                leftArm = leftArm[0].ToString().ToUpper() + leftArm.Substring(1);
+                if (Language.main.GetCurrentLanguage() == "English")
+                    leftArm = ShortenArmName(leftArm);
                 //AddDebug("GetArmNames leftArm " + leftArm);
             }
             //AddDebug("leftArm " + leftArm);
@@ -263,11 +262,19 @@ namespace Tweaks_Fixes
             else
             {
                 rightArm = Language.main.Get(exosuit.currentRightArmType);
-                rightArm = rightArm.Replace(exosuitName, "");
-                rightArm = rightArm.TrimStart();
-                rightArm = rightArm[0].ToString().ToUpper() + rightArm.Substring(1);
+                if (Language.main.GetCurrentLanguage() == "English")
+                    rightArm = ShortenArmName(rightArm);
                 //AddDebug("GetArmNames rightArm " + rightArm);
             }
+        }
+
+        private static string ShortenArmName(string armName)
+        {
+            //AddDebug("ShortenArmName armName " + armName);
+            armName = armName.Replace(exosuitName, "");
+            armName = armName.Trim();
+            armName = armName[0].ToString().ToUpper() + armName.Substring(1);
+            return armName;
         }
 
         public static void VehicleFixedUpdate(Vehicle vehicle)
@@ -366,10 +373,15 @@ namespace Tweaks_Fixes
         static void StartPostfix(Exosuit __instance)
         {
             //AddDebug("Exosuit Start " + __instance.onGroundForceMultiplier);
-           
+
             //exosuitName = Language.main.Get("Exosuit");
             //rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
             //leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
+            //if (Player.main.currentMountedVehicle == null)
+            //    AddDebug("Exosuit Start currentMountedVehicle == null");
+            //else
+            //    AddDebug("Exosuit Start currentMountedVehicle " + Player.main.currentMountedVehicle.ToString());
+
             if (Player.main.currentMountedVehicle && Player.main.currentMountedVehicle == __instance)
             {
                 GetArmNames(__instance);
@@ -478,8 +490,9 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Update")]
         public static bool UpdatePrefix(Exosuit __instance)
         {
-            //Vehicle vehicle = __instance as Vehicle;
-            //vehicle.Update();
+            if (!Main.gameLoaded)
+                return false;
+
             if (!ConfigMenu.exosuitMoveTweaks.Value)
                 return true;
 
@@ -627,6 +640,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Update")]
         public static void UpdatePostfix(Exosuit __instance)
         {
+            if (!Main.gameLoaded)
+                return;
             //if (__instance.powersliding)
             //    AddDebug("powersliding " + __instance.powersliding);
             //if (__instance.horizontalJetsActive)
@@ -680,7 +695,6 @@ namespace Tweaks_Fixes
 
             VehicleFixedUpdate(__instance);
 
-            //AddDebug("FixedUpdate");
             bool isGrappling = __instance.GetIsGrappling();
             __instance.worldForces.handleGravity = !__instance.onGround;
             bool isUnderwater = __instance.IsUnderwater();
@@ -795,7 +809,7 @@ namespace Tweaks_Fixes
         //[HarmonyPatch("SlotNext")]
         public static void SlotNextPostfix(Exosuit __instance)
         {
-            AddDebug("SlotNext " );
+            AddDebug("SlotNext ");
         }
 
 
@@ -803,7 +817,8 @@ namespace Tweaks_Fixes
         [HarmonyPatch("UpdateUIText")]
         public static bool UpdateUITextPrefix(Exosuit __instance, bool hasPropCannon)
         {
-            //AddDebug("UpdateUIText  " );
+            //AddDebug("Exosuit UpdateUIText  ");
+
             if (armNamesChanged || !__instance.hasInitStrings || __instance.lastHasPropCannon != hasPropCannon)
             {
                 bool leftTorpedo = HasMoreThan1TorpedoType(__instance, torpedoStorageLeft);
@@ -1081,7 +1096,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch("ApplyPhysicsMove")] // disable strafing
         public static bool ApplyPhysicsMovePrefix(Vehicle __instance)
         {
-            if (!__instance.GetPilotingMode())
+            if (!Main.gameLoaded || !__instance.GetPilotingMode())
                 return false;
 
             if (!ConfigMenu.exosuitMoveTweaks.Value)
@@ -1235,7 +1250,7 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(SeamothStorageContainer), "OnCraftEnd")]
     class SeamothStorageContainer_OnCraftEnd_Patch
     {
-       static private IEnumerator OnTorpedoCraftEnd(SeamothStorageContainer smsc)
+        static private IEnumerator OnTorpedoCraftEnd(SeamothStorageContainer smsc)
         {
             TaskResult<GameObject> taskResult = new TaskResult<GameObject>();
             TaskResult<Pickupable> pickupableResult = new TaskResult<Pickupable>();
@@ -1279,7 +1294,7 @@ namespace Tweaks_Fixes
         {
             //AddDebug("ExosuitClawArm GetInteractableRoot Postfix target " + target.name);
             if (__result == null && target.GetComponent<SupplyCrate>())
-                __result = target.gameObject;
+                __result = target;
         }
         [HarmonyPrefix]
         [HarmonyPatch("TryUse", new Type[] { typeof(float) }, new[] { ArgumentType.Out })]

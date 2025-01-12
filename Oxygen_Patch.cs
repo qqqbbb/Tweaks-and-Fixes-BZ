@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static ErrorMessage;
@@ -163,28 +163,29 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Player), "GetOxygenPerBreath")]
-        internal class Player_GetOxygenPerBreath_Patch
-        { 
-            internal static bool Prefix(Player __instance, ref float __result, float breathingInterval, int depthClass)
-            {
-                if (GameModeManager.GetOption<bool>(GameOption.OxygenDepletes))
-                    __result = ConfigMenu.oxygenPerBreath.Value;
-                else
-                    __result = 0f;
+        [HarmonyPatch(typeof(Player))]
+        internal class Player_Patch
+        {
+            private const float breathPeriodMax = 3f;
 
+            [HarmonyPrefix, HarmonyPatch("GetOxygenPerBreath")]
+            internal static bool GetOxygenPerBreathPrefix(Player __instance, ref float __result, float breathingInterval, int depthClass)
+            {// vanilla script returns wrong value at depth 200-100
+                __result = 1;
+                if (Inventory.main.equipment.GetCount(TechType.Rebreather) == 0 && __instance.mode != Player.Mode.Piloting && __instance.mode != Player.Mode.LockedPiloting && __instance.currentWaterPark == null)
+                {
+                    if (GameModeManager.GetOption<bool>(GameOption.OxygenDepletes))
+                        __result = ConfigMenu.oxygenPerBreath.Value;
+                    else
+                        __result = 0;
+                }
                 //AddDebug("GetOxygenPerBreath breathingInterval " + breathingInterval);
                 //AddDebug("GetOxygenPerBreath  " + __result);
                 return false;
             }
-        }
 
-        [HarmonyPatch(typeof(Player), "GetBreathPeriod")]
-        class Player_GetBreathPeriod_Patch
-        {
-            private const float breathPeriodMax = 3f;
-
-            static bool Prefix(Player __instance, ref float __result)
+            [HarmonyPrefix, HarmonyPatch("GetBreathPeriod")]
+            static bool GetBreathPeriodPrefix(Player __instance, ref float __result)
             {
                 //AddDebug("depthLevel " + (int)__instance.depthLevel);
                 //AddDebug("depthOf " + (int)Ocean.main.GetDepthOf(__instance.gameObject);

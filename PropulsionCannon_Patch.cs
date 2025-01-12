@@ -1,12 +1,11 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using HarmonyLib;
 using static ErrorMessage;
-using static HandReticle;
-using System.Collections;
 
 namespace Tweaks_Fixes
 {
@@ -41,7 +40,12 @@ namespace Tweaks_Fixes
             GameObject fruit = result.Get();
             if (fruit)
             {
-                fruit.transform.position = pickPrefab.transform.position;
+                if (pickPrefab.pickTech == TechType.CreepvineSeedCluster)
+                { // they spawn close to ground, some below ground
+                    fruit.transform.position = new Vector3(pickPrefab.transform.position.x, cannon.transform.position.y, pickPrefab.transform.position.z);
+                }
+                else
+                    fruit.transform.position = pickPrefab.transform.position;
                 //AddDebug("spawned fruit from pickPrefab " + fruit.transform.position);
                 pickPrefab.SetPickedUp();
                 spawningFruit = false;
@@ -118,7 +122,7 @@ namespace Tweaks_Fixes
             {
                 if (spawningFruit)
                     return false;
-                
+
                 return true;
             }
 
@@ -128,7 +132,7 @@ namespace Tweaks_Fixes
             {
                 if (spawningFruit)
                     return;
-                
+
                 //if (__result)
                 //    AddDebug("TraceForGrabTarget default " + __result.name);
 
@@ -159,15 +163,27 @@ namespace Tweaks_Fixes
                 //if (fruitPlant != null)
                 //    AddDebug("TraceForGrabTargetPostfix fruitPlant ");
 
+
                 PickPrefab pickPrefab = go.GetComponent<PickPrefab>();
                 if (pickPrefab)
                 {
+                    PickPrefab pp = null;
+                    if (go.name == "farming_plant_02(Clone)")
+                    { // picking PickPrefab on farmibg_plant_02 root GO destroys the plant
+                        Transform t = go.transform.Find("farming_plant_02");
+                        if (t != null)
+                            pp = t.GetComponentInChildren<PickPrefab>();
+                    }
                     //AddDebug("TraceForGrabTargetPostfix PickPrefab");
-                    fruitToPickUp = pickPrefab;
+                    if (pp)
+                        fruitToPickUp = pp;
+                    else
+                        fruitToPickUp = pickPrefab;
+
                     __result = go;
                     //UWE.CoroutineHost.StartCoroutine(SpawnFruitAsync(pickPrefab));
                 }
-                else if(fruitPlant)
+                else if (fruitPlant)
                 {
                     //AddDebug("TraceForGrabTargetPostfix fruitPlant");
                     fruitToPickUp = GetFruit(fruitPlant);
@@ -178,7 +194,7 @@ namespace Tweaks_Fixes
 
                 //if (fruitToPickUp)
                 //    AddDebug("TraceForGrabTarget pickPrefab ");
-                
+
                 targetObject = __result;
             }
 
@@ -218,7 +234,7 @@ namespace Tweaks_Fixes
             {
                 if (spawningFruit)
                     return false;
-                
+
                 if (fruitToPickUp)
                 {
                     //AddDebug("StartCoroutine SpawnFruitAsync ");
@@ -241,7 +257,7 @@ namespace Tweaks_Fixes
                     target = UnityEngine.Object.Instantiate(spawnOnKill.prefabToSpawn, spawnOnKill.transform.position, spawnOnKill.transform.rotation);
                     UnityEngine.Object.Destroy(spawnOnKill.gameObject);
                 }
-                else if (tt == TechType.LimestoneChunk || tt == TechType.BreakableSilver || tt == TechType.BreakableGold || tt == TechType.BreakableLead )
+                else if (tt == TechType.LimestoneChunk || tt == TechType.BreakableSilver || tt == TechType.BreakableGold || tt == TechType.BreakableLead)
                 {
                     grabbingResource = true;
                     BreakableResource resource = target.GetComponent<BreakableResource>();

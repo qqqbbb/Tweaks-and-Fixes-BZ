@@ -1,13 +1,13 @@
-﻿using System;
-using HarmonyLib;
-using UnityEngine;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {   //  47 -14 -28
     [HarmonyPatch(typeof(Brinicle))]
-    public class Brinicle_Patch 
+    public class Brinicle_Patch
     {
         [HarmonyPrefix]
         [HarmonyPatch("SetState", new Type[] { typeof(Brinicle.State), typeof(float) })]
@@ -32,8 +32,8 @@ namespace Tweaks_Fixes
                 case Brinicle.State.Grow:
                     if (ConfigToEdit.brinicleDaysToGrow.Value == 0)
                         __instance.timeNextState = __instance.timeStateCanged + Mathf.Lerp(__instance.minGrowTime, __instance.maxGrowTime, UnityEngine.Random.value);
-                    else if(ConfigToEdit.brinicleDaysToGrow.Value > 0)
-                        __instance.timeNextState = __instance.timeStateCanged + ConfigToEdit.brinicleDaysToGrow.Value * Main.dayLengthSeconds / DayNightCycle.main._dayNightSpeed;
+                    else if (ConfigToEdit.brinicleDaysToGrow.Value > 0)
+                        __instance.timeNextState = __instance.timeStateCanged + ConfigToEdit.brinicleDaysToGrow.Value * DayNightCycle.main.dayLengthSeconds / DayNightCycle.main._dayNightSpeed;
                     //__instance.timeNextState = __instance.timeStateCanged + Mathf.Lerp(__instance.minGrowTime, __instance.maxGrowTime, Random.value);
                     __instance.currentSize = __instance.growthSpeed.Evaluate(Mathf.InverseLerp(__instance.timeStateCanged, __instance.timeStateCanged + __instance.timeNextState, Time.time));
                     __instance.fullScale = Vector3.Lerp(__instance.minFullScale, __instance.maxFullScale, UnityEngine.Random.value);
@@ -50,11 +50,14 @@ namespace Tweaks_Fixes
             }
             return false;
         }
-           
+
         [HarmonyPrefix]
         [HarmonyPatch("Update")]
         public static bool UpdatePrefix(Brinicle __instance)
         {
+            if (!Main.gameLoaded)
+                return false;
+
             float currentTime = Time.time;
             switch (__instance.state)
             {
@@ -95,6 +98,6 @@ namespace Tweaks_Fixes
             }
             return false;
         }
-     }
+    }
 
 }

@@ -21,7 +21,8 @@
   "TF_SeaTruckUpgradeHorsePower_my_tooltip": "Increases Seatruck engine's horsepower output and energy consumption by 10%. More than 1 can be installed.",
   "TF_SeaTruckUpgradeEnergyEfficiency_tooltip": "Reduces vehicle energy consumption by 20%.",
   "TF_frozen_water": " frozen",
-  "TF_propulsion_cannon_release": "Release "
+  "TF_propulsion_cannon_release": "Release ",
+  "TF_too_much_weight_message": "You are carrying too much weight."
 
 
 }

@@ -124,7 +124,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             { // not checking savegame slot
-                if (uGUI.isLoading)
+                if (!Main.gameLoaded)
                     return;
 
                 if (Main.configMain.medKitHPtoHeal > 0 && Time.time > healTime)

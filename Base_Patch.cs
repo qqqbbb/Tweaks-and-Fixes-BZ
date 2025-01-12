@@ -162,6 +162,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("CrushDamageUpdate")]
             static bool CrushDamageUpdatePrefix(BaseHullStrength __instance)
             {
+                if (!Main.gameLoaded)
+                    return false;
+
                 if (!GameModeManager.GetOption<bool>(GameOption.BaseWaterPressureDamage) || __instance.totalStrength >= 0 || __instance.victims.Count <= 0)
                     return false;
 
@@ -259,6 +262,9 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Update")]
             public static void UpdatePostfix(SubRoot __instance)
             { // fix temp updating only when player is in
+                if (!Main.gameLoaded)
+                    return;
+
                 if (__instance.LOD.IsMinimal() || !ConfigMenu.useRealTempForPlayerTemp.Value)
                     return;
 
@@ -433,8 +439,10 @@ namespace Tweaks_Fixes
                         return false;
 
                     if (GameInput.GetButtonDown(GameInput.Button.Exit))
+                    {
                         __instance.ExitSittingMode(__instance.currentPlayer);
-
+                        return false;
+                    }
                     HandReticle.main.SetText(HandReticle.TextType.Use, "StandUp", true, GameInput.Button.Exit);
                     TechType tt = CraftData.GetTechType(__instance.gameObject);
                     if (tt == TechType.StarshipChair)

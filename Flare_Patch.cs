@@ -111,8 +111,8 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("Awake")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("Awake")]
         static bool AwakePrefix(Flare __instance)
         {
             if (__instance.energyLeft <= 0f && !__instance.GetComponentInParent<Player>())
@@ -163,8 +163,8 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("SetFlareActiveState")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("SetFlareActiveState")]
         static bool SetFlareActiveStatePrefix(Flare __instance, bool newFlareActiveState)
         {
             //AddDebug("hasBeenThrown " + __instance.hasBeenThrown);
@@ -188,8 +188,8 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("OnDraw")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("OnDraw")]
         static bool OnDrawPrefix(Flare __instance, Player p)
         {
             //AddDebug("OnDraw originalRange " + originalRange);
@@ -221,8 +221,8 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("OnHolster")]
+        //[HarmonyPostfix]
+        //[HarmonyPatch("OnHolster")]
         static void OnHolsterPostfix(Flare __instance)
         {
             PlayerToolOnHolster(__instance);
@@ -244,8 +244,8 @@ namespace Tweaks_Fixes
             //AddDebug("fxIsPlaying " + __instance.fxIsPlaying);
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("OnToolUseAnim")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("OnToolUseAnim")]
         static bool OnToolUseAnimPrefix(Flare __instance)
         {
             if (__instance.isThrowing)
@@ -278,8 +278,8 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("Throw")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("Throw")]
         static bool ThrowPrefix(Flare __instance)
         {
             //AddDebug("Throw " + __instance.throwDuration);
@@ -312,8 +312,8 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("Update")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("Update")]
         static bool UpdatePrefix(Flare __instance)
         {
             //AddDebug("Flare Update energyLeft " + __instance.energyLeft);
@@ -348,8 +348,8 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("OnDrop")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("OnDrop")]
         public static bool OnDropPrefix(Flare __instance)
         {
             if (__instance.isThrowing)

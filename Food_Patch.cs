@@ -216,7 +216,10 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Player __instance)
             {
-                if (!GameModeManager.GetOption<bool>(GameOption.Hunger) || Main.survival.freezeStats || uGUI.isLoading || hungerUpdateTime > Time.time)
+                if (!Main.gameLoaded)
+                    return;
+
+                if (!GameModeManager.GetOption<bool>(GameOption.Hunger) || uGUI.isLoading || hungerUpdateTime > Time.time || Main.survival.freezeStats)
                     return;
 
                 //AddDebug("UpdateHunger");
@@ -261,7 +264,6 @@ namespace Tweaks_Fixes
             [HarmonyPatch("UpdateHunger")]
             internal static void UpdateHungerPostfix(Survival __instance)
             {
-                //AddDebug("UpdateHunger ");
                 hungerUpdateTime = Time.time + ConfigMenu.hungerUpdateInterval.Value;
             }
 
@@ -573,7 +575,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("IterateDespawn")]
             static bool IterateDespawnPrefix(Eatable __instance)
             {
-                if (uGUI.isLoading)
+                if (!Main.gameLoaded)
                     return false;
                 //AddDebug(" IterateDespawn " + __instance.name);
                 if (__instance.decomposes && __instance.foodValue > 0f)

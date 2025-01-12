@@ -19,7 +19,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<KeyCode> nextPDATabKey;
         public static ConfigEntry<KeyCode> previousPDATabKey;
         public static ConfigEntry<float> timeFlowSpeed;
-        public static ConfigEntry<float> playerSpeedMult;
+        public static ConfigEntry<float> seaglideSpeedMult;
+        public static ConfigEntry<float> playerWaterSpeedMult;
+        public static ConfigEntry<float> playerGroundSpeedMult;
 
         public static ConfigEntry<float> exosuitSpeedMult;
         public static ConfigEntry<float> seatruckSpeedMult;
@@ -84,15 +86,11 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         {  // “ ” ‛
-            transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");
-            transferSameItemsButton = Main.configMenu.Bind("", "Move same items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items of the same type. If you are using a keyboard, you have to hold down this key and click an item.");
-            quickslotButton = Main.configMenu.Bind("", "Quickslot cycle button", KeyCode.None, "Press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to cycle tools in your current quickslot.");
-            //lightButton = Main.configMenu.Bind("", "Light intensity button", KeyCode.None, "When holding a tool in your hand or driving a vehicle press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to change the tool or vehicle light intensity. This works only with controller.");
-            previousPDATabKey = Main.configMenu.Bind("", "Previous PDA tab key", KeyCode.None, "Key to switch to left PDA Tab. This works only with keyboard.");
-            nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab. This works only with keyboard.");
 
             timeFlowSpeed = Main.configMenu.Bind("", "Time flow speed multiplier", 1f, "The higher the value the shorter days are. This also affects crafting time, building time, battery charging time.");
-            playerSpeedMult = Main.configMenu.Bind("", "Player speed multiplier", 1f, "Your swimming, walking and running speed will be multiplied by this.");
+            playerWaterSpeedMult = Main.configMenu.Bind("Player movement", "Player speed multiplier in water", 1f);
+            playerGroundSpeedMult = Main.configMenu.Bind("Player movement", "Player speed multiplier on ground", 1f);
+            seaglideSpeedMult = Main.configMenu.Bind("Player movement", "Seaglide speed multiplier", 1f, "");
             exosuitSpeedMult = Main.configMenu.Bind("", "Prawn suit speed multiplier", 1f, "");
             seatruckSpeedMult = Main.configMenu.Bind("", "Seatruck speed multiplier", 1f, "");
             hoverbikeSpeedMult = Main.configMenu.Bind("", "Snowfox speed multiplier", 1f, "");
@@ -155,6 +153,12 @@ namespace Tweaks_Fixes
             baseHullStrengthMult = Main.configMenu.Bind("", "Base hull strength multiplier", 1f, "");
             drillDamageMult = Main.configMenu.Bind("", "Prawn suit drill arm damage multiplier", 1f, "");
 
+            transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");
+            transferSameItemsButton = Main.configMenu.Bind("", "Move same items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items of the same type. If you are using a keyboard, you have to hold down this key and click an item.");
+            quickslotButton = Main.configMenu.Bind("", "Quickslot cycle button", KeyCode.None, "Press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to cycle tools in your current quickslot.");
+            //lightButton = Main.configMenu.Bind("", "Light intensity button", KeyCode.None, "When holding a tool in your hand or driving a vehicle press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to change the tool or vehicle light intensity. This works only with controller.");
+            previousPDATabKey = Main.configMenu.Bind("", "Previous PDA tab key", KeyCode.None, "Key to switch to left PDA Tab. This works only with keyboard.");
+            nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab. This works only with keyboard.");
 
 
         }

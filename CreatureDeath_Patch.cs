@@ -47,7 +47,7 @@ namespace Tweaks_Fixes
             //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawn " + __instance.respawn);
             //Main.logger.LogMessage("CreatureDeath Start " + techType + " respawnOnlyIfKilledByCreature " + __instance.respawnOnlyIfKilledByCreature);
             if (respawnTime.ContainsKey(techType))
-                __instance.respawnInterval = respawnTime[techType] * Main.dayLengthSeconds;
+                __instance.respawnInterval = respawnTime[techType] * DayNightCycle.main.dayLengthSeconds;
         }
         [HarmonyPostfix]
         [HarmonyPatch("OnTakeDamage")]

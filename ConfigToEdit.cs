@@ -74,7 +74,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> dropHeldTool;
         public static ConfigEntry<int> freeTorpedos;
         public static ConfigEntry<bool> builderToolBuildsInsideWithoutPower;
-        public static ConfigEntry<bool> cameraBobbing;
+        //public static ConfigEntry<bool> cameraBobbing;
         public static ConfigEntry<bool> cameraShake;
         public static ConfigEntry<bool> removeDeadCreaturesOnLoad;
         public static ConfigEntry<bool> scannerFX;
@@ -82,8 +82,22 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> showTempFahrenhiet;
         public static ConfigEntry<string> notRechargableBatteries;
         public static ConfigEntry<bool> vehiclesHurtCreatures;
-
-
+        public static ConfigEntry<int> targetFrameRate;
+        public static ConfigEntry<bool> removeCreditsButton;
+        public static ConfigEntry<bool> removeTroubleshootButton;
+        public static ConfigEntry<bool> removeUnstuckButton;
+        public static ConfigEntry<bool> removeFeedbackButton;
+        public static ConfigEntry<bool> EnableDevButton;
+        public static ConfigEntry<bool> seaglideWorksOnlyForward;
+        public static ConfigEntry<int> oneHandToolSwimSpeedMod;
+        public static ConfigEntry<int> oneHandToolWalkSpeedMod;
+        public static ConfigEntry<int> twoHandToolSwimSpeedMod;
+        public static ConfigEntry<int> twoHandToolWalkSpeedMod;
+        public static ConfigEntry<int> playerSidewardSpeedMod;
+        public static ConfigEntry<int> playerBackwardSpeedMod;
+        public static ConfigEntry<int> playerVerticalSpeedMod;
+        public static ConfigEntry<string> groundSpeedEquipment;
+        public static ConfigEntry<string> waterSpeedEquipment;
 
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
         public static AcceptableValueRange<int> percentRange = new AcceptableValueRange<int>(0, 100);
@@ -91,6 +105,7 @@ namespace Tweaks_Fixes
         public static void Bind()
         {
             //Main.logger.LogMessage("ConfigToEdit bind start ");
+            targetFrameRate = Main.configToEdit.Bind("", "Frame rate limiter", 0, "Number of frames the game renders every second will be limited to this. Numbers smaller than 10 are ignored.");
             heatBladeCooks = Main.configToEdit.Bind("", "Thermoblade cooks fish on kill", true);
             dontSpawnKnownFragments = Main.configToEdit.Bind("", "Do not spawn fragments for unlocked blueprints", false);
             noKillParticles = Main.configToEdit.Bind("", "No particles when creature dies", false, "No yellow cloud particles will spawn when a creature dies. Game has to be reloaded after changing this. ");
@@ -157,12 +172,30 @@ namespace Tweaks_Fixes
             dropHeldTool = Main.configToEdit.Bind("", "Drop held tool when taking damage", false, "Chance percent to drop your tool is equal to amount of damage taken.");
             freeTorpedos = Main.configToEdit.Bind("", "Free torpedos", 2, "Number of torpedos you get when installing new Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo Arm.");
             builderToolBuildsInsideWithoutPower = Main.configToEdit.Bind("", "Builder tool does not need power when building inside", true);
-            cameraBobbing = Main.configToEdit.Bind("", "Camera bobbing when swimming", false);
+            //cameraBobbing = Main.configToEdit.Bind("", "Camera bobbing when swimming", true);
             cameraShake = Main.configToEdit.Bind("", "Camera shake", true, "This toggle camera shaking.");
             removeDeadCreaturesOnLoad = Main.configToEdit.Bind("", "Remove dead creatures when loading saved game", true, "");
             scannerFX = Main.configToEdit.Bind("", "Wierd visual effect on objects being scanned", true, "");
             dropItemsAnywhere = Main.configToEdit.Bind("", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world, drop items anywhere except seatruck and grab items in your base with propulsion cannon.");
             showTempFahrenhiet = Main.configToEdit.Bind("", "Show temperature in Fahrenhiet instead of Celcius", false, "");
+            removeCreditsButton = Main.configToEdit.Bind("", "Remove credits button from main menu", false);
+            removeTroubleshootButton = Main.configToEdit.Bind("", "Remove troubleshooting button from options menu", false);
+            removeUnstuckButton = Main.configToEdit.Bind("", "Remove unstuck button from pause menu", false);
+            removeFeedbackButton = Main.configToEdit.Bind("", "Remove feedback button from pause menu", false);
+            EnableDevButton = Main.configToEdit.Bind("", "Enable developer button in pause menu", false);
+
+            seaglideWorksOnlyForward = Main.configToEdit.Bind("PLAYER MOVEMENT", "Seaglide works only when moving forward", false, "");
+            playerSidewardSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "Player sideward speed modifier", 0, "Player's speed will be reduced by this percent when moving sideward.");
+            playerBackwardSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "Player backward speed modifier", 0, "Player's speed will be reduced by this percent when moving backward.");
+            playerVerticalSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "Player vertical speed modifier", 0, "Player's speed will be reduced by this percent when swimming up or down.");
+            oneHandToolWalkSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "One handed tool walking speed modifier", 0, "Your walking speed will be reduced by this percent when holding tool or PDA with one hand.");
+            twoHandToolWalkSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "Two handed tool walking speed modifier", 0, "Your walking speed will be reduced by this percent when holding tool with both hands.");
+            oneHandToolSwimSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "One handed tool swimming speed modifier", 0, "Your swimming speed will be reduced by this percent when holding tool or PDA with one hand.");
+            twoHandToolSwimSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "Two handed tool swimming speed modifier", 0, "Your swimming speed will be reduced by this percent when holding tool with both hands.");
+            groundSpeedEquipment = Main.configToEdit.Bind("EQUIPMENT", "Ground speed equipment", "", "Equipment in this list affects your movement speed on ground. The format is: item ID, space, percent that will be added to your movement speed. Negative numbers will reduce your movement speed. Every entry is separated by comma.");
+            waterSpeedEquipment = Main.configToEdit.Bind("EQUIPMENT", "Water speed equipment", "", "Equipment in this list affects your movement speed in water. The format is: item ID, space, percent that will be added to your movement speed. Negative numbers will reduce your movement speed. Every entry is separated by comma. If this list is not empty, vanilla script that changes your movement speed will not run. ");
+
+
 
             transferAllItemsButton = Main.configToEdit.Bind("", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             transferSameItemsButton = Main.configToEdit.Bind("", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
@@ -257,6 +290,43 @@ namespace Tweaks_Fixes
             return set;
         }
 
+        private static Dictionary<TechType, float> ParseSpeedEquipmentDic(string input)
+        {
+            Dictionary<TechType, float> dic = new Dictionary<TechType, float>();
+            string[] entries = input.Split(',');
+            for (int i = 0; i < entries.Length; i++)
+            {
+                string s = entries[i].Trim();
+                string techType;
+                string amount;
+                int index = s.IndexOf(' ');
+                if (index == -1)
+                    continue;
+
+                techType = s.Substring(0, index);
+                amount = s.Substring(index);
+                if (!TechTypeExtensions.FromString(techType, out TechType tt, true))
+                    continue;
+
+                float fl = 0;
+                try
+                {
+                    fl = float.Parse(amount);
+                }
+                catch (Exception)
+                {
+                    Main.logger.LogWarning("Could not parse: " + input);
+                    continue;
+                }
+                if (fl == 0)
+                    continue;
+
+                fl = Mathf.Clamp(fl, -100f, 100f);
+                dic.Add(tt, fl * .01f);
+            }
+            return dic;
+        }
+
         public static void ParseFromConfig()
         {
             Crush_Damage.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
@@ -279,6 +349,9 @@ namespace Tweaks_Fixes
             Battery_Patch.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
             //Main.logger.LogInfo("decayingFood str  " + decayingFood.Value);
             //Main.logger.LogInfo("decayingFood.Count  " + Food_Patch.decayingFood.Count);
+            Player_Movement.CacheSettings();
+            Player_Movement.waterSpeedEquipment = ParseSpeedEquipmentDic(waterSpeedEquipment.Value);
+            Player_Movement.groundSpeedEquipment = ParseSpeedEquipmentDic(groundSpeedEquipment.Value);
         }
 
         public enum Button

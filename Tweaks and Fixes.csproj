@@ -88,14 +88,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base_Collision.cs" />
     <Compile Include="Battery_Patch.cs" />
     <Compile Include="Camera_Patch.cs" />
     <Compile Include="ConfigMain.cs" />
     <Compile Include="CreatureDeath_Patch.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
     <Compile Include="Knife_Patch.cs" />
+    <Compile Include="Menu_Buttons.cs" />
     <Compile Include="OptionsMenu.cs" />
     <Compile Include="ConfigMenu.cs" />
+    <Compile Include="Player_Movement.cs" />
     <Compile Include="PropulsionCannon_Patch.cs" />
     <Compile Include="Constructor_Patch.cs" />
     <Compile Include="Inventory_Patch.cs" />
@@ -113,11 +116,10 @@
     <Compile Include="Storage_Patch.cs" />
     <Compile Include="PDA_Clock_.cs" />
     <Compile Include="Plants_Patch.cs" />
-    <Compile Include="Game_Speed_Patch.cs" />
+    <Compile Include="DayNightCycle_Patch.cs" />
     <Compile Include="Predators_Patch.cs" />
     <Compile Include="Hoverbike_Patch.cs" />
     <Compile Include="Exosuit_Patch.cs" />
-    <Compile Include="Player_Movement.cs" />
     <Compile Include="Seatruck_Patch.cs" />
     <Compile Include="Tools_Patch.cs" />
     <Compile Include="Testing.cs" />

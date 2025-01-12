@@ -104,6 +104,10 @@ namespace Tweaks_Fixes
             [HarmonyPatch("DoFixedUpdate")]
             static bool DoFixedUpdatePrefix(WorldForces __instance)
             {
+                //AddDebug("WorldForces DoFixedUpdate");
+                if (!Main.gameLoaded)
+                    return false;
+
                 if (!ConfigToEdit.dropItemsAnywhere.Value)
                     return true;
 
@@ -201,102 +205,6 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("DoFixedUpdate")]
-            static bool DoFixedUpdatePrefix_old(WorldForces __instance)
-            {
-                if (!ConfigToEdit.dropItemsAnywhere.Value)
-                    return true;
-
-                __instance.UpdateInterpolation();
-                if (__instance.useRigidbody == null || __instance.useRigidbody.isKinematic)
-                    return false;
-
-                Vector3 position = __instance.transform.position;
-                bool aboveWater = __instance.IsAboveWater();
-                float height = position.y;
-                if (droppedInBase.ContainsKey(__instance.gameObject))
-                {
-                    SubRoot subRoot = droppedInBase[__instance.gameObject];
-                    if (subRoot && !subRoot.IsLeaking())
-                    {
-                        height = 1;
-                        aboveWater = true;
-                    }
-                }
-                //if (droppedInBase.ContainsKey(__instance.gameObject))
-                //    AddDebug(__instance.name + " DoFixedUpdate aboveWater " + droppedInBase[__instance.gameObject]);
-
-                if (__instance.handleGravity && __instance.useRigidbody)
-                {
-                    __instance.useRigidbody.AddForce(__instance.GetGravityAtHeight(height), ForceMode.Acceleration);
-                }
-                if (__instance.handleDrag && __instance.useRigidbody != null)
-                {
-                    if (__instance.was_above_water && !aboveWater)
-                        __instance.useRigidbody.drag = __instance.underwaterDrag;
-                    else if (!__instance.was_above_water & aboveWater)
-                        __instance.useRigidbody.drag = __instance.aboveWaterDrag;
-                    __instance.was_above_water = aboveWater;
-                }
-                for (int index = 0; index < WorldForces.explosionList.Count; ++index)
-                {
-                    WorldForces.Explosion explosion = WorldForces.explosionList[index];
-                    if (DayNightCycle.main.timePassed > explosion.endTime)
-                    {
-                        WorldForces.explosionList[index] = WorldForces.explosionList[WorldForces.explosionList.Count - 1];
-                        WorldForces.explosionList.RemoveAt(WorldForces.explosionList.Count - 1);
-                        --index;
-                    }
-                    else
-                    {
-                        double startTime = explosion.startTime;
-                        float magnitude = (explosion.position - position).magnitude;
-                        double num1 = magnitude / 500.0;
-                        double num2 = startTime + num1;
-                        if (DayNightCycle.main.timePassed >= num2 && DayNightCycle.main.timePassed <= num2 + 0.03 && __instance.useRigidbody != null)
-                        {
-                            Vector3 vector3 = position - explosion.position;
-                            vector3.Normalize();
-                            float num3 = Mathf.Max(explosion.magnitude - magnitude / 500f, 1f);
-                            Vector3 force = vector3 * (num3 * (0.5f + UnityEngine.Random.value * 0.5f));
-                            __instance.useRigidbody.AddForce(force, ForceMode.Impulse);
-                            Debug.DrawLine(position, position + force, Color.yellow, 0.1f);
-                        }
-                    }
-                }
-                Vector3 vector3_1 = Vector3.zero;
-                float num4 = 0f;
-                for (int index = 0; index < WorldForces.currentsList.Count; ++index)
-                {
-                    WorldForces.Current currents = WorldForces.currentsList[index];
-                    if (currents == null || DayNightCycle.main.timePassed > currents.endTime)
-                    {
-                        WorldForces.currentsList[index] = WorldForces.currentsList[WorldForces.currentsList.Count - 1];
-                        WorldForces.currentsList.RemoveAt(WorldForces.currentsList.Count - 1);
-                        --index;
-                    }
-                    else if ((position - currents.position).sqrMagnitude < currents.radius * currents.radius)
-                    {
-                        float num1 = currents.startSpeed;
-                        if (!double.IsInfinity(currents.endTime))
-                        {
-                            float t = Mathf.InverseLerp(0f, (float)(currents.endTime - currents.startTime), (float)(DayNightCycle.main.timePassed - currents.startTime));
-                            num1 = Mathf.Lerp(currents.startSpeed, 0f, t);
-                        }
-                        if (num1 > num4)
-                        {
-                            num4 = num1;
-                            vector3_1 = currents.direction;
-                        }
-                    }
-                }
-                if (num4 <= 0 || __instance.useRigidbody == null)
-                    return false;
-
-                __instance.useRigidbody.AddForce(num4 * vector3_1, ForceMode.Impulse);
-                return false;
-            }
         }
 
         public static void OnGameLoadingFinished()
@@ -617,123 +525,6 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            static bool Prefix_(PlaceTool __instance)
-            { // allow to place on any surface
-                if (__instance.usingPlayer == null)
-                    return false;
-
-                if (!ConfigToEdit.dropItemsAnywhere.Value)
-                    return true;
-
-                Transform aimTransform = Builder.GetAimTransform();
-                RaycastHit raycastHit1 = new RaycastHit();
-                bool foundSurface = false;
-                int raycastHits = UWE.Utils.RaycastIntoSharedBuffer(aimTransform.position, aimTransform.forward, 5f);
-                float distance = float.PositiveInfinity;
-                for (int index = 0; index < raycastHits; ++index)
-                {
-                    RaycastHit raycastHit2 = UWE.Utils.sharedHitBuffer[index];
-                    if (!raycastHit2.collider.isTrigger && !UWE.Utils.SharingHierarchy(__instance.gameObject, raycastHit2.collider.gameObject) && distance > raycastHit2.distance)
-                    {
-                        foundSurface = true;
-                        raycastHit1 = raycastHit2;
-                        distance = raycastHit2.distance;
-                    }
-                }
-                Vector3 position;
-                Vector3 forward2;
-                Vector3 up2;
-                if (foundSurface)
-                {
-                    PlaceTool.SurfaceType surfaceType = PlaceTool.SurfaceType.Floor;
-                    if (Mathf.Abs(raycastHit1.normal.y) < 0.3)
-                        surfaceType = PlaceTool.SurfaceType.Wall;
-                    else if (raycastHit1.normal.y < 0)
-                        surfaceType = PlaceTool.SurfaceType.Ceiling;
-
-                    position = raycastHit1.point;
-                    if (__instance.alignWithSurface || surfaceType == PlaceTool.SurfaceType.Wall)
-                    {
-                        forward2 = raycastHit1.normal;
-                        up2 = Vector3.up;
-                    }
-                    else
-                    {
-                        forward2 = new Vector3(-aimTransform.forward.x, 0f, -aimTransform.forward.z).normalized;
-                        up2 = Vector3.up;
-                    }
-                    switch (surfaceType)
-                    {
-                        case PlaceTool.SurfaceType.Floor:
-                            __instance.validPosition = __instance.allowedOnGround;
-                            break;
-                        case PlaceTool.SurfaceType.Wall:
-                            __instance.validPosition = __instance.allowedOnWalls;
-                            break;
-                        case PlaceTool.SurfaceType.Ceiling:
-                            __instance.validPosition = __instance.allowedOnCeiling;
-                            break;
-                    }
-                }
-                else
-                {
-                    position = aimTransform.position + aimTransform.forward * 1.5f;
-                    forward2 = -aimTransform.forward;
-                    up2 = Vector3.up;
-                    __instance.validPosition = false;
-                }
-                __instance.additiveRotation = Builder.CalculateAdditiveRotationFromInput(__instance.additiveRotation);
-                Quaternion rotation = Quaternion.LookRotation(forward2, up2);
-                if (__instance.rotationEnabled)
-                    rotation *= Quaternion.AngleAxis(__instance.additiveRotation, up2);
-
-                __instance.ghostModel.transform.position = position;
-                __instance.ghostModel.transform.rotation = rotation;
-                if (foundSurface)
-                {
-                    Rigidbody componentInParent = raycastHit1.collider.gameObject.GetComponentInParent<Rigidbody>();
-                    __instance.validPosition = __instance.validPosition && (componentInParent == null || componentInParent.isKinematic || __instance.allowedOnRigidBody);
-                }
-                SubRoot currentSub = Player.main.GetCurrentSub();
-                bool flag2 = false;
-                if (foundSurface)
-                    flag2 = raycastHit1.collider.gameObject.GetComponentInParent<SubRoot>() != null;
-
-                if (foundSurface && raycastHit1.collider.gameObject.CompareTag("DenyBuilding"))
-                    __instance.validPosition = false;
-                if (!__instance.allowedUnderwater && raycastHit1.point.y < 0)
-                    __instance.validPosition = false;
-                if (currentSub == null)
-                    __instance.validPosition = __instance.validPosition && (__instance.allowedOnBase || !flag2);
-
-                if (((!__instance.allowedInBase || !currentSub ? (!__instance.allowedOutside ? 0 : (!currentSub ? 1 : 0)) : 1) & (foundSurface ? 1 : 0)) != 0)
-                {
-                    GameObject hitObject = UWE.Utils.GetEntityRoot(raycastHit1.collider.gameObject);
-                    if (!hitObject)
-                    {
-                        SceneObjectIdentifier componentInParent = raycastHit1.collider.GetComponentInParent<SceneObjectIdentifier>();
-                        hitObject = !componentInParent ? raycastHit1.collider.gameObject : componentInParent.gameObject;
-                    }
-                    if (currentSub == null)
-                        __instance.validPosition = __instance.validPosition && Builder.ValidateOutdoor(hitObject);
-
-                    if (!__instance.allowedOnConstructable)
-                        __instance.validPosition = __instance.validPosition && hitObject.GetComponentInParent<Constructable>() == null;
-
-                    __instance.validPosition &= Builder.CheckSpace(position, rotation, PlaceTool.localBounds, (int)PlaceTool.placeLayerMask, raycastHit1.collider);
-                }
-                else
-                    __instance.validPosition = false;
-
-                if (foundSurface)
-                    __instance.validPosition = true;
-
-                MaterialExtensions.SetColor(__instance.modelRenderers, ShaderPropertyID._Tint, __instance.validPosition ? PlaceTool.placeColorAllow : PlaceTool.placeColorDeny);
-                if (__instance.hideInvalidGhostModel)
-                    __instance.ghostModel.SetActive(__instance.validPosition);
-
-                return false;
-            }
         }
 
 

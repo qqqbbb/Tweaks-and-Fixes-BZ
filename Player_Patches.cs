@@ -1,11 +1,11 @@
-﻿using System;
+﻿using HarmonyLib;
+using ProtoBuf;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UWE;
-using HarmonyLib;
-using ProtoBuf;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -21,7 +21,7 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(BodyTemperature))]
         class BodyTemperature_Patch
-        { 
+        {
             [HarmonyPrefix]
             [HarmonyPatch("isExposed", MethodType.Getter)]
             public static bool isExposedPrefix(BodyTemperature __instance, ref bool __result)
@@ -35,7 +35,7 @@ namespace Tweaks_Fixes
                 bool movingUnderwater = !ConfigMenu.useRealTempForPlayerTemp.Value && underwater && (__instance.player.movementSpeed > Mathf.Epsilon || __instance.player.IsRidingCreature());
                 //float temp = Main.bodyTemperature.CalculateEffectiveAmbientTemperature();
                 bool heat = !ConfigMenu.useRealTempForPlayerTemp.Value && (HeatSource.GetHeatImpactAtPosition(__instance.transform.position) > 0f || __instance.player.GetCurrentHeatVolume());
-                bool immune = movingUnderwater || heat || __instance.player.cinematicModeActive || Main.bodyTemperature.CalculateEffectiveAmbientTemperature() > ConfigToEdit.warmTemp.Value;
+                bool immune = movingUnderwater || heat || __instance.player.cinematicModeActive || __instance.CalculateEffectiveAmbientTemperature() > ConfigToEdit.warmTemp.Value;
                 bool piloting = __instance.player.IsPiloting();
 
                 if (piloting && ConfigMenu.useRealTempForPlayerTemp.Value)
@@ -128,7 +128,7 @@ namespace Tweaks_Fixes
             }
 
             [HarmonyPostfix]
-            [HarmonyPatch("UpdateEffectiveAmbientTemperature")] 
+            [HarmonyPatch("UpdateEffectiveAmbientTemperature")]
             static void UpdateEffectiveAmbientTemperaturePostfix(BodyTemperature __instance)
             {
                 ambientTemperature = __instance.effectiveAmbientTemperature;
@@ -179,7 +179,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("GetDepthClass");
                 Ocean.DepthClass depthClass = Ocean.DepthClass.Surface;
-                if (uGUI.isLoading)
+                if (!Main.gameLoaded)
                 {
                     __result = depthClass;
                     return false;
@@ -317,7 +317,7 @@ namespace Tweaks_Fixes
                 //AddDebug("OnRemoveItem " + item.item.GetTechName());
                 TechType tt = item.item.GetTechType();
                 if (usingWPT == 0 && tt == TechType.SnowBall)
-                {              
+                {
                     Eatable eatable = item.item.GetComponent<Eatable>();
                     if (eatable)
                     {
@@ -328,7 +328,7 @@ namespace Tweaks_Fixes
                     else
                         usingWPT = 0;
                 }
-                else if(usingWPT == 1 && tt == TechType.WaterPurificationTablet)
+                else if (usingWPT == 1 && tt == TechType.WaterPurificationTablet)
                     usingWPT = 2;
                 else
                     usingWPT = 0;

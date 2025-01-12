@@ -5,22 +5,17 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using Nautilus.Assets;
-using Nautilus.Assets.Gadgets;
-using Nautilus.Assets.PrefabTemplates;
 using Nautilus.Handlers;
 using Nautilus.Utility;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
 
 //GameModeManager.GetOption<bool>(GameOption.Hunger)
-//uGUI.isLoading 
 namespace Tweaks_Fixes
 {
     [BepInPlugin(GUID, MODNAME, VERSION)]
@@ -29,14 +24,9 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.08.0";
+            VERSION = "2.10.0";
         public static Survival survival;
-        public static BodyTemperature bodyTemperature;
         public static float oceanLevel;
-        //public static bool canBreathe = false;
-        //!uGUI.isLoading
-        //public static bool loadingDone = false;
-        //public static bool languageCheck = false;
         public static System.Random rndm = new System.Random();
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
@@ -48,7 +38,7 @@ namespace Tweaks_Fixes
         public static ConfigFile configMenu;
         public static ConfigMain configMain = new ConfigMain();
         public static ConfigFile configToEdit;
-        public const float dayLengthSeconds = 1200f;
+        public static bool gameLoaded; // uGUI.isLoading is false in main menu
 
         //[HarmonyPatch(typeof(IngameMenu), "QuitGameAsync")]
         internal class IngameMenu_QuitGameAsync_Patch
@@ -78,24 +68,24 @@ namespace Tweaks_Fixes
 
         public static void CleanUp()
         {
+            gameLoaded = false;
             //AddDebug("CleanUp");
-            //Log("CleanUp !!!");
+            //logger.LogDebug("CleanUp !!!");
             QuickSlots_Patch.invChanged = true;
-            //Base_Patch.bcls = new HashSet<BaseCellLighting>();
             Crush_Damage.extraCrushDepth = 0;
             Crush_Damage.crushDamageResistance = 0;
-            //crafterOpen = false;
             Gravsphere_Patch.gravSphereFish.Clear();
-            //CraftTree.fabricator = new CraftTree("Fabricator", CraftTree.FabricatorScheme());
             Seatruck_Patch.installedUpgrades.Clear();
             fridges.Clear();
             UI_Patches.recyclotrons.Clear();
-            //Base_Patch.baseBuilt = new Dictionary<SubRoot, bool>();
             Base_Patch.baseHullStrengths.Clear();
             Tools_Patch.fixedFish.Clear();
             Battery_Patch.seatruckPRs.Clear();
-            configMain.Load();
             CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
+            //Player_Movement.invItemsMod = float.MinValue;
+            //Player_Movement.equipmentSpeedMod = float.MaxValue;
+            //Player_Movement.toolMod = float.MaxValue;
+            configMain.Load();
         }
 
         [HarmonyPatch(typeof(Player), "Start")]
@@ -104,7 +94,6 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
                 survival = __instance.GetComponent<Survival>();
-                bodyTemperature = __instance.GetComponent<BodyTemperature>();
                 oceanLevel = Ocean.GetOceanLevel();
                 //equipment = Inventory.main.equipment;
             }
@@ -132,7 +121,21 @@ namespace Tweaks_Fixes
             { // unlock fibermesh by scanning creepvine
                 PDAScanner.mapping[TechType.Creepvine].blueprint = TechType.FiberMesh;
             }
+            Player_Movement.UpdateModifiers();
+            gameLoaded = true;
+            //if (ConfigToEdit.targetFrameRate.Value > 9)
+            //    Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
+        }
 
+
+        [HarmonyPatch(typeof(uGUI_MainMenu), "Start")]
+        class uGUI_MainMenu_Start_Patch
+        {
+            static void Postfix(uGUI_MainMenu __instance)
+            {
+                if (ConfigToEdit.targetFrameRate.Value >= 10)
+                    Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
+            }
         }
 
         [HarmonyPatch(typeof(WaitScreen), "Hide")]
@@ -141,7 +144,7 @@ namespace Tweaks_Fixes
             public static void Postfix(WaitScreen __instance)
             {
                 //AddDebug(" WaitScreen Hide");
-                //if (uGUI.isLoading)
+                //if (!Main.gameLoaded)
                 {
                     //AddDebug(" WaitScreen Hide  !!!");
                     LoadedGameSetup();
@@ -186,6 +189,12 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug(" save seaglide");
                     configMain.seaglideMap = mc.mapActive;
+                }
+                PlaceTool pt = heldItem.item.GetComponent<PlaceTool>();
+                if (pt)
+                {
+                    //AddDebug(" heldItem PlaceTool");
+                    configMain.activeSlot = -1;
                 }
             }
             configMain.Save();

@@ -3,6 +3,7 @@ using Nautilus.Handlers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
@@ -482,6 +483,55 @@ namespace Tweaks_Fixes
         {
             return celcius * 1.8f + 32f;
         }
+
+        public static IEnumerable<GameObject> FindAllRootGameObjects()
+        {
+            return Resources.FindObjectsOfTypeAll<Transform>()
+                .Where(t => t.parent == null)
+                .Select(x => x.gameObject);
+        }
+
+        public static bool IsEquipped(TechType tt)
+        {
+            if (tt == TechType.None)
+                return false;
+
+            foreach (var kv in Inventory.main.equipment.equipment)
+            {
+                if (kv.Value == null)
+                    continue;
+
+                if (kv.Value._techType == tt)
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool IsOneHanded(PlayerTool playerTool)
+        {
+            //TechType tt = CraftData.GetTechType(playerTool.gameObject);
+            //AddDebug("IsOneHanded " + tt);
+            if (playerTool is DiveReel)
+                return true;
+
+            if (playerTool is SpyPenguinRemote)
+                return true;
+
+            if (playerTool is SnowBall)
+                return true;
+
+            if (playerTool is PlaceTool)
+                return true;
+
+            if (playerTool.GetComponent<PenguinBaby>())
+                return false;
+
+            if (playerTool is CreatureTool)
+                return true;
+
+            return playerTool.hasBashAnimation;
+        }
+
 
 
     }

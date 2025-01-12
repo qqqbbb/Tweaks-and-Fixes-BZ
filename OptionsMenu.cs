@@ -13,8 +13,10 @@ namespace Tweaks_Fixes
         public OptionsMenu() : base("Tweaks and Fixes")
         {
             ModSliderOption timeFlowSpeedSlider = ConfigMenu.timeFlowSpeed.ToModSliderOption(.1f, 10f, .1f, "{0:0.#}");
-            timeFlowSpeedSlider.OnChanged += UpdateTimeSpeed;
-            ModSliderOption playerSpeedSlider = ConfigMenu.playerSpeedMult.ToModSliderOption(.5f, 5f, .1f, "{0:0.#}");
+            timeFlowSpeedSlider.OnChanged += TimeSpeedUpdated;
+            ModSliderOption seaglideSpeedSlider = ConfigMenu.seaglideSpeedMult.ToModSliderOption(.5f, 2f, .1f, "{0:0.#}");
+            ModSliderOption playerWaterSpeedSlider = ConfigMenu.playerWaterSpeedMult.ToModSliderOption(.5f, 5f, .1f, "{0:0.#}");
+            ModSliderOption playerGroundSpeedSlider = ConfigMenu.playerGroundSpeedMult.ToModSliderOption(.5f, 3f, .1f, "{0:0.#}");
             ModSliderOption exosuitSpeedSlider = ConfigMenu.exosuitSpeedMult.ToModSliderOption(.5f, 3f, .1f, "{0:0.#}");
             ModSliderOption seatruckSpeedSlider = ConfigMenu.seatruckSpeedMult.ToModSliderOption(.5f, 3f, .1f, "{0:0.#}");
             ModSliderOption hoverbikeSpeedSlider = ConfigMenu.hoverbikeSpeedMult.ToModSliderOption(.5f, 3f, .1f, "{0:0.#}");
@@ -51,7 +53,9 @@ namespace Tweaks_Fixes
             ModSliderOption drillDamageMultSlider = ConfigMenu.drillDamageMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
 
             AddItem(timeFlowSpeedSlider);
-            AddItem(playerSpeedSlider);
+            AddItem(playerWaterSpeedSlider);
+            AddItem(playerGroundSpeedSlider);
+            AddItem(seaglideSpeedSlider);
             AddItem(exosuitSpeedSlider);
             AddItem(seatruckSpeedSlider);
             AddItem(hoverbikeSpeedSlider);
@@ -105,6 +109,8 @@ namespace Tweaks_Fixes
             AddItem(ConfigMenu.dropItemsOnDeath.ToModChoiceOption());
             AddItem(invMultWaterSlider);
             AddItem(invMultLandSlider);
+            invMultLandSlider.OnChanged += InvMultSliderUpdated;
+            invMultWaterSlider.OnChanged += InvMultSliderUpdated;
             AddItem(ConfigMenu.transferAllItemsButton.ToModKeybindOption());
             AddItem(ConfigMenu.transferSameItemsButton.ToModKeybindOption());
             AddItem(ConfigMenu.quickslotButton.ToModKeybindOption());
@@ -113,11 +119,17 @@ namespace Tweaks_Fixes
 
         }
 
-        void UpdateTimeSpeed(object sender, SliderChangedEventArgs e)
+        void TimeSpeedUpdated(object sender, SliderChangedEventArgs e)
         {
             //AddDebug("UpdateTimeSpeed");
             if (DayNightCycle.main)
                 DayNightCycle.main._dayNightSpeed = ConfigMenu.timeFlowSpeed.Value;
+        }
+
+        void InvMultSliderUpdated(object sender, SliderChangedEventArgs e)
+        {
+            AddDebug("InvMultSliderUpdate");
+            Player_Movement.GetInvMod();
         }
 
     }

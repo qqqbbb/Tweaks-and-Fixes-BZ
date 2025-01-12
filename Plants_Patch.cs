@@ -82,7 +82,7 @@ namespace Tweaks_Fixes
             //    fp.inactiveFruits.Add(pp);
             //}
             if (ConfigMenu.fruitGrowTime.Value > 0)
-                fp.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * Main.dayLengthSeconds;
+                fp.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * DayNightCycle.main.dayLengthSeconds;
         }
 
         [HarmonyPatch(typeof(PickPrefab))]
@@ -206,7 +206,7 @@ namespace Tweaks_Fixes
             public static void AwakePostfix(FruitPlant __instance)
             {
                 if (ConfigMenu.fruitGrowTime.Value > 0)
-                    __instance.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * Main.dayLengthSeconds;
+                    __instance.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * DayNightCycle.main.dayLengthSeconds;
             }
             [HarmonyPrefix]
             [HarmonyPatch("Initialize")]

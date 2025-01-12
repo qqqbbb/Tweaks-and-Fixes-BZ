@@ -157,8 +157,6 @@ namespace Tweaks_Fixes
                     if (podPowerSource && podPowerSource.GetPower() <= 0)
                         //__result = Player_Patches.ambientTemperature;
                         __result = WaterTemperatureSimulation.main.GetTemperature(__instance.transform.position);
-
-
                 }
             }
         }

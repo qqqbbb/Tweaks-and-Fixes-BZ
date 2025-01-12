@@ -89,7 +89,7 @@ namespace Tweaks_Fixes
             private static float crushTime = 0f;
             static void Postfix(Player __instance)
             {
-                if (uGUI.isLoading)
+                if (!Main.gameLoaded)
                     return;
                 //Main.Message("Depth Class " + __instance.GetDepthClass());
                 if (ConfigMenu.crushDamage.Value > 0f && crushInterval + crushTime < Time.time)
@@ -129,7 +129,7 @@ namespace Tweaks_Fixes
         { // player does not have this
             public static bool Prefix(CrushDamage __instance)
             {
-                if (uGUI.isLoading)
+                if (!Main.gameLoaded)
                     return false;
 
                 if (ConfigMenu.vehicleCrushDamageMult.Value == 1f && ConfigMenu.crushDamageProgression.Value == 0f)

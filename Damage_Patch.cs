@@ -520,7 +520,11 @@ namespace Tweaks_Fixes
                     if (flare_)
                         damage *= .5f;
 
-                    Main.bodyTemperature.AddCold(damage);
+                    BodyTemperature bodyTemperature = __instance.GetComponent<BodyTemperature>();
+
+                    if (bodyTemperature)
+                        bodyTemperature.AddCold(damage);
+
                     return false;
                 }
                 if (flare_)
@@ -678,49 +682,29 @@ namespace Tweaks_Fixes
         }
 
 
-        [HarmonyPatch(typeof(Drillable), "OnDrill")]
-        class Drillable_OnDrill_Patch
+        [HarmonyPatch(typeof(Drillable))]
+        class Drillable_Start_Patch
         {
-            static void Postfix(Drillable __instance, Vector3 position, Exosuit exo)
-            { // cant replace prefix bc it invokes event
-                float totalStartHealth = 0f;
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            static void StartPostfix(Drillable __instance)
+            {
                 for (int index = 0; index < __instance.health.Length; ++index)
-                    totalStartHealth += __instance.health[index];
-
-                __instance.drillingExo = exo;
-                Vector3 center = Vector3.zero;
-                int closestMesh = __instance.FindClosestMesh(position, out center);
-                //hitObject = __instance.renderers[closestMesh].gameObject;
-                __instance.timeLastDrilled = Time.time;
-                if (totalStartHealth > 0)
                 {
-                    float drillDamage = 5f * ConfigMenu.drillDamageMult.Value;
-                    float closestChunkHealth = __instance.health[closestMesh];
-                    __instance.health[closestMesh] = Mathf.Max(0f, __instance.health[closestMesh] - drillDamage);
-                    float healthLeft = totalStartHealth - (closestChunkHealth - __instance.health[closestMesh]);
-                    if (closestChunkHealth > 0 && __instance.health[closestMesh] <= 0)
-                    {
-                        __instance.renderers[closestMesh].gameObject.SetActive(false);
-                        __instance.SpawnFX(__instance.breakFX, center);
-                        if (__instance.resources.Length != 0)
-                            __instance.StartCoroutine(__instance.SpawnLootAsync(center));
-                    }
-                    if (healthLeft <= 0)
-                    {
-                        __instance.SpawnFX(__instance.breakAllFX, center);
-                        if (__instance.deleteWhenDrilled)
-                        {
-                            ResourceTracker rt = __instance.GetComponent<ResourceTracker>();
-                            if (rt)
-                                rt.OnBreakResource();
-
-                            __instance.Invoke("DestroySelf", __instance.lootPinataOnSpawn ? 6f : 0f);
-                        }
-                    }
+                    __instance.health[index] /= ConfigMenu.drillDamageMult.Value;
+                    //AddDebug("Drillable Start " + __instance.health[index]);
                 }
-                BehaviourUpdateUtils.Register(__instance);
+            }
+            [HarmonyPostfix, HarmonyPatch("Restore")]
+            static void RestorePostfix(Drillable __instance)
+            {
+                for (int index = 0; index < __instance.health.Length; ++index)
+                {
+                    __instance.health[index] /= ConfigMenu.drillDamageMult.Value;
+                    //AddDebug("Drillable Restore " + __instance.health[index]);
+                }
             }
         }
+
 
     }
 }
