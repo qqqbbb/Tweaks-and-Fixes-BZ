@@ -246,6 +246,7 @@ namespace Tweaks_Fixes
                 float mod = 1 + equipmentSpeedMod;
                 if (seaglide)
                 {
+                    //AddDebug("AlterMaxSpeed seaglide ");
                     HandleSeaglide(seaglide);
                     if (!seaglide.activeState)
                         mod *= toolMod;
@@ -386,6 +387,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("OnHolster");
                 toolMod = 1;
+                seaglide = null;
             }
         }
 
