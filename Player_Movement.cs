@@ -27,7 +27,7 @@ namespace Tweaks_Fixes
         public static float equipmentSpeedMod;
         public static float toolMod = 1;
         public static bool swimming;
-
+        static Seaglide seaglide;
 
         public static void UpdateModifiers()
         {
@@ -243,22 +243,29 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("AlterMaxSpeed")]
             public static void Postfix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
             {// speed: 4.5, tool 3.75, seaglide 7.12
-                float mod = 1;
-                mod += equipmentSpeedMod;
-                mod *= toolMod;
+                float mod = 1 + equipmentSpeedMod;
+                if (seaglide)
+                {
+                    HandleSeaglide(seaglide);
+                    if (!seaglide.activeState)
+                        mod *= toolMod;
+                }
+                else
+                    mod *= toolMod;
+
                 //AddDebug("AlterMaxSpeed Postfix " + __result);
                 //AddDebug("equipmentSpeedMod " + equipmentSpeedMod);
                 //AddDebug("toolMod " + toolMod);
                 //AddDebug("mod " + mod);
                 Vector3 input = __instance.movementInputDirection;
                 if (playerSidewardSpeedMod > 0 && input.x != 0)
-                    mod -= playerSidewardSpeedMod * Mathf.Abs(input.normalized.x);
+                    mod *= (1f - playerSidewardSpeedMod) * Mathf.Abs(input.normalized.x);
 
                 if (playerBackwardSpeedMod > 0 && input.z < 0)
-                    mod -= playerBackwardSpeedMod * Mathf.Abs(input.normalized.z);
+                    mod *= (1f - playerBackwardSpeedMod) * Mathf.Abs(input.normalized.z);
 
                 if (playerVerticalSpeedMod > 0 && input.y != 0)
-                    mod -= playerVerticalSpeedMod * Mathf.Abs(input.normalized.y);
+                    mod *= (1f - playerVerticalSpeedMod) * Mathf.Abs(input.normalized.y);
 
                 __result *= ConfigMenu.playerWaterSpeedMult.Value;
                 __result = __result * mod;
@@ -368,6 +375,9 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("OnDraw")]
             static void OnDrawPostfix(PlayerTool __instance)
             {
+                if (__instance is Seaglide)
+                    seaglide = __instance as Seaglide;
+
                 GetToolMod(__instance);
                 //AddDebug("OnDraw tool " + __instance.name);
             }
