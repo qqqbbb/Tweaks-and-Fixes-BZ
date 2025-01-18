@@ -955,7 +955,7 @@ namespace Tweaks_Fixes
                     //TooltipFactory.WriteDescription(sb, "Restores " + Main.config.medKitHP + " health.");
                     //AddDebug("ItemCommons " + sb.ToString());
                 }
-                else if (techType == TechType.SeaTruckUpgradeHorsePower && ConfigMenu.seatruckMoveTweaks.Value)
+                else if (techType == TechType.SeaTruckUpgradeHorsePower && ConfigToEdit.replaceSeatruckHorsePowerUpgrade.Value)
                 {
                     sb.Clear();
                     TooltipFactory.WriteTitle(sb, Language.main.Get(techType));

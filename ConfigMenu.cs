@@ -38,10 +38,10 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> medKitHP;
         public static ConfigEntry<float> craftTimeMult;
         public static ConfigEntry<float> buildTimeMult;
-        public static ConfigEntry<bool> playerMoveTweaks;
-        public static ConfigEntry<bool> hoverbikeMoveTweaks;
-        public static ConfigEntry<bool> exosuitMoveTweaks;
-        public static ConfigEntry<bool> seatruckMoveTweaks;
+        //public static ConfigEntry<bool> playerMoveTweaks;
+        //public static ConfigEntry<bool> hoverbikeMoveTweaks;
+        //public static ConfigEntry<bool> exosuitMoveTweaks;
+        //public static ConfigEntry<bool> seatruckMoveTweaks;
         public static ConfigEntry<bool> useBestLOD;
 
         public static ConfigEntry<int> crushDepth;
@@ -108,10 +108,10 @@ namespace Tweaks_Fixes
             medKitHP = Main.configMenu.Bind("", "First aid kit HP", 50, "HP restored when using first aid kit.");
             craftTimeMult = Main.configMenu.Bind("", "Crafting time multiplier", 1f, "Crafting time will be multiplied by this when crafting things with fabricator or modification station.");
             buildTimeMult = Main.configMenu.Bind("", "Building time multiplier", 1f, "Building time will be multiplied by this when using builder tool.");
-            playerMoveTweaks = Main.configMenu.Bind("", "Player movement tweaks", false, "Player swimming speed is reduced to 70%. Player vertical, backward, sideways movement speed is halved. Any diving suit reduces your speed by 5% on land and in water. Fins reduce your speed by 10% on land. Lightweight high capacity tank reduces your speed by 5% on land. Every other tank reduces your speed by 10% on land and by 5% in water. No speed reduction when near wrecks. You can sprint only if moving forward. Seaglide works only if moving forward. When swimming while your PDA is open your movement speed is halved. When swimming while holding a tool in your hand your movement speed is reduced to 70%. Game has to be reloaded after changing this.");
-            hoverbikeMoveTweaks = Main.configMenu.Bind("", "Snowfox movement tweaks", false, "Snowfox can move on water as good as on land. Its backward and sideways speed is halved. You can boost for as long as you hold the sprint button. Power consumption is doubled when boosting.");
-            exosuitMoveTweaks = Main.configMenu.Bind("", "Prawn suit movement tweaks", false, "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power. Vertical speed is reduced when using thrusters. Can't use thrusters to hover above ground when out of water.");
-            seatruckMoveTweaks = Main.configMenu.Bind("", "Seatruck movement tweaks", false, "Seatruck's vertical, sideways and backward speed is halved. Afterburner is active for as long as you hold the 'sprint' key but consumes twice more power. Horsepower upgrade increases seatruck's speed by 10%. You can install more than 1 Horsepower upgrade.");
+            //playerMoveTweaks = Main.configMenu.Bind("", "Player movement tweaks", false, "Player swimming speed is reduced to 70%. Player vertical, backward, sideways movement speed is halved. Any diving suit reduces your speed by 5% on land and in water. Fins reduce your speed by 10% on land. Lightweight high capacity tank reduces your speed by 5% on land. Every other tank reduces your speed by 10% on land and by 5% in water. No speed reduction when near wrecks. You can sprint only if moving forward. Seaglide works only if moving forward. When swimming while your PDA is open your movement speed is halved. When swimming while holding a tool in your hand your movement speed is reduced to 70%. Game has to be reloaded after changing this.");
+
+            //exosuitMoveTweaks = Main.configMenu.Bind("", "Prawn suit movement tweaks", false, "Prawn suit can not move sideways. No time limit when using thrusters, but they consume twice more power. Vertical speed is reduced when using thrusters. Can't use thrusters to hover above ground when out of water.");
+            //seatruckMoveTweaks = Main.configMenu.Bind("", "Seatruck movement tweaks", false, "Seatruck's vertical, sideways and backward speed is halved. Afterburner is active for as long as you hold the 'sprint' key but consumes twice more power. Horsepower upgrade increases seatruck's speed by 10%. You can install more than 1 Horsepower upgrade.");
             //crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage. Does not work if crush damage multiplier is 0.");
             //crushDamageMult = Main.configMenu.Bind("", "Crush damage multiplier", 0f, "Every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.");
             //vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 0f, "Every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.");

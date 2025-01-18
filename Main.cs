@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.10.2";
+            VERSION = "2.11.0";
         public static Survival survival;
         public static float oceanLevel;
         public static System.Random rndm = new System.Random();
@@ -253,7 +253,7 @@ namespace Tweaks_Fixes
             SaveUtils.RegisterOnSaveEvent(SaveData);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
             GetLoadedMods();
-            ConfigToEdit.ParseFromConfig();
+            ConfigToEdit.ParseConfig();
             options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
             //// vanilla desc just copies the name

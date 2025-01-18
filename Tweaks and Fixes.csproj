@@ -94,6 +94,7 @@
     <Compile Include="ConfigMain.cs" />
     <Compile Include="CreatureDeath_Patch.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
+    <Compile Include="Exosuit_movement.cs" />
     <Compile Include="Knife_Patch.cs" />
     <Compile Include="Menu_Buttons.cs" />
     <Compile Include="OptionsMenu.cs" />
@@ -111,6 +112,7 @@
     <Compile Include="Brinicle_Patch.cs" />
     <Compile Include="LargeWorldEntity_Patch.cs" />
     <Compile Include="Util.cs" />
+    <Compile Include="SeaTruck_movement.cs" />
     <Compile Include="Weather_Patch.cs" />
     <Compile Include="PDA_Patch.cs" />
     <Compile Include="Storage_Patch.cs" />

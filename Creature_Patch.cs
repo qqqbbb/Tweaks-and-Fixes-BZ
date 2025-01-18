@@ -186,6 +186,26 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(SeaMonkey), "IsGiftBehaviorEnabled")]
+        class SeaMonkey_IsGiftBehaviorEnabled_patch
+        {
+            public static void Postfix(SeaMonkey __instance, ref bool __result)
+            {
+                if (__result && !ConfigToEdit.seaMonkeyBringGift.Value)
+                    __result = false;
+            }
+        }
+
+        [HarmonyPatch(typeof(SeaMonkeyStealShiny), "Evaluate")]
+        class SeaMonkeyStealShiny_Evaluate_patch
+        {
+            public static void Postfix(SeaMonkeyStealShiny __instance, ref float __result)
+            {
+                if (!ConfigToEdit.seaMonkeyGrabTool.Value)
+                    __result = 0;
+            }
+        }
+
         //[HarmonyPatch(typeof(FleeOnDamage), "Evaluate")]
         class FleeOnDamage_Evaluate_Prefix_Patch
         {

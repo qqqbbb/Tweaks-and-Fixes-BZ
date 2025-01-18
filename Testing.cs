@@ -80,8 +80,6 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("BiomeString " + Player.main.GetBiomeString());
-
                 //AddDebug("IsPlayerInVehicle " + Util.IsPlayerInVehicle());
                 //if (Player.main.currentInterior != null)
                 //{
@@ -130,25 +128,7 @@ namespace Tweaks_Fixes
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
                     PlayerTool tool = Inventory.main.GetHeldTool();
-                    //AddDebug(" invItemsMod " + Player_Movement.invItemsMod);
-                    //AddDebug(" IsOneHanded " + Util.IsOneHanded(tool));
-                    //AddDebug(" equipmentSpeedMod " + Player_Movement.equipmentSpeedMod);
-                    //AddDebug(" toolMod " + Player_Movement.toolMod);
-                    if (tool)
-                        AddDebug(" IsOneHanded " + Util.IsOneHanded(tool));
-
-
-                    //List<string> techTypes = new List<string>();
-                    //foreach (TechType tt in Enum.GetValues(typeof(TechType)))
-                    {
-                        //Player.main.StartCoroutine(PrintMass(tt));
-                        //string name = Language.main.Get(tt);
-                        //techTypes.Add(tt.ToString() + "  " + name);
-                    }
-                    //techTypes.Sort();
-                    //foreach (var s in techTypes)
-                    //    Util.Log(s);
-
+                    AddDebug("inSeatruckPilotingChair " + Player.main.inSeatruckPilotingChair);
                     //PrintTerrainSurfaceType();
                     //TechType tt = TechType.IceBubble;
                     //string classid = CraftData.GetClassIdForTechType(tt);

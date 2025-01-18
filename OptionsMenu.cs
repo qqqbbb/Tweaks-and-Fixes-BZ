@@ -66,10 +66,10 @@ namespace Tweaks_Fixes
             AddItem(craftTimeSlider);
             AddItem(buildTimeSlider);
             AddItem(coldSlider);
-            AddItem(ConfigMenu.playerMoveTweaks.ToModToggleOption());
-            AddItem(ConfigMenu.seatruckMoveTweaks.ToModToggleOption());
-            AddItem(ConfigMenu.exosuitMoveTweaks.ToModToggleOption());
-            AddItem(ConfigMenu.hoverbikeMoveTweaks.ToModToggleOption());
+            //AddItem(ConfigMenu.playerMoveTweaks.ToModToggleOption());
+            //AddItem(ConfigMenu.seatruckMoveTweaks.ToModToggleOption());
+            //AddItem(ConfigMenu.exosuitMoveTweaks.ToModToggleOption());
+            //AddItem(ConfigMenu.hoverbikeMoveTweaks.ToModToggleOption());
             AddItem(drillDamageMultSlider);
             AddItem(ConfigMenu.emptyVehiclesCanBeAttacked.ToModChoiceOption());
             AddItem(medKitHPslider);

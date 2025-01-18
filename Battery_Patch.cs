@@ -11,7 +11,6 @@ namespace Tweaks_Fixes
     class Battery_Patch
     {
         static EnergyMixin PlayerToolEM;
-        static EnergyMixin HoverbikeEM;
         static EnergyInterface propCannonEI;
         public static HashSet<PowerRelay> seatruckPRs = new HashSet<PowerRelay>();
         static Dictionary<string, float> defaultBatteryCharge = new Dictionary<string, float>();
@@ -24,25 +23,11 @@ namespace Tweaks_Fixes
             static void Prefix(EnergyMixin __instance, ref float amount)
             {
                 //AddDebug(__instance.name + " EnergyMixin ConsumeEnergy");
-                if (HoverbikeEM == __instance)
-                {
-                    //AddDebug("Hoverbike ConsumeEnergy");
-                    amount *= ConfigMenu.vehicleEnergyConsMult.Value;
-                }
-                else if (PlayerToolEM == __instance)
+                if (PlayerToolEM == __instance)
                 {
                     //AddDebug(__instance.name + " EnergyMixin ConsumeEnergy");
                     amount *= ConfigMenu.toolEnergyConsMult.Value;
                 }
-            }
-        }
-
-        [HarmonyPatch(typeof(Hoverbike), "EnterVehicle")]
-        class Hoverbike_EnterVehicle_Patch
-        {
-            static void Postfix(Hoverbike __instance)
-            {
-                HoverbikeEM = __instance.energyMixin;
             }
         }
 

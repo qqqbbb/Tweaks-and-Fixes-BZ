@@ -74,7 +74,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> dropHeldTool;
         public static ConfigEntry<int> freeTorpedos;
         public static ConfigEntry<bool> builderToolBuildsInsideWithoutPower;
-        //public static ConfigEntry<bool> cameraBobbing;
         public static ConfigEntry<bool> cameraShake;
         public static ConfigEntry<bool> removeDeadCreaturesOnLoad;
         public static ConfigEntry<bool> scannerFX;
@@ -98,12 +97,28 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> playerVerticalSpeedMod;
         public static ConfigEntry<string> groundSpeedEquipment;
         public static ConfigEntry<string> waterSpeedEquipment;
+        public static ConfigEntry<bool> disableExosuitSidestep;
+        public static ConfigEntry<bool> exosuitThrusterWithoutLimit;
+        public static ConfigEntry<bool> fixExosuitJumpParticleFX;
+        public static ConfigEntry<bool> hoverbikeMoveOnWater;
+        public static ConfigEntry<bool> hoverbikeBoostWithoutCooldown;
+        public static ConfigEntry<bool> seaMonkeyBringGift;
+        public static ConfigEntry<bool> seaMonkeyGrabTool;
+        public static ConfigEntry<int> seatruckSidewardSpeedMod;
+        public static ConfigEntry<int> seatruckBackwardSpeedMod;
+        public static ConfigEntry<int> seatruckVertSpeedMod;
+        public static ConfigEntry<bool> fixHoverbikeAnalogMovement;
+        public static ConfigEntry<bool> fixSeatruckAnalogMovement;
+        public static ConfigEntry<bool> seatruckAfterburnerWithoutCooldown;
+        public static ConfigEntry<bool> replaceSeatruckHorsePowerUpgrade;
+
+
 
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
         public static AcceptableValueRange<int> percentRange = new AcceptableValueRange<int>(0, 100);
 
         public static void Bind()
-        {
+        { // “ ” ‛
             //Main.logger.LogMessage("ConfigToEdit bind start ");
             targetFrameRate = Main.configToEdit.Bind("", "Frame rate limiter", 0, "Number of frames the game renders every second will be limited to this. Numbers smaller than 10 are ignored.");
             heatBladeCooks = Main.configToEdit.Bind("", "Thermoblade cooks fish on kill", true);
@@ -195,11 +210,27 @@ namespace Tweaks_Fixes
             groundSpeedEquipment = Main.configToEdit.Bind("EQUIPMENT", "Ground speed equipment", "", "Equipment in this list affects your movement speed on ground. The format is: item ID, space, percent that will be added to your movement speed. Negative numbers will reduce your movement speed. Every entry is separated by comma.");
             waterSpeedEquipment = Main.configToEdit.Bind("EQUIPMENT", "Water speed equipment", "", "Equipment in this list affects your movement speed in water. The format is: item ID, space, percent that will be added to your movement speed. Negative numbers will reduce your movement speed. Every entry is separated by comma. If this list is not empty, vanilla script that changes your movement speed will not run. ");
 
+            disableExosuitSidestep = Main.configToEdit.Bind("VEHICLES", "Disable prawn suit sidestep", false, "");
+            exosuitThrusterWithoutLimit = Main.configToEdit.Bind("VEHICLES", "Prawn suit thrusters never overheat", false, "No time limit when using thrusters, but they consume twice more power than walking");
+            fixExosuitJumpParticleFX = Main.configToEdit.Bind("VEHICLES", "Fix prawn suit jump particle effect", true, "Sand cloud particle effect will appear only when prawn suit jumps from or lands on terrain.");
+            hoverbikeMoveOnWater = Main.configToEdit.Bind("VEHICLES", "Snowfox can move on water", false, "");
+            hoverbikeBoostWithoutCooldown = Main.configToEdit.Bind("VEHICLES", "Snowfox boosts without cooldown", false, "Snowfox will boost for as long as you hold sprint button. Power consumption is doubled when boosting.");
+            seaMonkeyBringGift = Main.configToEdit.Bind("CREATURES", "Seamonkeys bring gifts to player", true, "");
+            seaMonkeyGrabTool = Main.configToEdit.Bind("CREATURES", "Seamonkeys grab tools from player‛s hands", true, "");
+            seatruckSidewardSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seatruck sideward speed modifier", 0, "Seatruck's speed will be reduced by this percent when moving sideward.");
+            seatruckBackwardSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seatruck backward speed modifier", 0, "Seatruck's speed will be reduced by this percent when moving backward.");
+            seatruckVertSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seatruck vertical speed modifier", 0, "Seatruck's speed will be reduced by this percent when moving up or down.");
+            fixHoverbikeAnalogMovement = Main.configToEdit.Bind("VEHICLES", "Fix snowfox analog movement", true, "Vanilla snowfox does not use analog values from controller sticks");
+            fixSeatruckAnalogMovement = Main.configToEdit.Bind("VEHICLES", "Fix seatruck analog movement", true, "Vanilla seatruck does not use analog values from controller sticks");
+            seatruckAfterburnerWithoutCooldown = Main.configToEdit.Bind("VEHICLES", "Seatruck afterburner works without cooldown", false, "After activating afterburner, it will work until you stop driving the seatruck but will consume twice more power.");
+            replaceSeatruckHorsePowerUpgrade = Main.configToEdit.Bind("VEHICLES", "Replace seatruck horsepower upgrade", false, "Seatruck horsepower upgrade will increase engine's horsepower output and energy consumption by 10%. More than 1 can be installed.");
 
 
             transferAllItemsButton = Main.configToEdit.Bind("", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             transferSameItemsButton = Main.configToEdit.Bind("", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             quickslotButton = Main.configToEdit.Bind("", "Quickslot cycle button", Button.None, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
+
+
             //Main.logger.LogMessage("ConfigToEdit bind end ");
         }
 
@@ -327,7 +358,7 @@ namespace Tweaks_Fixes
             return dic;
         }
 
-        public static void ParseFromConfig()
+        public static void ParseConfig()
         {
             Crush_Damage.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
             Crush_Damage.crushDamageEquipment = ParseIntDicFromString(crushDamageEquipment.Value);
@@ -350,6 +381,8 @@ namespace Tweaks_Fixes
             //Main.logger.LogInfo("decayingFood str  " + decayingFood.Value);
             //Main.logger.LogInfo("decayingFood.Count  " + Food_Patch.decayingFood.Count);
             Player_Movement.CacheSettings();
+            SeaTruck_movement.CacheSettings();
+
             Player_Movement.waterSpeedEquipment = ParseSpeedEquipmentDic(waterSpeedEquipment.Value);
             Player_Movement.groundSpeedEquipment = ParseSpeedEquipmentDic(groundSpeedEquipment.Value);
         }

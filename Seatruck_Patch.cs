@@ -1,17 +1,15 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using static ErrorMessage;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     class Seatruck_Patch
     {
-        public static bool afterBurnerWasActive = false;
         public static GameObject wcpGO = null;
         //public static GameObject seaTruckAquarium = null;
-        public static int powerUpgrades = 0;
         //public static List<GameObject> seatruckModules = new List<GameObject>();
         public static HashSet<TechType> installedUpgrades = new HashSet<TechType>();
         static string uiText = string.Empty;
@@ -75,7 +73,7 @@ namespace Tweaks_Fixes
                             if (stopPilotSound)
                                 __instance.StartCoroutine(Util.PlaySound(stopPilotSound, .5f));
                         }
-                        else if(CraftData.GetTechType(__instance.gameObject) == TechType.SeaTruckDockingModule)
+                        else if (CraftData.GetTechType(__instance.gameObject) == TechType.SeaTruckDockingModule)
                         {
                             __instance.StartCoroutine(Util.PlaySound(__instance.exitSound, 1.5f));
                             if (stopPilotSound)
@@ -142,7 +140,7 @@ namespace Tweaks_Fixes
                     AddDebug("stopPilotSound");
                     Utils.PlayFMODAsset(stopPilotSound, __instance.transform);
                 }
-                else if(Input.GetKeyDown(KeyCode.X))
+                else if (Input.GetKeyDown(KeyCode.X))
                 {
                     AddDebug("exitSound");
                     Utils.PlayFMODAsset(__instance.exitSound, __instance.transform);
@@ -168,12 +166,12 @@ namespace Tweaks_Fixes
                 //    AddDebug("SeaTruck material name " + smr.materials[2].name);
                 //    foreach (Material m in smr.materials)
                 //    {
-                        //m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
-                        //m.shaderKeywords = new string[] { "MARMO_SPECMAP", "UWE_3COLOR", "_NORMALMAP", "_ZWRITE_ON" };
-                        //Main.Log("SeaTruck shaderKeywords " + item);
-                    //}
-                    //smr.materials[2].globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
-                    //smr.materials[2].shaderKeywords = new string[0];
+                //m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                //m.shaderKeywords = new string[] { "MARMO_SPECMAP", "UWE_3COLOR", "_NORMALMAP", "_ZWRITE_ON" };
+                //Main.Log("SeaTruck shaderKeywords " + item);
+                //}
+                //smr.materials[2].globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                //smr.materials[2].shaderKeywords = new string[0];
 
                 //}
                 //if (__instance.name == "SeaTruckStorageModule(Clone)")
@@ -184,9 +182,9 @@ namespace Tweaks_Fixes
                 //Light[] lights = Main.GetComponentsInDirectChildren<Light>(__instance, true);
                 //foreach (Light light in lights)
                 //{
-                    //light.enabled = false;
-                    //Main.Log(light.name + " turnofflights " + Main.GetParent(__instance.gameObject));
-                    //AddDebug(light.name + " turnofflights " + Main.GetParent(__instance.gameObject));
+                //light.enabled = false;
+                //Main.Log(light.name + " turnofflights " + Main.GetParent(__instance.gameObject));
+                //AddDebug(light.name + " turnofflights " + Main.GetParent(__instance.gameObject));
                 //}
             }
         }
@@ -224,10 +222,10 @@ namespace Tweaks_Fixes
 
         //[HarmonyPatch(typeof(LightingController), "Update")]
         class LightingController_Update_Patch
-        { 
+        {
             public static bool Prefix(LightingController __instance)
             {
-       
+
                 float deltaTime = Time.deltaTime;
                 if (deltaTime <= 0F)
                     return false;
@@ -252,7 +250,7 @@ namespace Tweaks_Fixes
             {
                 //if (__instance.isMainCab)
                 //    seaTruckCab = __instance.gameObject;
-               Transform wcpTransform = __instance.transform.Find("WaterClipProxy");
+                Transform wcpTransform = __instance.transform.Find("WaterClipProxy");
                 if (wcpTransform)
                 {
                     //AddDebug("WaterClipProxy");
@@ -266,7 +264,7 @@ namespace Tweaks_Fixes
                     //seaTruckAquarium = Main.GetParent(__instance.gameObject);
                     //if (wcpGO)
                     //    DoStuff(__instance.transform.parent.gameObject);
-   
+
                     //else
                     //    Main.Log("Aquarium start no seaTruckCab " + __instance.name);
                 }
@@ -276,74 +274,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static int GetNumPowerUpgrades(SeaTruckUpgrades seaTruckUpgrades)
-        {
-            int count = 0;
-            for (int slotID = 0; slotID < SeaTruckUpgrades.slotIDs.Length; ++slotID)
-            {
-                TechType tt = seaTruckUpgrades.modules.GetTechTypeInSlot(SeaTruckUpgrades.slotIDs[slotID]);
-                if (tt == TechType.SeaTruckUpgradeHorsePower)
-                    count++;
-            }
-            //AddDebug("GetNumPowerUpgrades " + count);
-            return count;
-        }
+
 
         [HarmonyPatch(typeof(SeaTruckUpgrades))]
         class SeaTruckUpgrades_Patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("IsAllowedToAdd")]
-            public static bool IsAllowedToAddPrefix(SeaTruckUpgrades __instance, Pickupable pickupable, ref bool __result)
-            {
-                if (!ConfigMenu.seatruckMoveTweaks.Value)
-                    return true;
 
-                if (pickupable == null)
-                    return false;
-
-                if (__instance.modules.GetCount(pickupable.GetTechType()) == 0 || __instance.IsEquipped(pickupable))
-                    __result = true;
-                else if (pickupable.GetTechType() == TechType.SeaTruckUpgradeHorsePower)
-                    __result = true;
-                else
-                {
-                    __result = false;
-                    //AddMessage(Language.main.Get("SeaTruckErrorMultipleTechTypes"));
-                }
-                return false;
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("OnEquip")]
-            public static void OnEquipPostfix(SeaTruckUpgrades __instance, string slot, InventoryItem item)
-            {
-                powerUpgrades = GetNumPowerUpgrades(__instance);
-                //AddDebug("OnEquip " + item.item.name + " slot " + slot);
-                //AddDebug("powerUpgrades " + powerUpgrades);
-            }
-
-            [HarmonyPrefix]
-            [HarmonyPatch("TryActivateAfterBurner")]
-            public static bool TryActivateAfterBurnerPrefix(SeaTruckUpgrades __instance)
-            {
-                if (!ConfigMenu.seatruckMoveTweaks.Value)
-                    return true;
-
-                for (int slotID = 0; slotID < SeaTruckUpgrades.slotIDs.Length; ++slotID)
-                {
-                    TechType techTypeInSlot = __instance.modules.GetTechTypeInSlot(SeaTruckUpgrades.slotIDs[slotID]);
-                    if (techTypeInSlot == TechType.SeaTruckUpgradeAfterburner)
-                    {
-                        if (!__instance.ConsumeEnergy(techTypeInSlot))
-                            break;
-
-                        __instance.OnUpgradeModuleUse(techTypeInSlot, slotID);
-                        break;
-                    }
-                }
-                return false;
-            }
 
             [HarmonyPostfix]
             [HarmonyPatch("OnUpgradeModuleChange")]
@@ -385,7 +321,7 @@ namespace Tweaks_Fixes
                 stopPilotSound = __instance.stopPilotSound;
                 __instance.stopPilotSound = null;// dont play exit sound when not exiting cabin 
             }
-         
+
             [HarmonyPostfix]
             [HarmonyPatch("StartPiloting")]
             public static void StartPilotingPostfix(SeaTruckMotor __instance)
@@ -393,121 +329,11 @@ namespace Tweaks_Fixes
                 GetUpgradesNames();
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("GetWeight")]
-            public static bool GetWeightPrefix(SeaTruckMotor __instance, ref float __result)
-            {
-                if (ConfigMenu.seatruckMoveTweaks.Value)
-                {
-                    __result = __instance.truckSegment.GetWeight() + __instance.truckSegment.GetAttachedWeight() * 0.8f;
-                    return false;
-                }
-                return true;
-            }
-          
-            [HarmonyPrefix]
-            [HarmonyPatch( "Update")]
-            public static void UpdatePrefix(SeaTruckMotor __instance)
-            {
-                if (!ConfigMenu.seatruckMoveTweaks.Value)
-                    return;
-
-                if (__instance.afterBurnerActive)
-                {
-                    //AddDebug("BOOST");
-                    //__instance.afterBurnerTime = Time.time + 1f;
-                    afterBurnerWasActive = true;
-                }
-            }
-        
-            [HarmonyPostfix]
-            [HarmonyPatch("Update")]
-            public static void UpdatePostfix(SeaTruckMotor __instance)
-            {
-                //AddDebug("piloting " + __instance.piloting);
-                if (__instance.piloting)
-                {
-                    if (!string.IsNullOrEmpty(uiText))
-                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, uiText);
-                    HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, uiTextSub);
-                }
-                if (!ConfigMenu.seatruckMoveTweaks.Value)
-                    return;
-
-                if (GameInput.GetButtonHeld(GameInput.Button.Sprint))
-                {
-                    if (afterBurnerWasActive || __instance.afterBurnerActive)
-                    {
-                        //AddDebug("BOOST");
-                        __instance.afterBurnerActive = true;
-                    }
-                    else
-                    {
-                        afterBurnerWasActive = false;
-                        __instance.afterBurnerActive = false;
-                    }
-                }
-                else
-                {
-                    afterBurnerWasActive = false;
-                    __instance.afterBurnerActive = false;
-                }
-            }
-
-            [HarmonyPrefix]
-            [HarmonyPatch("FixedUpdate")] 
-            public static bool FixedUpdatePrefix(SeaTruckMotor __instance)
-            {
-                //if (!Main.config.seatruckMoveTweaks)
-                //    return true;
-                //AddDebug("SeaTruckMotor FixedUpdate");
-                if (!__instance.truckSegment.isMainCab && __instance.useRigidbody != null && (!__instance.useRigidbody.isKinematic && !__instance.piloting) && (__instance.useRigidbody.velocity.y > -0.3f && __instance.pilotPosition.position.y > Ocean.GetOceanLevel() - 2f))
-                    __instance.useRigidbody.AddForce(new Vector3(0f, -0.3f - __instance.useRigidbody.velocity.y, 0f), ForceMode.VelocityChange);
-
-                if (__instance.transform.position.y < Ocean.GetOceanLevel() && __instance.useRigidbody != null && (__instance.IsPowered() && !__instance.IsBusyAnimating()))
-                {
-                    if (__instance.piloting)
-                    {
-                        Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() || __instance.inputStackDummy.activeInHierarchy ? GameInput.GetMoveDirection() : Vector3.zero;
-                        if (!ConfigMenu.seatruckMoveTweaks.Value)
-                        {
-                            moveDirection = moveDirection.normalized;
-                            moveDirection.x *= .5f;
-                            moveDirection.y *= .5f;
-                            if (moveDirection.z < 0f)
-                                moveDirection.z *= .5f;
-                        }
-                        Int2 int2;
-                        int2.x = moveDirection.x <= 0f ? (moveDirection.x >= 0 ? 0 : -1) : 1;
-                        int2.y = moveDirection.z <= 0f ? (moveDirection.z >= 0 ? 0 : -1) : 1;
-                        __instance.leverDirection = int2;
-                        if (__instance.afterBurnerActive)
-                            moveDirection.z = 1f;
-
-                        moveDirection = moveDirection.normalized;
-                        Vector3 vector3_2 = MainCameraControl.main.rotation * moveDirection;
-                        float acceleration = 1f / Mathf.Max(1f, __instance.GetWeight() * 0.35f) * __instance.acceleration;
-                        if (__instance.afterBurnerActive)
-                            acceleration += 7f;
-
-                        acceleration *= ConfigMenu.seatruckSpeedMult.Value;
-                        __instance.useRigidbody.AddForce(acceleration * vector3_2, ForceMode.Acceleration);
-                        if (__instance.relay && moveDirection != Vector3.zero)
-                            __instance.relay.ConsumeEnergy((Time.deltaTime * __instance.powerEfficiencyFactor * 0.12f), out float _);
-                    }
-                    __instance.StabilizeRoll();
-                }
-                if (!__instance.truckSegment.IsFront() || __instance.IsPowered() && !__instance.truckSegment.ReachingOutOfWater() && (!__instance.seatruckanimation || __instance.seatruckanimation.currentAnimation != SeaTruckAnimation.Animation.Enter))
-                    return false;
-
-                __instance.StabilizePitch();
-                return false;
-            }
         }
 
         //[HarmonyPatch(typeof(GenericHandTarget), "OnHandClick")]
         class GenericHandTarget_OnHandClick_Patch
-            {
+        {
             public static void OnHandClickPostfix(GenericHandTarget __instance)
             {
                 AddDebug(__instance.name + " GenericHandTarget OnHandClick" + __instance.transform.parent.name);

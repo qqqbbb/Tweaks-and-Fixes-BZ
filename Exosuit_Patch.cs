@@ -415,86 +415,17 @@ namespace Tweaks_Fixes
             exosuitStarted = true;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("ApplyJumpForce")]
-        static bool ApplyJumpForcePrefix(Exosuit __instance)
-        {
-            if (ConfigMenu.exosuitMoveTweaks.Value || __instance.timeLastJumped + 1f > Time.time)
-                return false;
-
-            //AddDebug("ApplyJumpForce");
-            bool underwater = __instance.IsUnderwater();
-
-            if (__instance.onGround)
-            {
-                Utils.PlayFMODAsset(__instance.jumpSound, __instance.transform);
-                if (underwater)
-                {
-                    if (Physics.Raycast(new Ray(__instance.transform.position, Vector3.down), out RaycastHit hitInfo, 10f))
-                    {
-                        TerrainChunkPieceCollider tcpc = hitInfo.collider.GetComponent<TerrainChunkPieceCollider>();
-                        if (tcpc)
-                        {
-                            __instance.fxcontrol.Play(2);
-                            //AddDebug("Landed on terrain ");
-                        }
-                        else
-                            __instance.fxcontrol.Play(1);
-                    }
-                }
-            }
-            __instance.ConsumeEngineEnergy(1.2f);
-            float jumpForce = 5f;
-            if (__instance.jumpJetsUpgraded)
-                jumpForce = 7f;
-
-            __instance.useRigidbody.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
-            __instance.timeLastJumped = Time.time;
-            __instance.timeOnGround = 0f;
-            __instance.onGround = false;
-            return false;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch("OnLand")]
-        static bool OnLandPrefix(Exosuit __instance)
-        {
-            Utils.PlayFMODAsset(__instance.landSound, __instance.bottomTransform);
-            if (__instance.IsUnderwater())
-            {
-                RaycastHit hitInfo;
-                if (Physics.Raycast(new Ray(__instance.transform.position, Vector3.down), out hitInfo, 10f))
-                {
-                    //if (hitInfo.transform && hitInfo.transform.gameObject)
-                    //{
-                    //AddDebug("Landed on  " + hitInfo.transform.gameObject.name);
-                    //VFXSurface surface = hitInfo.transform.gameObject.GetComponent<VFXSurface>();
-                    TerrainChunkPieceCollider tcpc = hitInfo.collider.GetComponent<TerrainChunkPieceCollider>();
-                    //if (surface)
-                    //    AddDebug("surfaceType  " + surface.surfaceType);
-                    if (tcpc)
-                    {
-                        __instance.fxcontrol.Play(4);
-                        //AddDebug("Landed on terrain ");
-                    }
-                    else
-                        __instance.fxcontrol.Play(3);
-                }
-            }
-            return false;
-        }
-
         // thrusters consumes 2x energy
         // no limit on thrusters
-        [HarmonyPrefix]
-        [HarmonyPatch("Update")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("Update")]
         public static bool UpdatePrefix(Exosuit __instance)
         {
             if (!Main.gameLoaded)
                 return false;
 
-            if (!ConfigMenu.exosuitMoveTweaks.Value)
-                return true;
+            //if (!ConfigMenu.exosuitMoveTweaks.Value)
+            //return true;
 
             //AddDebug("thrustConsumption " + __instance.thrustConsumption);
             //AddDebug("verticalJetConsumption " + __instance.verticalJetConsumption);
@@ -686,12 +617,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("FixedUpdate")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("FixedUpdate")]
         public static bool FixedUpdatePostfix(Exosuit __instance)
         { // reduce vert thrust speed. jumpJetsUpgrade affects vert and hor speed the same way. powersliding
-            if (!ConfigMenu.exosuitMoveTweaks.Value)
-                return true;
+            //if (!ConfigMenu.exosuitMoveTweaks.Value)
+            //    return true;
 
             VehicleFixedUpdate(__instance);
 
@@ -920,10 +851,10 @@ namespace Tweaks_Fixes
         public static void EnterVehiclePostfix(Exosuit __instance)
         { // runs before Exosuit.Start
           //AddDebug("EnterVehicle");
-            if (ConfigMenu.exosuitMoveTweaks.Value)
-                __instance.onGroundForceMultiplier = 2f;
-            else
-                __instance.onGroundForceMultiplier = 4f;
+          //if (ConfigMenu.exosuitMoveTweaks.Value)
+          //    __instance.onGroundForceMultiplier = 2f;
+          //else
+          //    __instance.onGroundForceMultiplier = 4f;
 
             if (exosuitStarted)
             {
@@ -1090,78 +1021,6 @@ namespace Tweaks_Fixes
                 else if (Exosuit_Patch.selectedTorpedoRight != null && !Exosuit_Patch.torpedoStorageRight.Contains(Exosuit_Patch.selectedTorpedoRight.techType))
                     Exosuit_Patch.ChangeTorpedo(__instance as Exosuit, 1);
             }
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch("ApplyPhysicsMove")] // disable strafing
-        public static bool ApplyPhysicsMovePrefix(Vehicle __instance)
-        {
-            if (!Main.gameLoaded || !__instance.GetPilotingMode())
-                return false;
-
-            if (!ConfigMenu.exosuitMoveTweaks.Value)
-            {
-                ApplyPhysicsMoveVanilla(__instance);
-                return false;
-            }
-            //AddDebug("controlSheme " + __instance.controlSheme);
-            //AddDebug("onGroundForceMultiplier " + __instance.onGroundForceMultiplier);
-            if (__instance.worldForces.IsAboveWater() != __instance.wasAboveWater)
-            {
-                __instance.PlaySplashSound();
-                __instance.wasAboveWater = __instance.worldForces.IsAboveWater();
-            }
-            if (!(__instance.moveOnLand | (__instance.transform.position.y < Ocean.GetOceanLevel() && __instance.transform.position.y < __instance.worldForces.waterDepth && !__instance.forceWalkMotorMode)) || !__instance.movementEnabled)
-                return false;
-
-            if (__instance.controlSheme == Vehicle.ControlSheme.Submersible)
-            {
-                Vector3 vector3_1 = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
-                vector3_1.Normalize();
-                double num1 = Mathf.Abs(vector3_1.x) * __instance.sidewardForce;
-                float num2 = Mathf.Max(0.0f, vector3_1.z) * __instance.forwardForce;
-                float num3 = Mathf.Max(0.0f, -vector3_1.z) * __instance.backwardForce;
-                float num4 = Mathf.Abs(vector3_1.y * __instance.verticalForce);
-                float denominator = vector3_1.z >= 0.0 ? __instance.forwardForce : __instance.backwardForce;
-                double num5 = num2;
-                Vector3 vector3_2 = ((float)(num1 + num5) + num3 + num4) * vector3_1;
-                Vector3 vector3_3 = new Vector3(UWE.Utils.SafeDiv(vector3_2.x, __instance.sidewardForce), UWE.Utils.SafeDiv(vector3_2.y, __instance.verticalForce), UWE.Utils.SafeDiv(vector3_2.z, denominator));
-                vector3_3.Normalize();
-                Vector3 acceleration = __instance.transform.rotation * new Vector3(vector3_3.x * __instance.sidewardForce, vector3_3.y * __instance.verticalForce, vector3_3.z * denominator) * Time.deltaTime;
-                for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
-                    __instance.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
-                __instance.useRigidbody.AddForce(acceleration, ForceMode.VelocityChange);
-            }
-            else
-            {
-                if (__instance.controlSheme != Vehicle.ControlSheme.Submarine && __instance.controlSheme != Vehicle.ControlSheme.Mech)
-                    return false;
-
-                Vector3 direction = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
-                Vector3 horDirection = new Vector3(0f, 0f, direction.z); // MY
-                float num = (float)(Mathf.Abs(horDirection.x) * __instance.sidewardForce + Mathf.Max(0f, horDirection.z) * __instance.forwardForce + Mathf.Max(0f, -horDirection.z) * __instance.backwardForce);
-                Vector3 vector3_3 = __instance.transform.rotation * horDirection;
-                vector3_3.y = 0f;
-                Vector3 vector = Vector3.Normalize(vector3_3);
-                if (__instance.onGround)
-                {
-                    vector = Vector3.ProjectOnPlane(vector, __instance.surfaceNormal);
-                    vector.y = Mathf.Clamp(vector.y, -0.5f, 0.5f);
-                    num *= __instance.onGroundForceMultiplier;
-                }
-                Vector3 vertDirection = new Vector3(0f, direction.y, 0f);
-                vertDirection.y *= __instance.verticalForce * Time.deltaTime;
-                Vector3 acceleration = num * vector * Time.deltaTime + vertDirection;
-                if (__instance.wasAboveWater)
-                    acceleration *= 1.33f;
-
-                acceleration *= ConfigMenu.exosuitSpeedMult.Value;
-                __instance.OverrideAcceleration(ref acceleration);
-                for (int index = 0; index < __instance.accelerationModifiers.Length; ++index)
-                    __instance.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
-                __instance.useRigidbody.AddForce(acceleration, ForceMode.VelocityChange);
-            }
-            return false;
         }
 
         [HarmonyPrefix]
