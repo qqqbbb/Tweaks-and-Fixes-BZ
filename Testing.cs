@@ -128,7 +128,7 @@ namespace Tweaks_Fixes
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
                     PlayerTool tool = Inventory.main.GetHeldTool();
-                    AddDebug("inSeatruckPilotingChair " + Player.main.inSeatruckPilotingChair);
+                    AddDebug("bloodColor " + Damage_Patch.bloodColor);
                     //PrintTerrainSurfaceType();
                     //TechType tt = TechType.IceBubble;
                     //string classid = CraftData.GetClassIdForTechType(tt);

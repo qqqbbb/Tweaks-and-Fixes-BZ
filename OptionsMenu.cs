@@ -128,7 +128,7 @@ namespace Tweaks_Fixes
 
         void InvMultSliderUpdated(object sender, SliderChangedEventArgs e)
         {
-            AddDebug("InvMultSliderUpdate");
+            //AddDebug("InvMultSliderUpdate");
             Player_Movement.GetInvMod();
         }
 

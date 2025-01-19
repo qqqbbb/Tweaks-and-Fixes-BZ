@@ -11,9 +11,11 @@ namespace Tweaks_Fixes
         //static public Dictionary<TechType, float> damageMult = new Dictionary<TechType, float>();
         static HashSet<DealDamageOnImpact> hoverBikes = new HashSet<DealDamageOnImpact>();
         static HashSet<DealDamageOnImpact> ddoiVanillaScript = new HashSet<DealDamageOnImpact>();
+        static public Color bloodColor;
 
         static void SetBloodColor(GameObject go)
         {
+            //0.784f, 1f, 0.157f
             ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
             //AddDebug("SetBloodColor " + go.name + " " + pss.Length);
             //Main.Log("SetBloodColor " + go.name );
@@ -23,11 +25,11 @@ namespace Tweaks_Fixes
                 ParticleSystem.MainModule psMain = ps.main;
                 //Main.Log("startColor " + psMain.startColor.color);
                 //AddDebug("startColor " + psMain.startColor.color);
-                Color newColor = new Color(ConfigToEdit.bloodColor.Value.x, ConfigToEdit.bloodColor.Value.y, ConfigToEdit.bloodColor.Value.z, psMain.startColor.color.a);
+                //Color newColor = new Color(ConfigToEdit.bloodColor.Value.x, ConfigToEdit.bloodColor.Value.y, ConfigToEdit.bloodColor.Value.z, psMain.startColor.color.a);
                 //newColor = Color.blue;
                 //Main.Log("blood Color " + newColor);
                 //AddDebug("blood Color " + newColor);
-                psMain.startColor = new ParticleSystem.MinMaxGradient(newColor);
+                psMain.startColor = new ParticleSystem.MinMaxGradient(bloodColor);
                 //psMain.startSizeMultiplier *= .1f;
             }
         }
@@ -247,17 +249,14 @@ namespace Tweaks_Fixes
             {
                 //    Main.Log("deathEffect " + __instance.name);
                 //    AddDebug("deathEffect " + __instance.name);
-                if (__instance.data.damageEffect || __instance.data.deathEffect)
+                VFXSurface surface = __instance.GetComponent<VFXSurface>();
+                if (surface && surface.surfaceType == VFXSurfaceTypes.organic)
                 {
-                    VFXSurface surface = __instance.GetComponent<VFXSurface>();
-                    if (surface && surface.surfaceType == VFXSurfaceTypes.organic)
-                    {
-                        if (__instance.data.damageEffect)
-                            SetBloodColor(__instance.data.damageEffect);
+                    if (__instance.data.damageEffect)
+                        SetBloodColor(__instance.data.damageEffect);
 
-                        if (__instance.data.deathEffect)
-                            SetBloodColor(__instance.data.deathEffect);
-                    }
+                    if (__instance.data.deathEffect)
+                        SetBloodColor(__instance.data.deathEffect);
                 }
             }
 
@@ -509,25 +508,24 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Freeze")]
             static bool Freeze_Prefix(PlayerFrozenMixin __instance)
             {
-                bool flare_ = false;
+                bool flareBurning = false;
                 Flare flare = Tools_Patch.equippedTool as Flare;
                 if (flare && flare.flareActivateTime > 0f && flare.energyLeft > 0f)
-                    flare_ = true;
+                    flareBurning = true;
 
                 if (ConfigToEdit.brinewingAttackColdDamage.Value > 0)
                 {
                     float damage = ConfigToEdit.brinewingAttackColdDamage.Value;
-                    if (flare_)
+                    if (flareBurning)
                         damage *= .5f;
 
                     BodyTemperature bodyTemperature = __instance.GetComponent<BodyTemperature>();
-
                     if (bodyTemperature)
                         bodyTemperature.AddCold(damage);
 
                     return false;
                 }
-                if (flare_)
+                if (flareBurning)
                     return false;
 
                 return true;

@@ -986,6 +986,7 @@ namespace Tweaks_Fixes
                 vehicle.OverrideAcceleration(ref acceleration);
                 for (int index = 0; index < vehicle.accelerationModifiers.Length; ++index)
                     vehicle.accelerationModifiers[index].ModifyAcceleration(ref acceleration);
+
                 vehicle.useRigidbody.AddForce(acceleration, ForceMode.VelocityChange);
             }
         }

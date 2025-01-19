@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using static ErrorMessage;
+
 
 namespace Tweaks_Fixes
 {
@@ -19,11 +21,18 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded || __result == Vector3.zero || moveDir == __result)
                     return;
 
-                if (ConfigToEdit.disableExosuitSidestep.Value && Player.main.currentMountedVehicle is Exosuit)
+                if (!ConfigToEdit.disableExosuitSidestep.Value && ConfigMenu.exosuitSpeedMult.Value == 1)
+                    return;
+
+                if (Player.main.currentMountedVehicle is Exosuit)
                 {
-                    __result = new Vector3(0, __result.y, __result.z);
+                    __result *= ConfigMenu.exosuitSpeedMult.Value;
+                    //AddDebug("Exosuit z " + z);
+                    if (ConfigToEdit.disableExosuitSidestep.Value)
+                        __result.x = 0;
+
+                    moveDir = __result;
                 }
-                moveDir = __result;
             }
         }
 
@@ -37,7 +46,7 @@ namespace Tweaks_Fixes
                     return;
 
                 Vector3 input = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
-                bool thrusterOn = input.y > 0f;
+                bool thrusterOn = input.y > 0;
                 bool hasPower = __instance.IsPowered() && __instance.liveMixin.IsAlive();
                 bool boosting = GameInput.GetButtonHeld(GameInput.Button.Sprint);
                 bool consumeMorePower = thrusterOn || boosting;

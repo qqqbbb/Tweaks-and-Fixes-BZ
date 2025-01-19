@@ -331,22 +331,6 @@ namespace Tweaks_Fixes
 
         }
 
-        //[HarmonyPatch(typeof(GenericHandTarget), "OnHandClick")]
-        class GenericHandTarget_OnHandClick_Patch
-        {
-            public static void OnHandClickPostfix(GenericHandTarget __instance)
-            {
-                AddDebug(__instance.name + " GenericHandTarget OnHandClick" + __instance.transform.parent.name);
-                if (__instance.name == "hatchTrigger" && __instance.transform.parent.name == "SeaTruck(Clone)")
-                {
-                    AddDebug("hatchTrigger");
-                    //Main.Log("WaterClipProxy");
-                    //wcpGO = wcpTransform.gameObject;
-                }
-
-                //seaTruckUpgrades = __instance;
-            }
-        }
 
     }
 }

@@ -3,23 +3,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Tweaks_Fixes;
 using UnityEngine;
-using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class Camera_Patch
+    internal class Camera_
     {
         [HarmonyPatch(typeof(MainCameraControl), "ShakeCamera")]
-        class MainCameraControl_ShakeCamera_Patch
+        class DamageSystem_CalculateDamage_Patch
         {
-            static bool Prefix(MainCameraControl __instance)
+            public static void Postfix(MainCameraControl __instance)
             {
-                //AddDebug("MainCameraControl ShakeCamera");
-                return ConfigToEdit.cameraShake.Value;
+                if (ConfigToEdit.cameraShake.Value)
+                    return;
+
+                __instance.camShake = 0;
             }
         }
+
 
         [HarmonyPatch(typeof(DamageFX), "AddHudDamage")]
         class DamageFX_AddHudDamage_Patch
@@ -41,8 +42,7 @@ namespace Tweaks_Fixes
         }
 
 
+
+
     }
-
 }
-
-

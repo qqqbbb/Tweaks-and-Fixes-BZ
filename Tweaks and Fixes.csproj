@@ -90,7 +90,7 @@
   <ItemGroup>
     <Compile Include="Base_Collision.cs" />
     <Compile Include="Battery_Patch.cs" />
-    <Compile Include="Camera_Patch.cs" />
+    <Compile Include="Camera.cs" />
     <Compile Include="ConfigMain.cs" />
     <Compile Include="CreatureDeath_Patch.cs" />
     <Compile Include="Drop_items_anywhere.cs" />

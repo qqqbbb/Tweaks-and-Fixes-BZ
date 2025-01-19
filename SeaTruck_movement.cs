@@ -48,14 +48,15 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded || !Player.main.inSeatruckPilotingChair || __result == Vector3.zero || moveDir == __result)
                     return;
 
+                __result *= ConfigMenu.seatruckSpeedMult.Value;
                 if (seatruckSidewardMod < 1 && __result.x != 0)
-                    __result = new Vector3(__result.x * seatruckSidewardMod, __result.y, __result.z);
+                    __result.x *= seatruckSidewardMod;
 
                 if (seatruckBackwardMod < 1 && __result.z < 0)
-                    __result = new Vector3(__result.x, __result.y, __result.z * seatruckBackwardMod);
+                    __result.z *= seatruckBackwardMod;
 
                 if (seatruckVertMod < 1 && __result.y != 0)
-                    __result = new Vector3(__result.x, __result.y * seatruckVertMod, __result.z);
+                    __result.y *= seatruckVertMod;
 
                 moveDir = __result;
             }
@@ -114,6 +115,7 @@ namespace Tweaks_Fixes
                 origAcceleration = __instance.acceleration;
                 seatruckPowerEfficiency = __instance.powerEfficiencyFactor;
             }
+
             [HarmonyPrefix, HarmonyPatch("GetWeight")]
             public static void GetWeightPostfix(SeaTruckMotor __instance, ref float __result)
             {
@@ -123,6 +125,7 @@ namespace Tweaks_Fixes
                     __result = __instance.truckSegment.GetWeight() + __instance.truckSegment.GetAttachedWeight();
                 }
             }
+
             [HarmonyPrefix, HarmonyPatch("FixedUpdate")]
             public static void FixedUpdatePrefix(SeaTruckMotor __instance)
             {
@@ -146,6 +149,7 @@ namespace Tweaks_Fixes
                 else
                     powerEfficiencyFactor = seatruckPowerEfficiency;
 
+                __instance.afterBurnerActive = afterBurnerActive;
                 if (moveDirection == Vector3.zero)
                     return;
 
@@ -172,6 +176,7 @@ namespace Tweaks_Fixes
                 //AddDebug(" acceleration f " + __instance.acceleration);
                 //AddDebug(" powerEfficiencyFactor f " + __instance.powerEfficiencyFactor);
             }
+
             [HarmonyPostfix, HarmonyPatch("FixedUpdate")]
             public static void FixedUpdatePostfix(SeaTruckMotor __instance)
             {

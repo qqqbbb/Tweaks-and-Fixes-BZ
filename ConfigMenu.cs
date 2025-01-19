@@ -15,7 +15,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<KeyCode> transferAllItemsButton;
         public static ConfigEntry<KeyCode> transferSameItemsButton;
         public static ConfigEntry<KeyCode> quickslotButton;
-        //public static ConfigEntry<KeyCode> lightButton;
         public static ConfigEntry<KeyCode> nextPDATabKey;
         public static ConfigEntry<KeyCode> previousPDATabKey;
         public static ConfigEntry<float> timeFlowSpeed;
@@ -38,10 +37,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> medKitHP;
         public static ConfigEntry<float> craftTimeMult;
         public static ConfigEntry<float> buildTimeMult;
-        //public static ConfigEntry<bool> playerMoveTweaks;
-        //public static ConfigEntry<bool> hoverbikeMoveTweaks;
-        //public static ConfigEntry<bool> exosuitMoveTweaks;
-        //public static ConfigEntry<bool> seatruckMoveTweaks;
         public static ConfigEntry<bool> useBestLOD;
 
         public static ConfigEntry<int> crushDepth;
@@ -88,9 +83,9 @@ namespace Tweaks_Fixes
         {  // “ ” ‛
 
             timeFlowSpeed = Main.configMenu.Bind("", "Time flow speed multiplier", 1f, "The higher the value the shorter days are. This also affects crafting time, building time, battery charging time.");
-            playerWaterSpeedMult = Main.configMenu.Bind("Player movement", "Player speed multiplier in water", 1f);
-            playerGroundSpeedMult = Main.configMenu.Bind("Player movement", "Player speed multiplier on ground", 1f);
-            seaglideSpeedMult = Main.configMenu.Bind("Player movement", "Seaglide speed multiplier", 1f, "");
+            playerWaterSpeedMult = Main.configMenu.Bind("", "Player speed multiplier in water", 1f);
+            playerGroundSpeedMult = Main.configMenu.Bind("", "Player speed multiplier on ground", 1f);
+            seaglideSpeedMult = Main.configMenu.Bind("", "Seaglide speed multiplier", 1f, "");
             exosuitSpeedMult = Main.configMenu.Bind("", "Prawn suit speed multiplier", 1f, "");
             seatruckSpeedMult = Main.configMenu.Bind("", "Seatruck speed multiplier", 1f, "");
             hoverbikeSpeedMult = Main.configMenu.Bind("", "Snowfox speed multiplier", 1f, "");
