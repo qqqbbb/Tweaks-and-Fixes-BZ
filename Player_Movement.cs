@@ -26,7 +26,7 @@ namespace Tweaks_Fixes
         public static float twoHandToolWalkSpeedMod;
         public static float equipmentSpeedMod;
         public static float toolMod = 1;
-        public static bool swimming;
+        //public static bool swimming;
         static Seaglide seaglide;
 
         public static void UpdateModifiers()
@@ -34,6 +34,12 @@ namespace Tweaks_Fixes
             GetEquipmentMod();
             GetToolMod();
             GetInvMod();
+        }
+
+        public static void OnPlayerUnderwaterChanged(Utils.MonitoredValue<bool> isUnderwaterForSwimming)
+        {
+            //AddDebug("OnPlayerUnderwaterChanged ");
+            UpdateModifiers();
         }
 
         public static void CacheSettings()
@@ -75,7 +81,7 @@ namespace Tweaks_Fixes
             {
                 massTotal += GetItemMass(inventoryItem);
             }
-            if (swimming)
+            if (Player.main.IsUnderwaterForSwimming())
                 invItemsMod = 100f - massTotal * ConfigMenu.invMultWater.Value;
             else
                 invItemsMod = 100f - massTotal * ConfigMenu.invMultLand.Value;
@@ -87,7 +93,7 @@ namespace Tweaks_Fixes
         private static void GetEquipmentMod()
         {
             equipmentSpeedMod = 0;
-            if (swimming)
+            if (Player.main.IsUnderwaterForSwimming())
             {
                 foreach (var kv in waterSpeedEquipment)
                 {
@@ -116,6 +122,7 @@ namespace Tweaks_Fixes
 
         private static void GetToolMod(PlayerTool tool = null)
         {
+            bool swimming = Player.main.IsUnderwaterForSwimming();
             if (!swimming && oneHandToolWalkSpeedMod == 0 && twoHandToolWalkSpeedMod == 0)
                 toolMod = 1;
             else if (swimming && oneHandToolSwimSpeedMod == 0 && twoHandToolSwimSpeedMod == 0)
@@ -233,6 +240,27 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(UnderwaterMotor))]
         class UnderwaterMotor_Patch
         {
+            [HarmonyPrefix, HarmonyPatch("UpdateMove")]
+            public static void UpdateMovePrefix(UnderwaterMotor __instance, ref Vector3 __result)
+            {
+                //AddDebug("UpdateMove " + __instance.movementInputDirection);
+                if (playerSidewardSpeedMod > 0)
+                {
+                    if (__instance.movementInputDirection.x != 0)
+                        __instance.movementInputDirection.x *= playerSidewardSpeedMod;
+                }
+                if (playerBackwardSpeedMod > 0)
+                {
+                    if (__instance.movementInputDirection.z < 0)
+                        __instance.movementInputDirection.z *= playerBackwardSpeedMod;
+                }
+                if (playerVerticalSpeedMod > 0)
+                {
+                    if (__instance.movementInputDirection.y != 0)
+                        __instance.movementInputDirection.y *= playerVerticalSpeedMod;
+                }
+                //AddDebug("UpdateMove M " + __instance.movementInputDirection);
+            }
             [HarmonyPostfix, HarmonyPatch("UpdateMove")]
             public static void UpdateMovePostfix(UnderwaterMotor __instance, ref Vector3 __result)
             {
@@ -258,7 +286,9 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("AlterMaxSpeed")]
             public static void Postfix(UnderwaterMotor __instance, float inMaxSpeed, ref float __result)
             {// speed: 4.5, tool 3.75, seaglide 7.12
+
                 float mod = 1 + equipmentSpeedMod;
+                //AddDebug("mod 1 " + mod);
                 if (seaglide)
                 {
                     //AddDebug("AlterMaxSpeed seaglide ");
@@ -273,18 +303,8 @@ namespace Tweaks_Fixes
                 //AddDebug("equipmentSpeedMod " + equipmentSpeedMod);
                 //AddDebug("toolMod " + toolMod);
                 //AddDebug("mod " + mod);
-                Vector3 input = __instance.movementInputDirection;
-                if (playerSidewardSpeedMod > 0 && input.x != 0)
-                    mod *= playerSidewardSpeedMod * Mathf.Abs(input.normalized.x);
-
-                if (playerBackwardSpeedMod > 0 && input.z < 0)
-                    mod *= playerBackwardSpeedMod * Mathf.Abs(input.normalized.z);
-
-                if (playerVerticalSpeedMod > 0 && input.y != 0)
-                    mod *= playerVerticalSpeedMod * Mathf.Abs(input.normalized.y);
-
-                __result *= ConfigMenu.playerWaterSpeedMult.Value;
-                __result = __result * mod;
+                //Vector3 input = __instance.movementInputDirection;
+                __result *= ConfigMenu.playerWaterSpeedMult.Value * mod;
                 bool canMove = __result > 0;
                 if (ConfigMenu.invMultWater.Value > 0f)
                     __result *= invItemsMod;
@@ -324,20 +344,6 @@ namespace Tweaks_Fixes
                 pc.underWaterController.verticalMaxSpeed = pc.swimVerticalMaxSpeed;
                 pc.underWaterController.waterAcceleration = pc.swimWaterAcceleration;
                 pc.underWaterController.swimDrag = pc.defaultSwimDrag;
-            }
-        }
-
-        [HarmonyPatch(typeof(Player), "UpdateMotorMode")]
-        class Player_UpdateMotorMode_Patch
-        {
-            static void Postfix(Player __instance)
-            {// SetMotorMode does not fire when player goes from water surface to ground
-                if (swimming != __instance.IsUnderwaterForSwimming())
-                {
-                    //AddDebug("UpdateMotorMode update swimming");
-                    swimming = __instance.IsUnderwaterForSwimming();
-                    UpdateModifiers();
-                }
             }
         }
 
@@ -424,13 +430,21 @@ namespace Tweaks_Fixes
         {
             static void Postfix(PlayerController __instance, Player.MotorMode newMotorMode)
             {// newMotorMode is Run when player surfaces. This does not fire when player goes from water surface to ground
-                AddDebug("SetMotorMode " + newMotorMode);
+                AddDebug("PlayerController SetMotorMode " + newMotorMode);
                 //bool swimming = newMotorMode == Player.MotorMode.Dive || newMotorMode == Player.MotorMode.Seaglide;
-                AddDebug("SetMotorMode swimming " + swimming);
-                AddDebug("SetMotorMode isUnderwaterForSwimming " + Player.main.IsUnderwaterForSwimming());
-                GetEquipmentMod();
-                GetToolMod();
-                GetInvMod();
+                //AddDebug("SetMotorMode swimming " + swimming);
+                //AddDebug("SetMotorMode isUnderwaterForSwimming " + Player.main.IsUnderwaterForSwimming());
+                //GetEquipmentMod();
+                //GetToolMod();
+                //GetInvMod();
+                __instance.underWaterController.backwardMaxSpeed *= playerBackwardSpeedMod;
+                __instance.groundController.backwardMaxSpeed *= playerBackwardSpeedMod;
+                __instance.underWaterController.strafeMaxSpeed *= playerSidewardSpeedMod;
+                __instance.groundController.strafeMaxSpeed *= playerSidewardSpeedMod;
+                __instance.underWaterController.verticalMaxSpeed *= playerVerticalSpeedMod;
+                AddDebug("playerSidewardSpeedMod " + playerSidewardSpeedMod);
+                AddDebug("strafeMaxSpeed " + __instance.underWaterController.strafeMaxSpeed);
+
             }
         }
 

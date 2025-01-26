@@ -373,7 +373,6 @@ namespace Tweaks_Fixes
         static void StartPostfix(Exosuit __instance)
         {
             //AddDebug("Exosuit Start " + __instance.onGroundForceMultiplier);
-
             //exosuitName = Language.main.Get("Exosuit");
             //rightButton = uGUI.FormatButton(GameInput.Button.RightHand);
             //leftButton = uGUI.FormatButton(GameInput.Button.LeftHand);
@@ -381,19 +380,28 @@ namespace Tweaks_Fixes
             //    AddDebug("Exosuit Start currentMountedVehicle == null");
             //else
             //    AddDebug("Exosuit Start currentMountedVehicle " + Player.main.currentMountedVehicle.ToString());
+            Transform lightsTransform = __instance.transform.Find("lights_parent");
+            if (lightsTransform) // lights will follow camera
+                lightsTransform.SetParent(__instance.leftArmAttach);
 
             if (Player.main.currentMountedVehicle && Player.main.currentMountedVehicle == __instance)
             {
                 GetArmNames(__instance);
                 armNamesChanged = true;
             }
+            CreateSounds(__instance);
+            SetLights(__instance, Main.configMain.exosuitLights);
+            exosuitStarted = true;
+        }
+
+        private static void CreateSounds(Exosuit __instance)
+        {
             lightOnSound = ScriptableObject.CreateInstance<FMODAsset>();
             lightOnSound.path = "event:/sub/seamoth/seaglide_light_on";
             lightOnSound.id = "{fe76457f-0c94-4245-a080-8a5b2f8853c4}";
             lightOffSound = ScriptableObject.CreateInstance<FMODAsset>();
             lightOffSound.path = "event:/sub/seamoth/seaglide_light_off";
             lightOffSound.id = "{b52592a9-19f5-45d1-ad56-7d355fc3dcc3}";
-
             CollisionSound collisionSound = __instance.gameObject.EnsureComponent<CollisionSound>();
             FMODAsset so = ScriptableObject.CreateInstance<FMODAsset>();
             so.path = "event:/sub/common/fishsplat";
@@ -411,160 +419,6 @@ namespace Tweaks_Fixes
             so.path = "event:/sub/seamoth/impact_solid_soft";
             so.id = "{15dc7344-7b0a-4ffd-9b5c-c40f923e4f4d}";
             collisionSound.hitSoundSlow = so;
-            SetLights(__instance, Main.configMain.exosuitLights);
-            exosuitStarted = true;
-        }
-
-        // thrusters consumes 2x energy
-        // no limit on thrusters
-        //[HarmonyPrefix]
-        //[HarmonyPatch("Update")]
-        public static bool UpdatePrefix(Exosuit __instance)
-        {
-            if (!Main.gameLoaded)
-                return false;
-
-            //if (!ConfigMenu.exosuitMoveTweaks.Value)
-            //return true;
-
-            //AddDebug("thrustConsumption " + __instance.thrustConsumption);
-            //AddDebug("verticalJetConsumption " + __instance.verticalJetConsumption);
-            //AddDebug("horizontalJetConsumption " + __instance.horizontalJetConsumption);
-
-            VehicleUpdate(__instance);
-
-            __instance.openedFraction = !__instance.storageContainer.GetOpen() ? Mathf.Clamp01(__instance.openedFraction - Time.deltaTime * 2f) : Mathf.Clamp01(__instance.openedFraction + Time.deltaTime * 2f);
-            __instance.storageFlap.localEulerAngles = new Vector3(__instance.startFlapPitch + __instance.openedFraction * 80f, 0f, 0f);
-            bool pilotingMode = __instance.GetPilotingMode();
-            bool piloting = __instance.GetPilotingMode() && !__instance.docked;
-            if (pilotingMode)
-            {
-                Player.main.transform.localPosition = Vector3.zero;
-                Player.main.transform.localRotation = Quaternion.identity;
-                Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
-                __instance.lastMoveDirection = moveDirection;
-                bool movingUp = moveDirection.y > 0f;
-                bool sprinting = GameInput.GetButtonHeld(GameInput.Button.Sprint);
-                bool powered = __instance.IsPowered() && __instance.liveMixin.IsAlive();
-                __instance.GetEnergyValues(out float charge, out float capacity); // my
-                float powerMult = 1f; // my
-                if (movingUp && sprinting)
-                    powerMult = 3f;
-                else if (sprinting || movingUp)
-                    powerMult = 2f;
-
-                if (__instance.jumpJetsUpgraded)
-                    powerMult *= 1.33f;
-
-                if ((movingUp | sprinting) & powered && __instance.IsUnderwater())
-                {
-                    __instance.thrustPower = Util.NormalizeTo01range(charge, 0f, capacity);// my
-                    //__instance.thrustPower = Mathf.Clamp01(__instance.thrustPower - Time.deltaTime * __instance.thrustConsumption * verticalJetConsumption);
-                    if (movingUp && (__instance.onGround || Time.time - __instance.timeOnGround <= 1f) && !__instance.jetDownLastFrame)
-                        __instance.ApplyJumpForce();
-
-                    __instance.jetsActive = true;
-                    __instance.horizontalJetsActive = sprinting;
-                    __instance.verticalJetsActive = movingUp;
-                }
-                else
-                {
-                    __instance.jetsActive = false;
-                    __instance.horizontalJetsActive = false;
-                    __instance.verticalJetsActive = false;
-                    __instance.thrustPower = Util.NormalizeTo01range(charge, 0f, capacity);// my
-                    //__instance.thrustPower = Mathf.Clamp01(__instance.thrustPower + Time.deltaTime * __instance.thrustConsumption * num2);
-                }
-                __instance.jetDownLastFrame = movingUp;
-                __instance.footStepSounds.soundsEnabled = !__instance.powersliding;
-                __instance.movementEnabled = !__instance.powersliding;
-                __instance.powersliding = __instance.IsHorizontalBoostActive() && __instance.IsUnderwater() && __instance.onGround; // my
-
-                if (__instance.timeJetsActiveChanged + 0.3f <= Time.time)
-                {
-                    if ((__instance.jetsActive || __instance.powersliding) && (__instance.thrustPower > 0f && !__instance.areFXPlaying) && !__instance.IsUnderwater())
-                    {
-                        __instance.fxcontrol.Play(0);
-                        __instance.areFXPlaying = true;
-                    }
-                    else if (__instance.areFXPlaying)
-                    {
-                        __instance.fxcontrol.Stop(0);
-                        __instance.areFXPlaying = false;
-                    }
-                }
-                //if (__instance.powersliding)
-                //    __instance.loopingSlideSound.Play();
-                //else
-                //    __instance.loopingSlideSound.Stop();
-
-                if ((movingUp || moveDirection.x != 0f ? 1 : (moveDirection.z != 0f ? 1 : 0)) != 0)
-                {
-                    //AddDebug("powerMult " + powerMult);
-                    __instance.ConsumeEngineEnergy(0.08333334f * Time.deltaTime * powerMult);
-                }
-                if (__instance.jetsActive)
-                    __instance.thrustIntensity += Time.deltaTime / __instance.timeForFullVirbation;
-                else
-                    __instance.thrustIntensity -= Time.deltaTime * 10f;
-
-                __instance.thrustIntensity = Mathf.Clamp01(__instance.thrustIntensity);
-
-                if (AvatarInputHandler.main.IsEnabled() && !__instance.ignoreInput)
-                {
-                    Vector3 eulerAngles = __instance.transform.eulerAngles;
-                    eulerAngles.x = MainCamera.camera.transform.eulerAngles.x;
-                    Quaternion aimDirection1 = Quaternion.Euler(eulerAngles.x, eulerAngles.y, eulerAngles.z);
-                    Quaternion aimDirection2 = aimDirection1;
-                    __instance.leftArm.Update(ref aimDirection1);
-                    __instance.rightArm.Update(ref aimDirection2);
-
-                    if (piloting)
-                    {
-                        Vector3 b1 = MainCamera.camera.transform.position + aimDirection1 * Vector3.forward * 100f;
-                        Vector3 b2 = MainCamera.camera.transform.position + aimDirection2 * Vector3.forward * 100f;
-                        __instance.aimTargetLeft.transform.position = Vector3.Lerp(__instance.aimTargetLeft.transform.position, b1, Time.deltaTime * 15f);
-                        __instance.aimTargetRight.transform.position = Vector3.Lerp(__instance.aimTargetRight.transform.position, b2, Time.deltaTime * 15f);
-                    }
-                    __instance.UpdateUIText(__instance.rightArm is ExosuitPropulsionArm || __instance.leftArm is ExosuitPropulsionArm);
-
-                    if (GameInput.GetButtonDown(GameInput.Button.AltTool) && !__instance.rightArm.OnAltDown())
-                        __instance.leftArm.OnAltDown();
-                }
-                __instance.UpdateActiveTarget();
-                __instance.UpdateSounds();
-                //if (__instance.powersliding && __instance.onGround && __instance.timeLastSlideEffect + 0.5f < Time.time)
-                //{
-                //    if (__instance.IsUnderwater())
-                //        __instance.fxcontrol.Play(4);
-                //    else
-                //        __instance.fxcontrol.Play(3);
-                //    __instance.timeLastSlideEffect = Time.time;
-                //}
-            }
-            if (!piloting)
-            {
-                bool flag2 = false;
-                bool flag3 = false;
-                if (!Util.Approximately(__instance.aimTargetLeft.transform.localPosition.y, 0f))
-                    __instance.aimTargetLeft.transform.localPosition = new Vector3(__instance.aimTargetLeft.transform.localPosition.x, Mathf.MoveTowards(__instance.aimTargetLeft.transform.localPosition.y, 0f, Time.deltaTime * 50f), __instance.aimTargetLeft.transform.localPosition.z);
-                else
-                    flag2 = true;
-
-                if (!Util.Approximately(__instance.aimTargetRight.transform.localPosition.y, 0f))
-                    __instance.aimTargetRight.transform.localPosition = new Vector3(__instance.aimTargetRight.transform.localPosition.x, Mathf.MoveTowards(__instance.aimTargetRight.transform.localPosition.y, 0f, Time.deltaTime * 50f), __instance.aimTargetRight.transform.localPosition.z);
-                else
-                    flag3 = true;
-
-                if (flag2 & flag3)
-                    __instance.SetIKEnabled(false);
-            }
-            __instance.UpdateAnimations();
-            if (!__instance.armsDirty)
-                return false;
-
-            __instance.UpdateExosuitArms();
-            return false;
         }
 
         [HarmonyPostfix]
@@ -587,7 +441,7 @@ namespace Tweaks_Fixes
             if (active && !exosuit.energyInterface.hasCharge)
                 return;
 
-            Transform lightsT = exosuit.transform.Find("lights_parent");
+            Transform lightsT = exosuit.leftArmAttach.transform.Find("lights_parent");
             if (lightsT)
             {
                 lightsT.gameObject.SetActive(active);
@@ -597,7 +451,7 @@ namespace Tweaks_Fixes
 
         private static void ToggleLights(Exosuit exosuit)
         {
-            Transform lightsT = exosuit.transform.Find("lights_parent");
+            Transform lightsT = exosuit.leftArmAttach.transform.Find("lights_parent");
             if (lightsT)
             {
                 //AddDebug("IngameMenu isActiveAndEnabled " + IngameMenu.main.isActiveAndEnabled);

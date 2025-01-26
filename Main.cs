@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.12.0";
+            VERSION = "2.13.0";
         public static Survival survival;
         public static float oceanLevel;
         public static System.Random rndm = new System.Random();
@@ -122,6 +122,7 @@ namespace Tweaks_Fixes
                 PDAScanner.mapping[TechType.Creepvine].blueprint = TechType.FiberMesh;
             }
             Player_Movement.UpdateModifiers();
+            Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
             gameLoaded = true;
             //if (ConfigToEdit.targetFrameRate.Value > 9)
             //    Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
@@ -256,6 +257,7 @@ namespace Tweaks_Fixes
             ConfigToEdit.ParseConfig();
             options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
+
             //// vanilla desc just copies the name
             //LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, config.translatableStrings[21]);
             //// vanilla desc does not tell percent

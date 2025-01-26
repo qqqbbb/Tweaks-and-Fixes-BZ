@@ -15,13 +15,12 @@ namespace Tweaks_Fixes
     {
         public static bool giveResourceOnDamage;
         static Vector3 knifeTargetPos;
+        static float knifeRangeDefault;
+        static float knifeDamageDefault;
 
         [HarmonyPatch(typeof(PlayerTool))]
         public class PlayerTool_Patch
         {
-            static float knifeRangeDefault = 0f;
-            static float knifeDamageDefault = 0f;
-
             [HarmonyPostfix]
             [HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(PlayerTool __instance)
@@ -142,24 +141,29 @@ namespace Tweaks_Fixes
 
         public static void AddToInventoryOrSpawn(TechType techType, int num)
         {
+            Vector3 spawnPos = default;
             for (int i = 0; i < num; ++i)
             {
-                if (Inventory.main.HasRoomFor(techType))
+                if (!ConfigToEdit.alwaysSpawnWhenKnifeHarvesting.Value && Inventory.main.HasRoomFor(techType))
                     CraftData.AddToInventory(techType);
                 else
                 { // spawn position from AddToInventory can be behind object
-                    AddError(Language.main.Get("InventoryFull"));
-                    Vector3 pos = default;
-                    if (knifeTargetPos != default)
+                    if (!ConfigToEdit.alwaysSpawnWhenKnifeHarvesting.Value)
+                        AddError(Language.main.Get("InventoryFull"));
+
+                    if (spawnPos == default)
                     {
                         Transform camTr = MainCamera.camera.transform;
-                        float x = Mathf.Lerp(knifeTargetPos.x, camTr.position.x, .5f);
-                        float y = camTr.position.y + camTr.forward.y * 3f; // fix for creepvine 
-                        float z = Mathf.Lerp(knifeTargetPos.z, camTr.position.z, .5f);
-                        pos = new Vector3(x, y, z);
-                        //AddDebug("spawn Pos " + pos);
+                        float dist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
+                        RaycastHit hitIData = default;
+                        Physics.Raycast(camTr.position, camTr.forward, out hitIData, dist);
+                        if (hitIData.point != default)
+                            spawnPos = Vector3.LerpUnclamped(camTr.position, hitIData.point, .8f);
+                        else
+                            spawnPos = camTr.position;
+
                     }
-                    CoroutineHost.StartCoroutine(Util.Spawn(techType, pos));
+                    CoroutineHost.StartCoroutine(Util.Spawn(techType, spawnPos));
                 }
             }
         }

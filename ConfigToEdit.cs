@@ -111,7 +111,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> fixSeatruckAnalogMovement;
         public static ConfigEntry<bool> seatruckAfterburnerWithoutCooldown;
         public static ConfigEntry<bool> replaceSeatruckHorsePowerUpgrade;
-
+        public static ConfigEntry<bool> alwaysSpawnWhenKnifeHarvesting;
 
 
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
@@ -224,7 +224,7 @@ namespace Tweaks_Fixes
             fixSeatruckAnalogMovement = Main.configToEdit.Bind("VEHICLES", "Fix seatruck analog movement", true, "Vanilla seatruck does not use analog values from controller sticks");
             seatruckAfterburnerWithoutCooldown = Main.configToEdit.Bind("VEHICLES", "Seatruck afterburner works without cooldown", false, "After activating afterburner, it will work until you stop driving the seatruck but will consume twice more power.");
             replaceSeatruckHorsePowerUpgrade = Main.configToEdit.Bind("VEHICLES", "Replace seatruck horsepower upgrade", false, "Seatruck horsepower upgrade will increase engine's horsepower output and energy consumption by 10%. More than 1 can be installed.");
-
+            alwaysSpawnWhenKnifeHarvesting = Main.configToEdit.Bind("TOOLS", "Always spawn things you harvest with knife instead of adding them to inventory", false);
 
 
             transferAllItemsButton = Main.configToEdit.Bind("BUTTOM BIND", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
