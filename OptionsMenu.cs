@@ -35,7 +35,7 @@ namespace Tweaks_Fixes
             ModSliderOption vehicleCrushDamageSlider = ConfigMenu.vehicleCrushDamageMult.ToModSliderOption(0f, 10f, .1f, "{0:0.0#}");
             ModSliderOption crushDamageProgressionSlider = ConfigMenu.crushDamageProgression.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
 
-            ModSliderOption hungerUpdateIntervalSlider = ConfigMenu.hungerUpdateInterval.ToModSliderOption(1, 100, 1);
+            //ModSliderOption hungerUpdateIntervalSlider = ConfigMenu.hungerUpdateInterval.ToModSliderOption(1, 100, 1);
             ModSliderOption fishFoodWaterRatioSlider = ConfigMenu.fishFoodWaterRatio.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
             ModSliderOption foodDecayRateSlider = ConfigMenu.foodDecayRateMult.ToModSliderOption(0f, 3f, .1f, "{0:0.#}");
             ModSliderOption fruitGrowTimeSlider = ConfigMenu.fruitGrowTime.ToModSliderOption(0, 30, 1);
@@ -51,6 +51,10 @@ namespace Tweaks_Fixes
             ModSliderOption snowballWaterSlider = ConfigMenu.snowballWater.ToModSliderOption(0, 30, 1);
             ModSliderOption baseHullStrengthSlider = ConfigMenu.baseHullStrengthMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
             ModSliderOption drillDamageMultSlider = ConfigMenu.drillDamageMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
+            ModSliderOption foodLossSlider = ConfigMenu.foodLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
+            ModSliderOption waterLossSlider = ConfigMenu.waterLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
+            ModSliderOption foodWaterHealThresholdSlider = ConfigMenu.foodWaterHealThreshold.ToModSliderOption(1, 300, 5);
+
 
             AddItem(timeFlowSpeedSlider);
             AddItem(playerWaterSpeedSlider);
@@ -82,7 +86,9 @@ namespace Tweaks_Fixes
             AddItem(vehicleCrushDamageSlider);
             AddItem(crushDamageProgressionSlider);
             AddItem(baseHullStrengthSlider);
-            AddItem(hungerUpdateIntervalSlider);
+            AddItem(foodLossSlider);
+            AddItem(waterLossSlider);
+            AddItem(foodWaterHealThresholdSlider);
             AddItem(ConfigMenu.newHungerSystem.ToModToggleOption());
             AddItem(ConfigMenu.eatRawFish.ToModChoiceOption());
             AddItem(ConfigMenu.cantEatUnderwater.ToModToggleOption());

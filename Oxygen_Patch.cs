@@ -168,10 +168,10 @@ namespace Tweaks_Fixes
         {
             private const float breathPeriodMax = 3f;
 
-            [HarmonyPrefix, HarmonyPatch("GetOxygenPerBreath")]
-            internal static bool GetOxygenPerBreathPrefix(Player __instance, ref float __result, float breathingInterval, int depthClass)
+            [HarmonyPostfix, HarmonyPatch("GetOxygenPerBreath")]
+            internal static void GetOxygenPerBreathPostfix(Player __instance, ref float __result, float breathingInterval, int depthClass)
             {// vanilla script returns wrong value at depth 200-100
-                __result = 1;
+                __result = breathPeriodMax;
                 if (Inventory.main.equipment.GetCount(TechType.Rebreather) == 0 && __instance.mode != Player.Mode.Piloting && __instance.mode != Player.Mode.LockedPiloting && __instance.currentWaterPark == null)
                 {
                     if (GameModeManager.GetOption<bool>(GameOption.OxygenDepletes))
@@ -181,29 +181,27 @@ namespace Tweaks_Fixes
                 }
                 //AddDebug("GetOxygenPerBreath breathingInterval " + breathingInterval);
                 //AddDebug("GetOxygenPerBreath  " + __result);
-                return false;
             }
 
-            [HarmonyPrefix, HarmonyPatch("GetBreathPeriod")]
-            static bool GetBreathPeriodPrefix(Player __instance, ref float __result)
+            [HarmonyPostfix, HarmonyPatch("GetBreathPeriod")]
+            static void GetBreathPeriodPostfix(Player __instance, ref float __result)
             {
                 //AddDebug("depthLevel " + (int)__instance.depthLevel);
                 //AddDebug("depthOf " + (int)Ocean.main.GetDepthOf(__instance.gameObject);
                 if (!ConfigMenu.realOxygenCons.Value)
-                    return true;
+                    return;
 
-                if (Player.main._currentInterior != null || __instance.inExosuit || __instance.currentWaterPark || Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
+                if (Player.main._currentInterior != null || __instance.currentMountedVehicle || __instance.currentWaterPark || Inventory.main.equipment.GetCount(TechType.Rebreather) > 0)
                 {
                     //AddDebug("safe BreathPeriod " );
                     __result = breathPeriodMax;
-                    return false;
+                    return;
                 }
                 float depth = Mathf.Abs(__instance.depthLevel);
                 float mult = 1.5f / ConfigMenu.crushDepth.Value;
                 __result = breathPeriodMax - depth * mult;
                 // __result is negative when depth is 2x deeper than crushDepth
                 __result = Mathf.Clamp(__result, 0.1f, breathPeriodMax);
-                return false;
             }
         }
 

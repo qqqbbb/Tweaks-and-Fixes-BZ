@@ -44,7 +44,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> vehicleCrushDamageMult;
         public static ConfigEntry<float> crushDamageProgression;
         public static ConfigEntry<EmptyVehiclesCanBeAttacked> emptyVehiclesCanBeAttacked;
-        public static ConfigEntry<int> hungerUpdateInterval;
+        //public static ConfigEntry<int> hungerUpdateInterval;
         public static ConfigEntry<bool> newHungerSystem;
         public static ConfigEntry<float> fishFoodWaterRatio;
         public static ConfigEntry<EatingRawFish> eatRawFish;
@@ -76,7 +76,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> snowballWater;
         public static ConfigEntry<float> baseHullStrengthMult;
         public static ConfigEntry<float> drillDamageMult;
-
+        public static ConfigEntry<float> foodLossMult;
+        public static ConfigEntry<float> waterLossMult;
+        public static ConfigEntry<int> foodWaterHealThreshold;
 
 
         public static void Bind()
@@ -116,7 +118,7 @@ namespace Tweaks_Fixes
             vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 1f, "Vehicle crush damage will be multiplied by this.");
 
             emptyVehiclesCanBeAttacked = Main.configMenu.Bind("", "Unmanned vehicles can be attacked", EmptyVehiclesCanBeAttacked.Vanilla, "By default unmanned seamoth or prawn suit can be attacked but cyclops can not.");
-            hungerUpdateInterval = Main.configMenu.Bind("", "Hunger update interval", 10, "Time in seconds it takes your hunger and thirst to update.");
+            //hungerUpdateInterval = Main.configMenu.Bind("", "Hunger update interval", 10, "Time in seconds it takes your hunger and thirst to update.");
             newHungerSystem = Main.configMenu.Bind("", "New hunger system", false, "You do not regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it is 190 you lose 90%.");
             fishFoodWaterRatio = Main.configMenu.Bind("", "Fish water/food value ratio", 0f, "Fish's water value will be proportional to its food value if this is more than 0. If this is 0.1 then water value will be 10% of food value. If this is 0.9 then water value will be 90% of food value. Game has to be reloaded after changing this.");
             eatRawFish = Main.configMenu.Bind("", "Eating raw fish", EatingRawFish.Vanilla, "This changes amount of food you get by eating raw fish. Harmless: it is a random number between 0 and fish's food value. Risky: it is a random number between fish's negative food value and fish's food value. Harmful: it is a random number between fish's negative food value and 0.");
@@ -147,6 +149,10 @@ namespace Tweaks_Fixes
             snowballWater = Main.configMenu.Bind("", "Snowball water value", 0, "When you eat a snowball, you will get this amount of water and lose this amount of warmth. The game has to be reloaded after changing this.");
             baseHullStrengthMult = Main.configMenu.Bind("", "Base hull strength multiplier", 1f, "");
             drillDamageMult = Main.configMenu.Bind("", "Prawn suit drill arm damage multiplier", 1f, "");
+            foodLossMult = Main.configMenu.Bind("", "Food loss multiplier", 1f, "Food value you lose when your hunger updates will be multiplied by this.");
+            waterLossMult = Main.configMenu.Bind("", "Water loss multiplier", 1f, "Water value you lose when your hunger updates will be multiplied by this.");
+            foodWaterHealThreshold = Main.configMenu.Bind("", "Food heal threshold", 150, "Your health regenerates when sum of your food and water values is greater than this");
+
 
             transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");
             transferSameItemsButton = Main.configMenu.Bind("", "Move same items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items of the same type. If you are using a keyboard, you have to hold down this key and click an item.");

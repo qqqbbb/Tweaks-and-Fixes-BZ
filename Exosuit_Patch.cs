@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -368,6 +369,15 @@ namespace Tweaks_Fixes
             }
         }
 
+        static Transform GetLightsTransform(Exosuit __instance)
+        {
+            Transform t = __instance.leftArmAttach.transform.Find("lights_parent");
+            if (t == null)
+                return __instance.transform.Find("lights_parent");
+
+            return t;
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch("Start")]
         static void StartPostfix(Exosuit __instance)
@@ -380,10 +390,8 @@ namespace Tweaks_Fixes
             //    AddDebug("Exosuit Start currentMountedVehicle == null");
             //else
             //    AddDebug("Exosuit Start currentMountedVehicle " + Player.main.currentMountedVehicle.ToString());
-            Transform lightsTransform = __instance.transform.Find("lights_parent");
-            if (lightsTransform) // lights will follow camera
-                lightsTransform.SetParent(__instance.leftArmAttach);
-
+            // lights will follow camera
+            GetLightsTransform(__instance).SetParent(__instance.leftArmAttach);
             if (Player.main.currentMountedVehicle && Player.main.currentMountedVehicle == __instance)
             {
                 GetArmNames(__instance);
@@ -436,22 +444,22 @@ namespace Tweaks_Fixes
             CheckExosuitButtons(__instance);
         }
 
-        private static void SetLights(Exosuit exosuit, bool active)
+        private static void SetLights(Exosuit exosuit, bool on)
         {
-            if (active && !exosuit.energyInterface.hasCharge)
+            if (on && !exosuit.energyInterface.hasCharge)
                 return;
 
-            Transform lightsT = exosuit.leftArmAttach.transform.Find("lights_parent");
+            Transform lightsT = GetLightsTransform(exosuit);
             if (lightsT)
             {
-                lightsT.gameObject.SetActive(active);
+                lightsT.gameObject.SetActive(on);
                 //AddDebug("SetLights " + active);
             }
         }
 
         private static void ToggleLights(Exosuit exosuit)
         {
-            Transform lightsT = exosuit.leftArmAttach.transform.Find("lights_parent");
+            Transform lightsT = GetLightsTransform(exosuit);
             if (lightsT)
             {
                 //AddDebug("IngameMenu isActiveAndEnabled " + IngameMenu.main.isActiveAndEnabled);
@@ -469,80 +477,6 @@ namespace Tweaks_Fixes
                 }
                 //AddDebug("lights " + lightsT.gameObject.activeSelf);
             }
-        }
-
-        //[HarmonyPrefix]
-        //[HarmonyPatch("FixedUpdate")]
-        public static bool FixedUpdatePostfix(Exosuit __instance)
-        { // reduce vert thrust speed. jumpJetsUpgrade affects vert and hor speed the same way. powersliding
-            //if (!ConfigMenu.exosuitMoveTweaks.Value)
-            //    return true;
-
-            VehicleFixedUpdate(__instance);
-
-            bool isGrappling = __instance.GetIsGrappling();
-            __instance.worldForces.handleGravity = !__instance.onGround;
-            bool isUnderwater = __instance.IsUnderwater();
-            if (isUnderwater && __instance.thrustPower > 0f && __instance.jetsActive)
-            {
-                float thrustPower = 0.8f + __instance.thrustPower * 0.2f;
-                if (__instance.jumpJetsUpgraded)
-                    thrustPower *= thrustUpgradeAcc;   // my
-
-                if (!__instance.onGround)
-                    __instance.worldForces.handleGravity = false;
-
-                if (__instance.horizontalJetsActive)
-                {
-                    Vector3 direction = new Vector3(__instance.lastMoveDirection.x, 0f, __instance.lastMoveDirection.z);
-                    direction = direction.sqrMagnitude > 0f ? __instance.transform.TransformDirection(direction).normalized : __instance.transform.forward;
-                    if (!__instance.verticalJetsActive)
-                    {
-                        Vector3 forward = MainCamera.camera.transform.forward;
-                        direction += Vector3.up * Mathf.Clamp(forward.y, -0.75f, 0.75f);
-                    }
-                    Vector3 acceleration = horThrustAcc * direction * thrustPower;
-                    acceleration *= ConfigMenu.exosuitSpeedMult.Value;
-                    if (__instance.powersliding)
-                        acceleration *= 4f; // my
-
-                    __instance.useRigidbody.AddForce(acceleration, ForceMode.Acceleration);
-                }
-                if (__instance.verticalJetsActive && isUnderwater)
-                {
-                    //AddDebug("verticalJetsActive");
-                    Vector3 acceleration = Vector3.up * vertThrustAcc * thrustPower;
-                    acceleration *= ConfigMenu.exosuitSpeedMult.Value;  // my
-                    __instance.useRigidbody.AddForce(acceleration, ForceMode.Acceleration);
-                }
-            }
-            float drag = 1f;
-            if (__instance.onGround && !isGrappling)
-                drag = 3f;
-            else if (!isUnderwater)
-                drag = 0.1f;
-
-            __instance.useRigidbody.drag = drag;
-            UWE.Utils.SetIsKinematicAndUpdateInterpolation(__instance.useRigidbody, __instance.ShouldSetKinematic());
-            if (__instance.constructionFallOverride && __instance.transform.position.y < 0f)
-                __instance.constructionFallOverride = false;
-            if (isGrappling)
-                __instance.useRigidbody.AddForce(Vector3.down * 3f, ForceMode.Acceleration);
-
-            if (__instance.cinematicMode || !__instance.rotationDirty)
-                return false;
-
-            Vector3 localEulerAngles = __instance.transform.localEulerAngles;
-            Quaternion quaternion = Quaternion.Euler(0f, localEulerAngles.y, 0f);
-            if (Mathf.Abs(localEulerAngles.x) < 1f / 1000f && Mathf.Abs(localEulerAngles.z) < 1f / 1000f)
-                __instance.rotationDirty = false;
-            else
-                quaternion = Quaternion.Lerp(__instance.transform.localRotation, quaternion, Time.fixedDeltaTime * 3f);
-            if (__instance.transform.parent != null)
-                quaternion = __instance.transform.parent.rotation * quaternion;
-            __instance.useRigidbody.MoveRotation(quaternion);
-
-            return false;
         }
 
         [HarmonyPostfix]

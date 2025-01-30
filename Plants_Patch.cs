@@ -12,6 +12,7 @@ namespace Tweaks_Fixes
     {// fruit test -583 -30 -212   -520 -85 -80     -573 -34 -110
         static float creepVineSeedLightInt = 1.2f;
 
+
         public static void AttachFruitPlant(GameObject go)
         { // FruitPlant will be saved
             PickPrefab[] pickPrefabs = go.GetComponentsInChildren<PickPrefab>(true);
@@ -330,6 +331,11 @@ namespace Tweaks_Fixes
                     //AddDebug("Plantable OnProtoDeserialize " + __instance.plantTechType);
                     //AddDebug("Planter AddItem fix " + p.plantTechType);
                     __instance.size = Plantable.PlantSize.Large;
+                }
+                if (!ConfigToEdit.canReplantMelon.Value)
+                {
+                    if (tt == TechType.Melon || tt == TechType.SmallMelon || tt == TechType.JellyPlant)
+                        UnityEngine.Object.Destroy(__instance);
                 }
             }
 

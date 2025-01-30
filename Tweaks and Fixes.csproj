@@ -95,6 +95,7 @@
     <Compile Include="CreatureDeath_Patch.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
     <Compile Include="Exosuit_movement.cs" />
+    <Compile Include="Food.cs" />
     <Compile Include="Knife_Patch.cs" />
     <Compile Include="Menu_Buttons.cs" />
     <Compile Include="OptionsMenu.cs" />
@@ -104,6 +105,7 @@
     <Compile Include="Constructor_Patch.cs" />
     <Compile Include="Inventory_Patch.cs" />
     <Compile Include="Screen_Resolution_Fix.cs" />
+    <Compile Include="SnowBall_.cs" />
     <Compile Include="Start_Warning_Patch.cs" />
     <Compile Include="ConfigToEdit.cs" />
     <Compile Include="Drop_Pod_Patch.cs" />
@@ -113,6 +115,7 @@
     <Compile Include="LargeWorldEntity_Patch.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="SeaTruck_movement.cs" />
+    <Compile Include="Water_Freeze.cs" />
     <Compile Include="Weather_Patch.cs" />
     <Compile Include="PDA_Patch.cs" />
     <Compile Include="Storage_Patch.cs" />
@@ -131,7 +134,7 @@
     <Compile Include="Oxygen_Patch.cs" />
     <Compile Include="NoBreakingWithHands.cs" />
     <Compile Include="Gravsphere_Patch.cs" />
-    <Compile Include="Food_Patch.cs" />
+    <Compile Include="Survival_.cs" />
     <Compile Include="Crush_Damage.cs" />
     <Compile Include="Damage_Patch.cs" />
     <Compile Include="Creature_Patch.cs" />

@@ -467,7 +467,7 @@ namespace Tweaks_Fixes
         {
             Eatable eatable = go.EnsureComponent<Eatable>();
             eatable.foodValue = food;
-            if (Food_Patch.decayingFood.Contains(CraftData.GetTechType(go)))
+            if (Food.decayingFood.Contains(CraftData.GetTechType(go)))
                 eatable.despawns = true;
         }
 
@@ -475,7 +475,7 @@ namespace Tweaks_Fixes
         {
             Eatable eatable = go.EnsureComponent<Eatable>();
             eatable.waterValue = water;
-            if (Food_Patch.decayingFood.Contains(CraftData.GetTechType(go)))
+            if (Food.decayingFood.Contains(CraftData.GetTechType(go)))
                 eatable.despawns = true;
         }
 

@@ -374,7 +374,7 @@ namespace Tweaks_Fixes
             Drop_Pod_Patch.newGameLoot = ParseIntDicFromString(newGameLoot.Value);
             CreatureDeath_Patch.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
             CreatureDeath_Patch.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);
-            Food_Patch.decayingFood = ParseSetFromString(decayingFood.Value);
+            Food.decayingFood = ParseSetFromString(decayingFood.Value);
             CreatureDeath_Patch.respawnTime = ParseIntDicFromString(respawnTime.Value);
 
             Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
