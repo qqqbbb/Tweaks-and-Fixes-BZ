@@ -10,7 +10,6 @@ namespace Tweaks_Fixes
     internal class SnowBall_
     {
         static float snowBallMeltRate = 0.05f;
-
         public static void CheckSnowball(Eatable eatable)
         {
             InventoryItem inventoryItem = eatable.GetComponent<Pickupable>().inventoryItem;
@@ -105,39 +104,34 @@ namespace Tweaks_Fixes
         class Eatable_patch
         {
             [HarmonyPrefix, HarmonyPatch("Awake")]
-            static bool AwakePrefix(Eatable __instance)
+            static void AwakePrefix(Eatable __instance)
             {
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //Main.logger.LogDebug("Eatable Awake " + tt);
                 if (__instance.GetComponent<SnowBall>())
-                {
                     __instance.decomposes = true;
-                }
-                return false;
             }
 
             [HarmonyPrefix, HarmonyPatch("IterateDespawn")]
-            static bool IterateDespawnPrefix(Eatable __instance)
+            static void IterateDespawnPrefix(Eatable __instance)
             {
                 if (!Main.gameLoaded)
-                    return false;
+                    return;
                 //AddDebug(" IterateDespawn " + __instance.name);
                 if (__instance.GetComponent<SnowBall>())
                 {
                     CheckSnowball(__instance);
-                    return false;
                 }
-                return true;
             }
 
-            [HarmonyPostfix, HarmonyPatch("GetHealthValue")]
+            //[HarmonyPostfix, HarmonyPatch("GetHealthValue")]
             public static void GetHealthValuePostfix(Eatable __instance, ref float __result)
             {
                 if (__instance.GetComponent<SnowBall>())
                     __result = 0f;
             }
 
-            [HarmonyPostfix, HarmonyPatch("GetFoodValue")]
+            //[HarmonyPostfix, HarmonyPatch("GetFoodValue")]
             public static void GetFoodValuePostfix(Eatable __instance, ref float __result)
             {
                 if (__instance.GetComponent<SnowBall>())

@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.14.0";
+            VERSION = "2.15.0";
         public static Survival survival;
         public static float oceanLevel;
         public static System.Random rndm = new System.Random();

@@ -64,6 +64,9 @@ namespace Tweaks_Fixes
             AddItem(seatruckSpeedSlider);
             AddItem(hoverbikeSpeedSlider);
             AddItem(oxygenSlider);
+            AddItem(foodLossSlider);
+            AddItem(waterLossSlider);
+            AddItem(foodWaterHealThresholdSlider);
             AddItem(coldSlider);
             AddItem(knifeRangeSlider);
             AddItem(knifeDamageSlider);
@@ -86,9 +89,7 @@ namespace Tweaks_Fixes
             AddItem(vehicleCrushDamageSlider);
             AddItem(crushDamageProgressionSlider);
             AddItem(baseHullStrengthSlider);
-            AddItem(foodLossSlider);
-            AddItem(waterLossSlider);
-            AddItem(foodWaterHealThresholdSlider);
+
             AddItem(ConfigMenu.newHungerSystem.ToModToggleOption());
             AddItem(ConfigMenu.eatRawFish.ToModChoiceOption());
             AddItem(ConfigMenu.cantEatUnderwater.ToModToggleOption());

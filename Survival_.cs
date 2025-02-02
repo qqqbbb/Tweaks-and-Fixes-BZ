@@ -15,7 +15,6 @@ namespace Tweaks_Fixes
     {
         static bool updatingStats;
 
-
         public static float UpdateStats(Survival survival, float timePassed)
         {
             float oldFood = survival.food;

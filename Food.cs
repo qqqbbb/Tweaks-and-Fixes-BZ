@@ -3,14 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Tweaks_Fixes
 {
     internal class Food
     {
         public static HashSet<TechType> decayingFood = new HashSet<TechType>();
-
         public static void CheckFood(Eatable eatable)
         {
             //AddDebug(" CheckFood " + eatable.name);
@@ -27,7 +25,7 @@ namespace Tweaks_Fixes
         {
             [HarmonyPrefix]
             [HarmonyPatch("Awake")]
-            static bool AwakePrefix(Eatable __instance)
+            static void AwakePrefix(Eatable __instance)
             {
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //Main.logger.LogDebug("Eatable Awake " + tt);
@@ -35,7 +33,6 @@ namespace Tweaks_Fixes
                 {
                     __instance.decomposes = true;
                 }
-                return true;
             }
 
             [HarmonyPostfix]
@@ -88,7 +85,6 @@ namespace Tweaks_Fixes
             }
 
         }
-
 
     }
 }

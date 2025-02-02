@@ -47,7 +47,6 @@ namespace Tweaks_Fixes
             //AddDebug("snowball GetDecayValue " + eatable.GetDecayValue());
         }
 
-
         [HarmonyPatch(typeof(Eatable))]
         class Eatable_patch
         {
@@ -164,7 +163,6 @@ namespace Tweaks_Fixes
                 return false;
             }
         }
-
 
     }
 }

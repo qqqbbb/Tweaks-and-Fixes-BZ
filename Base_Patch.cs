@@ -461,10 +461,16 @@ namespace Tweaks_Fixes
                 }
                 return false;
             }
-
-
         }
 
+        [HarmonyPatch(typeof(Bed), "CheckForSpace")]
+        class Bed_CheckForSpace_Patch
+        {
+            static void Postfix(Bed __instance, ref bool __result)
+            {
+                __result = true;
+            }
+        }
 
 
 
