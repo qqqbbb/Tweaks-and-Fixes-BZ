@@ -326,8 +326,8 @@ namespace Tweaks_Fixes
                 if (eatable.maxCharges > 0)
                     eatable.ConsumeCharge();
 
-                Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater);
-                Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
+                __instance.water = Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater);
+                __instance.food = Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
 
                 int warn = ConfigMenu.newHungerSystem.Value ? 0 : 20;
                 if (!__instance.InConversation())
