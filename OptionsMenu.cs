@@ -36,6 +36,8 @@ namespace Tweaks_Fixes
             ModSliderOption crushDamageProgressionSlider = ConfigMenu.crushDamageProgression.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
 
             //ModSliderOption hungerUpdateIntervalSlider = ConfigMenu.hungerUpdateInterval.ToModSliderOption(1, 100, 1);
+            ModSliderOption maxFoodSlider = ConfigMenu.maxFood.ToModSliderOption(100, 300, 1);
+            ModSliderOption maxWaterSlider = ConfigMenu.maxWater.ToModSliderOption(100, 300, 1);
             ModSliderOption fishFoodWaterRatioSlider = ConfigMenu.fishFoodWaterRatio.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
             ModSliderOption foodDecayRateSlider = ConfigMenu.foodDecayRateMult.ToModSliderOption(0f, 3f, .1f, "{0:0.#}");
             ModSliderOption fruitGrowTimeSlider = ConfigMenu.fruitGrowTime.ToModSliderOption(0, 30, 1);
@@ -91,6 +93,8 @@ namespace Tweaks_Fixes
             AddItem(baseHullStrengthSlider);
 
             AddItem(ConfigMenu.newHungerSystem.ToModToggleOption());
+            AddItem(maxFoodSlider);
+            AddItem(maxWaterSlider);
             AddItem(ConfigMenu.eatRawFish.ToModChoiceOption());
             AddItem(ConfigMenu.cantEatUnderwater.ToModToggleOption());
             AddItem(fishFoodWaterRatioSlider);

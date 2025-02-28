@@ -184,8 +184,8 @@ namespace Tweaks_Fixes
                 float healthValue = eatable.GetHealthValue();
                 float coldMeterValue = eatable.GetColdMeterValue();
                 int playerMinFood = ConfigMenu.newHungerSystem.Value ? -100 : 0;
-                float playerMaxWater = ConfigMenu.newHungerSystem.Value ? 200f : 100f;
-                float playerMaxFood = 200f;
+                float playerMaxWater = ConfigMenu.newHungerSystem.Value ? 200f : (float)ConfigMenu.maxWater.Value;
+                float playerMaxFood = ConfigMenu.newHungerSystem.Value ? 200f : (float)ConfigMenu.maxFood.Value;
                 int minFood = food;
                 int maxFood = food;
                 int minWater = water;
