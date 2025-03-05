@@ -56,7 +56,8 @@ namespace Tweaks_Fixes
             ModSliderOption foodLossSlider = ConfigMenu.foodLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
             ModSliderOption waterLossSlider = ConfigMenu.waterLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
             ModSliderOption foodWaterHealThresholdSlider = ConfigMenu.foodWaterHealThreshold.ToModSliderOption(100, 400, 10);
-
+            AddItem(maxFoodSlider);
+            AddItem(maxWaterSlider);
 
             AddItem(timeFlowSpeedSlider);
             AddItem(playerWaterSpeedSlider);
@@ -93,8 +94,6 @@ namespace Tweaks_Fixes
             AddItem(baseHullStrengthSlider);
 
             AddItem(ConfigMenu.newHungerSystem.ToModToggleOption());
-            AddItem(maxFoodSlider);
-            AddItem(maxWaterSlider);
             AddItem(ConfigMenu.eatRawFish.ToModChoiceOption());
             AddItem(ConfigMenu.cantEatUnderwater.ToModToggleOption());
             AddItem(fishFoodWaterRatioSlider);

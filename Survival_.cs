@@ -16,6 +16,7 @@ namespace Tweaks_Fixes
         static bool updatingStats;
         private static bool usingMedkit;
         public static float healTime = 0f;
+        private const float defaultWaterTemp = 6f;
 
         public static float UpdateStats(Survival survival, float timePassed)
         {
@@ -387,6 +388,58 @@ namespace Tweaks_Fixes
                     //AddDebug("Player Update medKitHPtoHeal " + Main.config.medKitHPtoHeal);
                     //Main.config.Save();
                 }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(WaterTemperatureSimulation), "GetTemperature", new Type[] { typeof(Vector3), typeof(float) }, new[] { ArgumentType.Normal, ArgumentType.Out })]
+        class WaterTemperatureSimulation_GetTemperature_PrefixPatch
+        {
+            public static bool Prefix(WaterTemperatureSimulation __instance, ref float __result, Vector3 wsPos, ref float posBaseTemperature)
+            {
+                if (ConfigToEdit.warmKelpWater.Value)
+                    return true;
+
+                float baseTemperature = defaultWaterTemp;
+                WaterBiomeManager waterBiomeManager = WaterBiomeManager.main;
+                WaterscapeVolume.Settings settings = null;
+                if (waterBiomeManager && waterBiomeManager.GetSettings(wsPos, false, out settings))
+                    baseTemperature = settings.temperature;
+
+                if (ConfigToEdit.warmKelpWater.Value == false)
+                {
+                    int biomeIndex = -1;
+                    if (LargeWorld.main)
+                    {
+                        biomeIndex = waterBiomeManager.GetBiomeIndex(waterBiomeManager.GetBiome(wsPos, false));
+                        if (biomeIndex >= 0 && biomeIndex < waterBiomeManager.biomeSettings.Count)
+                        {
+                            WaterBiomeManager.BiomeSettings biomeSettings = waterBiomeManager.biomeSettings[biomeIndex];
+                            //AddDebug("GetTemperature biomeSettings " + biomeSettings.name);
+                            if (biomeSettings.name == "arcticKelp")
+                                baseTemperature = defaultWaterTemp;
+                        }
+                    }
+                    //string temp = "";
+                    //if (settings != null)
+                    //    temp = ((int)settings.temperature).ToString();
+                    //AddDebug("GetTemperature waterBiomeManager settings.temperature " + temp);
+                }
+                EcoRegionManager ecoRegionManager = EcoRegionManager.main;
+                if (ecoRegionManager != null)
+                {
+                    float distance;
+                    IEcoTarget nearestTarget = ecoRegionManager.FindNearestTarget(EcoTargetType.HeatArea, wsPos, out distance, null, 3);
+                    if (nearestTarget != null)
+                    {
+                        float num = Mathf.Clamp(60f - distance, 0f, 60f);
+                        baseTemperature += num;
+                        Debug.DrawLine(wsPos, nearestTarget.GetPosition(), Color.red, 5f);
+                    }
+                }
+                posBaseTemperature = baseTemperature;
+                __result = __instance.GetFinalTemperature(baseTemperature, wsPos);
+                return false;
             }
         }
 

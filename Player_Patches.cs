@@ -335,53 +335,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(WaterTemperatureSimulation), "GetTemperature", new Type[] { typeof(Vector3), typeof(float) }, new[] { ArgumentType.Normal, ArgumentType.Out })]
-        class WaterTemperatureSimulation_GetTemperature_PrefixPatch
-        {
-            private const float defaultWaterTemp = 6f;
-
-            public static bool Prefix(WaterTemperatureSimulation __instance, ref float __result, Vector3 wsPos, ref float posBaseTemperature)
-            {
-                //AddDebug(" Targeting GetTarget  " + result.name);
-                float baseTemperature = defaultWaterTemp;
-                WaterBiomeManager waterBiomeManager = WaterBiomeManager.main;
-                WaterscapeVolume.Settings settings;
-                if (!ConfigToEdit.warmKelpWater.Value && waterBiomeManager && waterBiomeManager.GetSettings(wsPos, false, out settings))
-                {
-                    baseTemperature = settings.temperature;
-                    int biomeIndex = -1;
-                    if (LargeWorld.main)
-                    {
-                        biomeIndex = waterBiomeManager.GetBiomeIndex(waterBiomeManager.GetBiome(wsPos, false));
-                        if (biomeIndex >= 0 && biomeIndex < waterBiomeManager.biomeSettings.Count)
-                        {
-                            WaterBiomeManager.BiomeSettings biomeSettings = waterBiomeManager.biomeSettings[biomeIndex];
-                            //AddDebug("GetTemperature biomeSettings " + biomeSettings.name);
-                            if (biomeSettings.name == "arcticKelp")
-                                baseTemperature = defaultWaterTemp;
-                        }
-                    }
-                    //AddDebug("GetTemperature waterBiomeManager settings.temperature " + (int)settings.temperature);
-                }
-                EcoRegionManager ecoRegionManager = EcoRegionManager.main;
-                if (ecoRegionManager != null)
-                {
-                    float distance;
-                    IEcoTarget nearestTarget = ecoRegionManager.FindNearestTarget(EcoTargetType.HeatArea, wsPos, out distance, null, 3);
-                    if (nearestTarget != null)
-                    {
-                        float num = Mathf.Clamp(60f - distance, 0f, 60f);
-                        baseTemperature += num;
-                        //AddDebug("GetTemperature HeatArea temperature " + (int)num);
-                        //Debug.DrawLine(wsPos, nearestTarget.GetPosition(), Color.red, 5f);
-                    }
-                }
-                posBaseTemperature = baseTemperature;
-                __result = __instance.GetFinalTemperature(baseTemperature, wsPos);
-                //AddDebug("GetTemperature waterBiomeManager final temperature " + (int)__result);
-                return false;
-            }
-        }
 
         [HarmonyPatch(typeof(PlayerBreathBubbles), "MakeBubbles")]
         class PlayerBreathBubbles_MakeBubbles_Patch
