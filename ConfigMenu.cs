@@ -46,8 +46,8 @@ namespace Tweaks_Fixes
         public static ConfigEntry<EmptyVehiclesCanBeAttacked> emptyVehiclesCanBeAttacked;
         //public static ConfigEntry<int> hungerUpdateInterval;
         public static ConfigEntry<bool> newHungerSystem;
-        public static ConfigEntry<int> maxFood;
-        public static ConfigEntry<int> maxWater;
+        public static ConfigEntry<int> maxPlayerFood;
+        public static ConfigEntry<int> maxPlayerWater;
         public static ConfigEntry<float> fishFoodWaterRatio;
         public static ConfigEntry<EatingRawFish> eatRawFish;
         public static ConfigEntry<bool> cantEatUnderwater;
@@ -114,16 +114,16 @@ namespace Tweaks_Fixes
             //crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage. Does not work if crush damage multiplier is 0.");
             //crushDamageMult = Main.configMenu.Bind("", "Crush damage multiplier", 0f, "Every 3 seconds player takes 1 damage multiplied by this for every meter below crush depth.");
             //vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 0f, "Every 3 seconds vehicles take 1 damage multiplied by this for every meter below crush depth.");
-            crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage. Does not work if crush damage slider is at 0.");
+            crushDepth = Main.configMenu.Bind("", "Crush depth", 200, "Depth in meters below which player starts taking crush damage set by 'Crush damage' setting.");
             crushDamage = Main.configMenu.Bind("", "Crush damage", 0f, "Player takes this damage when below crush depth.");
             crushDamageProgression = Main.configMenu.Bind("", "Crush damage progression", 0f, "This value will be added to player's and vrhicles' crush damage for every meter below crush depth.");
             vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 1f, "Vehicle crush damage will be multiplied by this.");
 
             emptyVehiclesCanBeAttacked = Main.configMenu.Bind("", "Unmanned vehicles can be attacked", EmptyVehiclesCanBeAttacked.Vanilla, "By default unmanned seamoth or prawn suit can be attacked but cyclops can not.");
             //hungerUpdateInterval = Main.configMenu.Bind("", "Hunger update interval", 10, "Time in seconds it takes your hunger and thirst to update.");
-            newHungerSystem = Main.configMenu.Bind("", "New hunger system", false, "You do not regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. Your max food and max water value is 200. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it is 190 you lose 90%.");
-            maxFood = Main.configMenu.Bind("", "Max player food value", 200, "Maximum player food value. Fixed at 200 for New Hunger System.");
-            maxWater = Main.configMenu.Bind("", "Max player water value", 100, "Maximum player water value. Fixed at 200 for New Hunger System.");
+            newHungerSystem = Main.configMenu.Bind("", "New hunger system", false, "You do not regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it is 190 you lose 90%.");
+            maxPlayerFood = Main.configMenu.Bind("", "Max player food", 200, "You food meter will be capped at this.");
+            maxPlayerWater = Main.configMenu.Bind("", "Max player water", 100, "You water meter will be capped at this.");
             fishFoodWaterRatio = Main.configMenu.Bind("", "Fish water/food value ratio", 0f, "Fish's water value will be proportional to its food value if this is more than 0. If this is 0.1 then water value will be 10% of food value. If this is 0.9 then water value will be 90% of food value. Game has to be reloaded after changing this.");
             eatRawFish = Main.configMenu.Bind("", "Eating raw fish", EatingRawFish.Vanilla, "This changes amount of food you get by eating raw fish. Harmless: it is a random number between 0 and fish's food value. Risky: it is a random number between fish's negative food value and fish's food value. Harmful: it is a random number between fish's negative food value and 0.");
             cantEatUnderwater = Main.configMenu.Bind("", "Can not eat underwater", false, "You will not be able to eat or drink when swimming underwater if this is on.");

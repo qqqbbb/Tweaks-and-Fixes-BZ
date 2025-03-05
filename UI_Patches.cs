@@ -7,7 +7,6 @@ using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -864,10 +863,10 @@ namespace Tweaks_Fixes
                     sb_.Append(Language.main.Get("TF_meters"));
                     TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }
-                if (Crush_Damage.crushDepthEquipment.ContainsKey(techType) && Crush_Damage.crushDepthEquipment[techType] > 0)
+                if (Crush_Damage.crushDamageEquipment.ContainsKey(techType) && Crush_Damage.crushDamageEquipment[techType] > 0)
                 { // IInventoryDescription
                     StringBuilder sb_ = new StringBuilder(Language.main.Get("TF_crush_damage_equipment"));
-                    sb_.Append(Crush_Damage.crushDepthEquipment[techType].ToString());
+                    sb_.Append(Crush_Damage.crushDamageEquipment[techType].ToString());
                     sb_.Append(Language.main.Get("%"));
                     TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }

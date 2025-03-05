@@ -151,7 +151,7 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                if (!uGUI.isLoading && GameModeManager.GetOption<bool>(GameOption.BaseWaterPressureDamage) && !Util.Approximately(strength, __instance.totalStrength))
+                if (!uGUI.isLoading && GameModeManager.GetOption<bool>(GameOption.BaseWaterPressureDamage) && !Mathf.Approximately(strength, __instance.totalStrength))
                     AddMessage(Language.main.GetFormat("BaseHullStrChanged", strength - __instance.totalStrength, strength));
 
                 __instance.totalStrength = strength;
@@ -471,6 +471,29 @@ namespace Tweaks_Fixes
                 __result = true;
             }
         }
+
+        [HarmonyPatch(typeof(ToggleOnClick), "SwitchOn")]
+        internal class ToggleOnClick_Patch
+        {
+            public static void Postfix(ToggleOnClick __instance)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                //AddDebug("SwitchOn " + tt);
+                if (tt == TechType.SmallStove)
+                {
+                    PlayerTool heldTool = Inventory.main.GetHeldTool();
+                    if (heldTool)
+                    {
+                        GameObject go = heldTool.gameObject;
+                        if (Util.IsCreatureAlive(go) && Util.IsEatableFish(go))
+                            Util.CookFish(go);
+                    }
+                }
+            }
+        }
+
+
+
 
 
 

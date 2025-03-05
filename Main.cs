@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.16.0";
+            VERSION = "2.16.1";
         public static Survival survival;
         public static float oceanLevel;
         public static System.Random rndm = new System.Random();
@@ -82,6 +82,7 @@ namespace Tweaks_Fixes
             Tools_Patch.fixedFish.Clear();
             Battery_Patch.seatruckPRs.Clear();
             CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
+            Survival_.healTime = 0;
             //Player_Movement.invItemsMod = float.MinValue;
             //Player_Movement.equipmentSpeedMod = float.MaxValue;
             //Player_Movement.toolMod = float.MaxValue;

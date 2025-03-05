@@ -9,7 +9,6 @@ namespace Tweaks_Fixes
 {
     class Pickupable_Patch
     {
-        static float healTime = 0f;
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
         public static HashSet<TechType> unmovableItems = new HashSet<TechType>();
         public static Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> { };
@@ -119,30 +118,8 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(Player), "Update")]
-        class Player_Update_Patch
-        {
-            static void Postfix(Player __instance)
-            { // not checking savegame slot
-                if (!Main.gameLoaded)
-                    return;
 
-                if (Main.configMain.medKitHPtoHeal > 0 && Time.time > healTime)
-                {
-                    healTime = Time.time + 1f;
-                    __instance.liveMixin.AddHealth(ConfigToEdit.medKitHPperSecond.Value);
-                    Main.configMain.medKitHPtoHeal -= ConfigToEdit.medKitHPperSecond.Value;
-                    if (Main.configMain.medKitHPtoHeal < 0)
-                        Main.configMain.medKitHPtoHeal = 0;
-
-                    //AddDebug("Player Update heal " + Main.config.medKitHPperSecond);
-                    //AddDebug("Player Update medKitHPtoHeal " + Main.config.medKitHPtoHeal);
-                    //Main.config.Save();
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(Survival), "Use")]
+        //[HarmonyPatch(typeof(Survival), "Use")]
         class Survival_Awake_Patch
         {
             static bool Prefix(Survival __instance, GameObject useObj, ref bool __result, Inventory inventory)
@@ -173,7 +150,7 @@ namespace Tweaks_Fixes
                         else
                         {
                             Main.configMain.medKitHPtoHeal += ConfigMenu.medKitHP.Value;
-                            healTime = Time.time;
+                            //healTime = Time.time;
                         }
                     }
                 }

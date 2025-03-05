@@ -93,6 +93,7 @@
     <Compile Include="Camera.cs" />
     <Compile Include="ConfigMain.cs" />
     <Compile Include="CreatureDeath_Patch.cs" />
+    <Compile Include="Creature_aggression.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
     <Compile Include="Exosuit_movement.cs" />
     <Compile Include="Food.cs" />
@@ -105,6 +106,7 @@
     <Compile Include="Constructor_Patch.cs" />
     <Compile Include="Inventory_Patch.cs" />
     <Compile Include="Screen_Resolution_Fix.cs" />
+    <Compile Include="Silent_Creatures.cs" />
     <Compile Include="SnowBall_.cs" />
     <Compile Include="Start_Warning_Patch.cs" />
     <Compile Include="ConfigToEdit.cs" />
@@ -122,7 +124,6 @@
     <Compile Include="PDA_Clock_.cs" />
     <Compile Include="Plants_Patch.cs" />
     <Compile Include="DayNightCycle_Patch.cs" />
-    <Compile Include="Predators_Patch.cs" />
     <Compile Include="Hoverbike_Patch.cs" />
     <Compile Include="Exosuit_Patch.cs" />
     <Compile Include="Seatruck_Patch.cs" />

@@ -383,23 +383,26 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(ItemsContainer))]
-        class ItemsContainer_Patch
+        [HarmonyPatch(typeof(PlayerBreathBubbles), "MakeBubbles")]
+        class PlayerBreathBubbles_MakeBubbles_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("NotifyRemoveItem")]
-            public static void NotifyRemoveItemPostfix(ItemsContainer __instance, InventoryItem item)
+            public static bool Prefix(PlayerBreathBubbles __instance)
             {
-                AddDebug("ItemsContainer NotifyRemoveItem " + item.item.GetTechName());
-            }
-            //[HarmonyPostfix]
-            //[HarmonyPatch("NotifyAddItem")]
-            public static void NotifyAddItemPostfix(ItemsContainer __instance, InventoryItem item)
-            {
-                AddDebug("ItemsContainer NotifyAddItem " + item.item.GetTechName());
+                if (ConfigToEdit.playerBreathBubbles.Value && ConfigToEdit.playerBreathBubblesSoundFX.Value)
+                    return true;
+
+                if (!__instance.enabled)
+                    return false;
+
+                if (ConfigToEdit.playerBreathBubblesSoundFX.Value)
+                    __instance.bubbleSound.Play();
+
+                if (ConfigToEdit.playerBreathBubbles.Value)
+                    __instance.bubbles.Play();
+
+                return false;
             }
         }
-
 
 
     }

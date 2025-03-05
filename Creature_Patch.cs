@@ -8,7 +8,7 @@ namespace Tweaks_Fixes
 {
     class Creature_Patch
     {
-        public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
+        //public static HashSet<TechType> silentCreatures = new HashSet<TechType> { };
         public static HashSet<TechType> creatureTT = new HashSet<TechType> { };
 
         public static ConditionalWeakTable<SwimBehaviour, string> fishSBs = new ConditionalWeakTable<SwimBehaviour, string>();
@@ -103,7 +103,7 @@ namespace Tweaks_Fixes
                 { // ray does not hit terrain if cast from underneath. Cast from player to avoid it.
                     Vector3 dir = go.transform.position - __instance.transform.position;
                     Vector3 rhs = __instance.eyesOnTop ? __instance.transform.up : __instance.transform.forward;
-                    if ((Util.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(dir.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(go.transform.position, __instance.transform.position, Voxeland.GetTerrainLayerMask()))
+                    if ((Mathf.Approximately(__instance.eyeFOV, -1f) || Vector3.Dot(dir.normalized, rhs) >= __instance.eyeFOV) && !Physics.Linecast(go.transform.position, __instance.transform.position, Voxeland.GetTerrainLayerMask()))
                         __result = true;
                 }
             }

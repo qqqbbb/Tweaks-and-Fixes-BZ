@@ -458,11 +458,6 @@ namespace Tweaks_Fixes
             return prefabIdentifier != null ? prefabIdentifier.gameObject : null;
         }
 
-        public static bool Approximately(float a, float b, float tolerance = 0.00001f)
-        { // Mathf.Approximately does not work when compare to 0
-            return (Mathf.Abs(a - b) < tolerance);
-        }
-
         public static void MakeEatable(GameObject go, float food)
         {
             Eatable eatable = go.EnsureComponent<Eatable>();

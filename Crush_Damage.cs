@@ -23,15 +23,16 @@ namespace Tweaks_Fixes
             if (depth < crushDepth)
                 return;
 
-            float mult = 1f - crushDamageResistance;
-            float damage = ConfigMenu.crushDamage.Value * mult;
-            if (damage <= 0)
-                return;
+            float resMult = Mathf.Clamp01(1f - crushDamageResistance);
+            float damage = ConfigMenu.crushDamage.Value;
             //AddDebug(" Crush Damage " + damage);
             if (ConfigMenu.crushDamageProgression.Value > 0f)
                 damage += (depth - crushDepth) * ConfigMenu.crushDamageProgression.Value;
+
+            damage *= resMult;
             //AddDebug(" crush Damage Progression " + damage);
-            Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
+            if (damage > 0)
+                Player.main.liveMixin.TakeDamage(damage, Utils.GetRandomPosInView(), DamageType.Pressure);
         }
 
         [HarmonyPatch(typeof(Inventory))]
@@ -75,19 +76,25 @@ namespace Tweaks_Fixes
                 if (crushDamageEquipment.ContainsKey(tt))
                 {
                     //AddDebug("crushDamageEquipment " + crushDamageEquipment[tt]);
-                    crushDamageResistance -= crushDamageEquipment[tt];
+                    float res = crushDamageEquipment[tt] * .01f;
+                    crushDamageResistance -= Mathf.Clamp01(res);
                     if (crushDamageResistance < 0f)
                         crushDamageResistance = 0f;
                 }
             }
         }
 
-
-        [HarmonyPatch(typeof(Player), "Update")]
-        class Player_Update_Patch
+        [HarmonyPatch(typeof(Player))]
+        class Player_Patch
         {
-            private static float crushTime = 0f;
-            static void Postfix(Player __instance)
+            private static float crushTime = 0;
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            static void StartPostfix(Player __instance)
+            {
+                crushTime = 0;
+            }
+            [HarmonyPostfix, HarmonyPatch("Update")]
+            static void UpdatePostfix(Player __instance)
             {
                 if (!Main.gameLoaded)
                     return;
@@ -143,13 +150,13 @@ namespace Tweaks_Fixes
                     return false;
 
                 float damage = __instance.damagePerCrush * ConfigMenu.vehicleCrushDamageMult.Value;
-                if (damage <= 0)
-                    return false;
-
                 //AddDebug("damage " + damage);
                 if (ConfigMenu.crushDamageProgression.Value > 0f)
                     damage += (depth - __instance.crushDepth) * ConfigMenu.crushDamageProgression.Value;
                 //AddDebug("damage Progression " + damage);
+                if (damage <= 0)
+                    return false;
+
                 __instance.liveMixin.TakeDamage(damage, __instance.transform.position, DamageType.Pressure);
                 foreach (SeaTruckSegment sts in __instance.GetComponentsInChildren<SeaTruckSegment>())
                 //for (SeaTruckSegment sts = __instance; sts; sts = sts.isFrontConnected ? sts.frontConnection.GetConnection().truckSegment : null)

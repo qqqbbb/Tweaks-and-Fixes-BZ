@@ -112,7 +112,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> seatruckAfterburnerWithoutCooldown;
         public static ConfigEntry<bool> replaceSeatruckHorsePowerUpgrade;
         public static ConfigEntry<bool> alwaysSpawnWhenKnifeHarvesting;
-
+        public static ConfigEntry<bool> playerBreathBubbles;
+        public static ConfigEntry<bool> playerBreathBubblesSoundFX;
+        //public static ConfigEntry<bool> medkitFabAlertSound;
 
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
         public static AcceptableValueRange<int> percentRange = new AcceptableValueRange<int>(0, 100);
@@ -225,6 +227,9 @@ namespace Tweaks_Fixes
             seatruckAfterburnerWithoutCooldown = Main.configToEdit.Bind("VEHICLES", "Seatruck afterburner works without cooldown", false, "After activating afterburner, it will work until you stop driving the seatruck but will consume twice more power.");
             replaceSeatruckHorsePowerUpgrade = Main.configToEdit.Bind("VEHICLES", "Replace seatruck horsepower upgrade", false, "Seatruck horsepower upgrade will increase engine's horsepower output and energy consumption by 10%. More than 1 can be installed.");
             alwaysSpawnWhenKnifeHarvesting = Main.configToEdit.Bind("TOOLS", "Always spawn things you harvest with knife instead of adding them to inventory", false);
+            playerBreathBubbles = Main.configToEdit.Bind("PLAYER", "Player breath bubbles particle effect", true);
+            playerBreathBubblesSoundFX = Main.configToEdit.Bind("PLAYER", "Player breath bubbles sound effect", true);
+            //medkitFabAlertSound = Main.configToEdit.Bind("BASE", "Medical kit fabricator alert sound when first aid kit is ready", true);
 
 
             transferAllItemsButton = Main.configToEdit.Bind("BUTTOM BIND", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");

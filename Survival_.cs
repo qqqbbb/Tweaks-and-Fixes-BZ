@@ -14,6 +14,8 @@ namespace Tweaks_Fixes
     class Survival_
     {
         static bool updatingStats;
+        private static bool usingMedkit;
+        public static float healTime = 0f;
 
         public static float UpdateStats(Survival survival, float timePassed)
         {
@@ -54,26 +56,6 @@ namespace Tweaks_Fixes
             //AddDebug("Invoke dayNightSpeed " + DayNightCycle.main.dayNightSpeed);
             //__instance.Invoke("UpdateHunger", updateHungerInterval);
             return foodDamage;
-        }
-
-        [HarmonyPatch(typeof(ToggleOnClick), "SwitchOn")]
-        internal class ToggleOnClick_Patch
-        {
-            public static void Postfix(ToggleOnClick __instance)
-            {
-                TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //AddDebug("SwitchOn " + tt);
-                if (tt == TechType.SmallStove)
-                {
-                    PlayerTool heldTool = Inventory.main.GetHeldTool();
-                    if (heldTool)
-                    {
-                        GameObject go = heldTool.gameObject;
-                        if (Util.IsCreatureAlive(go) && Util.IsEatableFish(go))
-                            Util.CookFish(go);
-                    }
-                }
-            }
         }
 
         [HarmonyPatch(typeof(Survival))]
@@ -184,8 +166,8 @@ namespace Tweaks_Fixes
                 float healthValue = eatable.GetHealthValue();
                 float coldMeterValue = eatable.GetColdMeterValue();
                 int playerMinFood = ConfigMenu.newHungerSystem.Value ? -100 : 0;
-                float playerMaxWater = ConfigMenu.newHungerSystem.Value ? 200f : (float)ConfigMenu.maxWater.Value;
-                float playerMaxFood = ConfigMenu.newHungerSystem.Value ? 200f : (float)ConfigMenu.maxFood.Value;
+                float playerMaxWater = ConfigMenu.maxPlayerWater.Value;
+                float playerMaxFood = ConfigMenu.maxPlayerFood.Value;
                 int minFood = food;
                 int maxFood = food;
                 int minWater = water;
@@ -280,7 +262,6 @@ namespace Tweaks_Fixes
                 }
                 //AddDebug("finalFood " + finalFood);
                 //AddDebug("finalWater " + finalWater);
-
                 if (finalFood > 0)
                     GoalManager.main.OnCustomGoalEvent("Eat_Something");
                 if (finalWater > 0)
@@ -328,7 +309,6 @@ namespace Tweaks_Fixes
 
                 __instance.water = Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater);
                 __instance.food = Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
-
                 int warn = ConfigMenu.newHungerSystem.Value ? 0 : 20;
                 if (!__instance.InConversation())
                 {
@@ -356,8 +336,59 @@ namespace Tweaks_Fixes
                 return false;
             }
 
+            [HarmonyPrefix, HarmonyPatch("Use")]
+            public static void UsePrefix(Survival __instance, GameObject useObj, ref bool __result)
+            {
+                TechType techType = CraftData.GetTechType(useObj);
+                //Main.logger.LogMessage("Survival Use " + techType);
+                if (techType == TechType.FirstAidKit)
+                    usingMedkit = true;
+            }
         }
 
+        [HarmonyPatch(typeof(LiveMixin), "AddHealth")]
+        class LiveMixin_AddHealth_patch
+        {
+            public static bool Prefix(LiveMixin __instance, ref float healthBack, ref float __result)
+            {
+                if (usingMedkit == false)
+                    return true;
+
+                usingMedkit = false;
+                if (ConfigToEdit.medKitHPperSecond.Value >= ConfigMenu.medKitHP.Value)
+                    healthBack = ConfigMenu.medKitHP.Value;
+                else
+                {
+                    Main.configMain.medKitHPtoHeal = ConfigMenu.medKitHP.Value;
+                    healTime = Time.time;
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(Player), "Update")]
+        class Player_Update_Patch
+        {
+            static void Postfix(Player __instance)
+            { // not checking savegame slot
+                if (!Main.gameLoaded)
+                    return;
+
+                if (Main.configMain.medKitHPtoHeal > 0 && Time.time > healTime)
+                {
+                    healTime = Time.time + 1f;
+                    __instance.liveMixin.AddHealth(ConfigToEdit.medKitHPperSecond.Value);
+                    Main.configMain.medKitHPtoHeal -= ConfigToEdit.medKitHPperSecond.Value;
+                    if (Main.configMain.medKitHPtoHeal < 0)
+                        Main.configMain.medKitHPtoHeal = 0;
+
+                    //AddDebug("Player Update heal " + Main.config.medKitHPperSecond);
+                    //AddDebug("Player Update medKitHPtoHeal " + Main.config.medKitHPtoHeal);
+                    //Main.config.Save();
+                }
+            }
+        }
 
         //[HarmonyPatch(typeof(Inventory), "ConsumeResourcesForRecipe")]
         class Inventory_ConsumeResourcesForRecipe_patch
