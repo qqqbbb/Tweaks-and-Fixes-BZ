@@ -88,7 +88,7 @@ namespace Tweaks_Fixes
                     __instance.UpdatePlayerDamage(currentTime);
                     float fadeAmount = Mathf.InverseLerp(__instance.timeStateCanged, __instance.timeNextState, currentTime);
                     foreach (Renderer fadeRenderer in __instance.fadeRenderers)
-                        fadeRenderer.fadeAmount = fadeAmount;
+                        fadeRenderer.SetFadeAmount(fadeAmount);
                     if (fadeAmount != 1f)
                         break;
                     if (__instance.breakAfterFadeOut && __instance.fxController != null)

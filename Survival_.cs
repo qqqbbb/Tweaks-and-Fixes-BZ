@@ -184,8 +184,8 @@ namespace Tweaks_Fixes
                 float healthValue = eatable.GetHealthValue();
                 float coldMeterValue = eatable.GetColdMeterValue();
                 int playerMinFood = ConfigMenu.newHungerSystem.Value ? -100 : 0;
-                float playerMaxWater = ConfigMenu.newHungerSystem.Value ? 200f : 100f;
-                float playerMaxFood = 200f;
+                float playerMaxWater = ConfigMenu.newHungerSystem.Value ? 200f : (float)ConfigMenu.maxWater.Value;
+                float playerMaxFood = ConfigMenu.newHungerSystem.Value ? 200f : (float)ConfigMenu.maxFood.Value;
                 int minFood = food;
                 int maxFood = food;
                 int minWater = water;
@@ -326,8 +326,8 @@ namespace Tweaks_Fixes
                 if (eatable.maxCharges > 0)
                     eatable.ConsumeCharge();
 
-                Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater);
-                Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
+                __instance.water = Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater);
+                __instance.food = Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
 
                 int warn = ConfigMenu.newHungerSystem.Value ? 0 : 20;
                 if (!__instance.InConversation())
