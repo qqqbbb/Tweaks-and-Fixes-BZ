@@ -56,7 +56,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<string> notRespawningCreatures;
         public static ConfigEntry<string> notRespawningCreaturesIfKilledByPlayer;
         public static ConfigEntry<bool> warmKelpWater;
-        public static ConfigEntry<int> brinicleDaysToGrow;
+        public static ConfigEntry<int> brinicleGrowTimeMult;
         public static ConfigEntry<bool> exosuitTakesDamageFromCollisions;
         public static ConfigEntry<bool> vehiclesTakeDamageOnImpact;
         public static ConfigEntry<bool> vehiclesDealDamageOnImpact;
@@ -114,7 +114,9 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> alwaysSpawnWhenKnifeHarvesting;
         public static ConfigEntry<bool> playerBreathBubbles;
         public static ConfigEntry<bool> playerBreathBubblesSoundFX;
-        //public static ConfigEntry<bool> medkitFabAlertSound;
+        public static ConfigEntry<bool> trypophobiaMode;
+        public static ConfigEntry<bool> brinicleBreakForNoReason;
+
 
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
         public static AcceptableValueRange<int> percentRange = new AcceptableValueRange<int>(0, 100);
@@ -171,7 +173,8 @@ namespace Tweaks_Fixes
             notRespawningCreaturesIfKilledByPlayer = Main.configToEdit.Bind("CREATURES", "Not respawning creatures if killed by player", "TitanHolefish, BruteShark, Cryptosuchus, SnowStalker, SnowStalkerBaby, RockPuncher, SquidShark", "Comma separated list of creature IDs that will respawn only if killed by another creature.");
             respawnTime = Main.configToEdit.Bind("CREATURES", "Creature respawn time", "", "Number of days it takes a creature to respawn. The format is: creature ID, space, number of days it takes to respawn. By default fish and big creatures respawn in 12 hours, leviathans respawn after 1 day.");
             warmKelpWater = Main.configToEdit.Bind("SURVIVAL", "Warm kelp water", true, "Water is always warm near kelps. Set this to false to disable it.");
-            brinicleDaysToGrow = Main.configToEdit.Bind("MISC", "Brinicle growth time", 0, "Number of days it takes a brinicle to grow. Set this to 0 to use vanilla game value.");
+            brinicleGrowTimeMult = Main.configToEdit.Bind("MISC", "Brinicle grow time multiplier", 1, "Time it takes a brinicle to grow will be multiplied by this");
+            brinicleBreakForNoReason = Main.configToEdit.Bind("MISC", "Brinicles break for no reason", true);
             replaceDealDamageOnImpactScript = Main.configToEdit.Bind("VEHICLES", "Replace DealDamageOnImpact script", false, "Replace script that handles vehicle collisions.");
             vehiclesTakeDamageOnImpact = Main.configToEdit.Bind("VEHICLES", "Vehicles take damage from collisions", true, "Works only if 'Replace DealDamageOnImpact script' is true");
             exosuitTakesDamageFromCollisions = Main.configToEdit.Bind("VEHICLES", "Prawn suit takes damage from collisions", true, "Works only if 'Replace DealDamageOnImpact script' is true");
@@ -229,7 +232,7 @@ namespace Tweaks_Fixes
             alwaysSpawnWhenKnifeHarvesting = Main.configToEdit.Bind("TOOLS", "Always spawn things you harvest with knife instead of adding them to inventory", false);
             playerBreathBubbles = Main.configToEdit.Bind("PLAYER", "Player breath bubbles particle effect", true);
             playerBreathBubblesSoundFX = Main.configToEdit.Bind("PLAYER", "Player breath bubbles sound effect", true);
-            //medkitFabAlertSound = Main.configToEdit.Bind("BASE", "Medical kit fabricator alert sound when first aid kit is ready", true);
+            trypophobiaMode = Main.configToEdit.Bind("MISC", "Trypophobia mode", false, "Honeycomb Fungus will be removed from the game if this is true");
 
 
             transferAllItemsButton = Main.configToEdit.Bind("BUTTOM BIND", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");

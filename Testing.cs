@@ -256,14 +256,20 @@ namespace Tweaks_Fixes
                 if (target)
                     vfxSurfaceType = Util.GetObjectSurfaceType(target);
 
-                LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
+                //LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
+                Brinicle brinicle = target.GetComponentInParent<Brinicle>();
+                if (brinicle)
+                {
+                    AddDebug("brinicle " + brinicle.state);
+                }
+                PrefabIdentifier lwe = target.GetComponentInParent<PrefabIdentifier>();
                 if (lwe)
                 {
                     target = lwe.gameObject;
                     int posX = (int)lwe.transform.position.x;
                     int posY = (int)lwe.transform.position.y;
                     int posZ = (int)lwe.transform.position.z;
-                    AddDebug(" position " + posX + " " + posY + " " + posZ);
+                    //AddDebug(" position " + posX + " " + posY + " " + posZ);
                     //AddDebug(" cellLevel " + lwe.cellLevel);
                     if (vfxSurfaceType != VFXSurfaceTypes.none)
                         AddDebug("vfxSurfaceType  " + vfxSurfaceType);

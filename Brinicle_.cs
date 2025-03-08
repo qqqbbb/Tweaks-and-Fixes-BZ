@@ -3,16 +3,23 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static ErrorMessage;
+using Random = UnityEngine.Random;
 
 namespace Tweaks_Fixes
 {   //  47 -14 -28
     [HarmonyPatch(typeof(Brinicle))]
-    public class Brinicle_Patch
+    public class Brinicle_
     {
         [HarmonyPrefix]
         [HarmonyPatch("SetState", new Type[] { typeof(Brinicle.State), typeof(float) })]
         public static bool SetStatePrefix(Brinicle __instance, Brinicle.State newState, float changedTime)
         {
+            if (newState == Brinicle.State.FadeOut && ConfigToEdit.brinicleBreakForNoReason.Value == false)
+                return false;
+
+            if (ConfigToEdit.brinicleGrowTimeMult.Value == 1)
+                return true;
+
             __instance.timeStateCanged = changedTime;
             __instance.state = newState;
             __instance.model.gameObject.SetActive((uint)__instance.state > 0U);
@@ -30,11 +37,7 @@ namespace Tweaks_Fixes
                     __instance.UnfreezeAll();
                     break;
                 case Brinicle.State.Grow:
-                    if (ConfigToEdit.brinicleDaysToGrow.Value == 0)
-                        __instance.timeNextState = __instance.timeStateCanged + Mathf.Lerp(__instance.minGrowTime, __instance.maxGrowTime, UnityEngine.Random.value);
-                    else if (ConfigToEdit.brinicleDaysToGrow.Value > 0)
-                        __instance.timeNextState = __instance.timeStateCanged + ConfigToEdit.brinicleDaysToGrow.Value * DayNightCycle.main.dayLengthSeconds / DayNightCycle.main._dayNightSpeed;
-                    //__instance.timeNextState = __instance.timeStateCanged + Mathf.Lerp(__instance.minGrowTime, __instance.maxGrowTime, Random.value);
+                    __instance.timeNextState = __instance.timeStateCanged + Mathf.Lerp(__instance.minGrowTime, __instance.maxGrowTime, Random.value) * ConfigToEdit.brinicleGrowTimeMult.Value;
                     __instance.currentSize = __instance.growthSpeed.Evaluate(Mathf.InverseLerp(__instance.timeStateCanged, __instance.timeStateCanged + __instance.timeNextState, Time.time));
                     __instance.fullScale = Vector3.Lerp(__instance.minFullScale, __instance.maxFullScale, UnityEngine.Random.value);
                     __instance.model.localScale = Vector3.Lerp(__instance.zeroScale, __instance.fullScale, __instance.currentSize);
@@ -51,12 +54,15 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("Update")]
+        //[HarmonyPrefix]
+        //[HarmonyPatch("Update")]
         public static bool UpdatePrefix(Brinicle __instance)
         {
             if (!Main.gameLoaded)
                 return false;
+
+            if (ConfigToEdit.brinicleBreakForNoReason.Value)
+                return true;
 
             float currentTime = Time.time;
             switch (__instance.state)

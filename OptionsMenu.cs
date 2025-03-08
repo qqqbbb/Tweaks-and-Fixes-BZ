@@ -56,8 +56,7 @@ namespace Tweaks_Fixes
             ModSliderOption foodLossSlider = ConfigMenu.foodLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
             ModSliderOption waterLossSlider = ConfigMenu.waterLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
             ModSliderOption foodWaterHealThresholdSlider = ConfigMenu.foodWaterHealThreshold.ToModSliderOption(100, 400, 10);
-            AddItem(maxFoodSlider);
-            AddItem(maxWaterSlider);
+
 
             AddItem(timeFlowSpeedSlider);
             AddItem(playerWaterSpeedSlider);
@@ -70,6 +69,8 @@ namespace Tweaks_Fixes
             AddItem(foodLossSlider);
             AddItem(waterLossSlider);
             AddItem(foodWaterHealThresholdSlider);
+            AddItem(maxFoodSlider);
+            AddItem(maxWaterSlider);
             AddItem(coldSlider);
             AddItem(knifeRangeSlider);
             AddItem(knifeDamageSlider);

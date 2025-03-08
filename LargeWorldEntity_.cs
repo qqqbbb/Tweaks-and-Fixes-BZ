@@ -9,7 +9,7 @@ using static ErrorMessage;
 namespace Tweaks_Fixes
 {
     [HarmonyPatch(typeof(LargeWorldEntity))]
-    class LargeWorldEntity_Patch
+    class LargeWorldEntity_
     {
         static HashSet<TechType> plantSurfaces = new HashSet<TechType> { TechType.PurpleVegetablePlant, TechType.Creepvine, TechType.HeatFruitPlant, TechType.IceFruitPlant, TechType.FrozenRiverPlant2, TechType.JellyPlant, TechType.LeafyFruitPlant, TechType.KelpRoot, TechType.KelpRootPustule, TechType.HangingFruitTree, TechType.MelonPlant, TechType.SnowStalkerPlant, TechType.CrashHome, TechType.DeepLilyShroom, TechType.DeepLilyPadsLanternPlant, TechType.BlueFurPlant, TechType.GlacialTree, TechType.GlowFlower, TechType.OrangePetalsPlant, TechType.HoneyCombPlant, TechType.CavePlant, TechType.GlacialPouchBulb, TechType.PurpleRattle, TechType.ThermalLily, TechType.GlacialBulb, TechType.PinkFlower, TechType.SmallMaroonPlant, TechType.DeepTwistyBridgesLargePlant, TechType.GenericShellDouble, TechType.TwistyBridgeCliffPlant, TechType.GenericCrystal, TechType.CaveFlower, TechType.TrianglePlant, TechType.PurpleBranches, TechType.GenericBigPlant2, TechType.GenericBigPlant1, TechType.GenericShellSingle, TechType.OxygenPlant, TechType.TwistyBridgeCoralLong, TechType.GenericCage, TechType.TapePlant, TechType.GenericBowl, TechType.TallShootsPlant, TechType.TreeSpireMushroom, TechType.RedBush, TechType.GenericRibbon, TechType.MohawkPlant, TechType.GenericSpiral, TechType.SpottedLeavesPlant, TechType.TornadoPlates, TechType.ThermalSpireBarnacle, TechType.TwistyBridgesLargePlant, TechType.PurpleStalk, TechType.LargeVentGarden, TechType.SmallVentGarden };
 
@@ -105,6 +105,10 @@ namespace Tweaks_Fixes
                     CapsuleCollider cc = tr.GetComponent<CapsuleCollider>();
                     cc.isTrigger = true;
                 }
+            }
+            else if (tt == TechType.HoneyCombPlant && ConfigToEdit.trypophobiaMode.Value)
+            {
+                UnityEngine.Object.Destroy(__instance.gameObject);
             }
             else if (tt == TechType.None)
             {

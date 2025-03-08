@@ -150,7 +150,7 @@ namespace Tweaks_Fixes
             public static bool EatPrefix(Survival __instance, GameObject useObj, ref bool __result)
             {
                 //AddDebug("Survival eat " + useObj.name);
-                //if (Main.config.eatRawFish == Config.EatingRawFish.Vanilla && !Main.config.newHungerSystem && !Main.config.foodTweaks)
+                //if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla && !Main.config.newHungerSystem && ConfigMenu.maxPlayerWater.Value == 100 && ConfigMenu.maxPlayerFood.Value == 200)
                 //    return true;
 
                 Eatable eatable = useObj.GetComponent<Eatable>();
@@ -301,6 +301,7 @@ namespace Tweaks_Fixes
 
                 if (useSound)
                     Utils.PlayFMODAsset(useSound, __instance.player.transform.position);
+
 
                 if (techType == TechType.Bladderfish)
                     Player.main.GetComponent<OxygenManager>().AddOxygen(15f);

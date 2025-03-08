@@ -113,8 +113,8 @@
     <Compile Include="Drop_Pod_Patch.cs" />
     <Compile Include="Flare_Patch.cs" />
     <Compile Include="Fragment_Patch.cs" />
-    <Compile Include="Brinicle_Patch.cs" />
-    <Compile Include="LargeWorldEntity_Patch.cs" />
+    <Compile Include="Brinicle_.cs" />
+    <Compile Include="LargeWorldEntity_.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="SeaTruck_movement.cs" />
     <Compile Include="Water_Freeze.cs" />

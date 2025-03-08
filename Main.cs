@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.16.2";
+            VERSION = "2.17.0";
         public static Survival survival;
         public static float oceanLevel;
         public static System.Random rndm = new System.Random();
@@ -258,7 +258,7 @@ namespace Tweaks_Fixes
             ConfigToEdit.ParseConfig();
             options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
-
+            AddTechTypesToClassIDtable();
             //// vanilla desc just copies the name
             //LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, config.translatableStrings[21]);
             //// vanilla desc does not tell percent
@@ -281,6 +281,14 @@ namespace Tweaks_Fixes
                 //"c1oud5_SeatruckLightsSwitch"
             }
         }
+
+        private static void AddTechTypesToClassIDtable()
+        {
+            //CraftData.entClassTechTable["769f9f44-30f6-46ed-aaf6-fbba358e1676"] = TechType.BaseBioReactor;
+            //CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
+            CraftData.entClassTechTable["ef9ca323-9e02-4903-991c-eb3e597a279d"] = TechType.HoneyCombPlant;
+        }
+
 
     }
 }
