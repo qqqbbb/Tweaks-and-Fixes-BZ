@@ -11,14 +11,13 @@ namespace Tweaks_Fixes
 {
     internal class SeaTruck_movement
     {
-        public static bool afterBurnerWasActive;
         public static float seatruckSidewardMod;
         public static float seatruckBackwardMod;
         public static float seatruckVertMod;
-        public static float seatruckPowerEfficiency;
+        public static float origSeatruckPowerEfficiency;
         public static bool afterBurnerActive;
-        public static Vector3 moveDir;
-        public static int horsePowerUpgrades = 0;
+        public static int horsePowerUpgrades;
+        static float origAcceleration;
 
         public static void CacheSettings()
         {
@@ -38,28 +37,6 @@ namespace Tweaks_Fixes
             }
             //AddDebug("GetNumPowerUpgrades " + count);
             return count;
-        }
-
-        [HarmonyPatch(typeof(GameInput), "GetMoveDirection")]
-        class GameInput_GetMoveDirection_Patch
-        {
-            static void Postfix(GameInput __instance, ref Vector3 __result)
-            {
-                if (!Main.gameLoaded || !Player.main.inSeatruckPilotingChair || __result == Vector3.zero || moveDir == __result)
-                    return;
-
-                __result *= ConfigMenu.seatruckSpeedMult.Value;
-                if (seatruckSidewardMod < 1 && __result.x != 0)
-                    __result.x *= seatruckSidewardMod;
-
-                if (seatruckBackwardMod < 1 && __result.z < 0)
-                    __result.z *= seatruckBackwardMod;
-
-                if (seatruckVertMod < 1 && __result.y != 0)
-                    __result.y *= seatruckVertMod;
-
-                moveDir = __result;
-            }
         }
 
         [HarmonyPatch(typeof(SeaTruckUpgrades))]
@@ -93,12 +70,14 @@ namespace Tweaks_Fixes
                 if (ConfigToEdit.seatruckAfterburnerWithoutCooldown.Value && techType == TechType.SeaTruckUpgradeAfterburner)
                     afterBurnerActive = true;
             }
-            [HarmonyPostfix, HarmonyPatch("OnUpgradeModuleChange")]
+            //[HarmonyPostfix, HarmonyPatch("OnUpgradeModuleChange")]
             public static void OnUpgradeModuleChangePostfix(SeaTruckUpgrades __instance, int slotID, TechType techType, bool added)
             {
-                //AddDebug("OnUpgradeModuleChange " + techType);
-                seatruckPowerEfficiency = __instance.motor.powerEfficiencyFactor;
+                //AddDebug($"OnUpgradeModuleChange {techType} acc {__instance.motor.acceleration}");
+                origSeatruckPowerEfficiency = __instance.motor.powerEfficiencyFactor;
                 horsePowerUpgrades = GetNumHPUpgrades(__instance);
+                //if (origAcceleration != __instance.motor.acceleration)
+                //    origAcceleration = __instance.motor.acceleration;
                 //AddDebug("OnUpgradeModuleChange horsePowerUpgrades " + horsePowerUpgrades);
                 //AddDebug("OnUpgradeModuleChange seatruckPowerEfficiency " + seatruckPowerEfficiency);
             }
@@ -107,15 +86,6 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SeaTruckMotor))]
         class SeaTruckMotor_Patch
         {
-            static float origAcceleration;
-
-            [HarmonyPostfix, HarmonyPatch("Start")]
-            public static void StartPostfix(SeaTruckMotor __instance)
-            {
-                origAcceleration = __instance.acceleration;
-                seatruckPowerEfficiency = __instance.powerEfficiencyFactor;
-            }
-
             [HarmonyPrefix, HarmonyPatch("GetWeight")]
             public static void GetWeightPostfix(SeaTruckMotor __instance, ref float __result)
             {
@@ -129,7 +99,7 @@ namespace Tweaks_Fixes
             [HarmonyPrefix, HarmonyPatch("FixedUpdate")]
             public static void FixedUpdatePrefix(SeaTruckMotor __instance)
             {
-                if (!ConfigToEdit.fixSeatruckAnalogMovement.Value && !ConfigToEdit.seatruckAfterburnerWithoutCooldown.Value && !ConfigToEdit.replaceSeatruckHorsePowerUpgrade.Value)
+                if (!ConfigToEdit.fixSeatruckAnalogMovement.Value && !ConfigToEdit.seatruckAfterburnerWithoutCooldown.Value && !ConfigToEdit.replaceSeatruckHorsePowerUpgrade.Value && ConfigMenu.seatruckSpeedMult.Value == 1 && seatruckVertMod == 1 && seatruckBackwardMod == 1 && seatruckSidewardMod == 1)
                     return;
 
                 if (!__instance.piloting)
@@ -137,51 +107,74 @@ namespace Tweaks_Fixes
 
                 Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() || __instance.inputStackDummy.activeInHierarchy ? GameInput.GetMoveDirection() : Vector3.zero;
 
-                float powerEfficiencyFactor = seatruckPowerEfficiency;
+                //AddDebug($"prefix SeaTruckMotor.acceleration {__instance.acceleration}");
+                origAcceleration = __instance.acceleration;
+                origSeatruckPowerEfficiency = __instance.powerEfficiencyFactor;
+                float powerEfficiencyFactor = origSeatruckPowerEfficiency;
                 if (ConfigToEdit.seatruckAfterburnerWithoutCooldown.Value && afterBurnerActive)
                 {
-                    powerEfficiencyFactor = seatruckPowerEfficiency * 2;
+                    powerEfficiencyFactor = origSeatruckPowerEfficiency * 2;
                     if (moveDirection == Vector3.zero)
                         afterBurnerActive = false;
                     else
                         afterBurnerActive = true;
                 }
                 else
-                    powerEfficiencyFactor = seatruckPowerEfficiency;
+                    powerEfficiencyFactor = origSeatruckPowerEfficiency;
 
                 __instance.afterBurnerActive = afterBurnerActive;
                 if (moveDirection == Vector3.zero)
                     return;
 
                 float acceleration = origAcceleration;
-                //AddDebug(" acceleration " + acceleration);
                 if (ConfigToEdit.fixSeatruckAnalogMovement.Value)
                 {
                     float x = Mathf.Abs(moveDirection.x);
                     float z = Mathf.Abs(moveDirection.z);
-                    if (x > z)
-                        acceleration *= x;
-                    else if (x < z)
-                        acceleration *= z;
+                    if (x > 0 || z > 0)
+                    {
+                        if (x > z)
+                            acceleration *= x;
+                        else
+                            acceleration *= z;
+                    }
+                }
+                if (seatruckVertMod < 1 || seatruckBackwardMod < 1 || seatruckSidewardMod < 1)
+                {
+                    float x = Mathf.Abs(moveDirection.x);
+                    float y = Mathf.Abs(moveDirection.y);
+                    float z = Mathf.Abs(moveDirection.z);
+                    float zz = z;
+                    if (moveDirection.z < 0)
+                        zz *= seatruckBackwardMod;
+
+                    acceleration *= (x * seatruckSidewardMod + y * seatruckVertMod + zz) / (x + y + z);
                 }
                 if (ConfigToEdit.replaceSeatruckHorsePowerUpgrade.Value && horsePowerUpgrades > 0)
                 {
-                    float mod = acceleration * horsePowerUpgrades * .1f;
-                    acceleration += mod;
-                    mod = powerEfficiencyFactor * horsePowerUpgrades * .1f;
-                    powerEfficiencyFactor += mod;
+                    float mod_ = acceleration * horsePowerUpgrades * .1f;
+                    acceleration += mod_;
+                    mod_ = powerEfficiencyFactor * horsePowerUpgrades * .1f;
+                    powerEfficiencyFactor += mod_;
                 }
-                __instance.acceleration = acceleration;
+                __instance.acceleration = acceleration * ConfigMenu.seatruckSpeedMult.Value;
                 __instance.powerEfficiencyFactor = powerEfficiencyFactor;
-                //AddDebug(" acceleration f " + __instance.acceleration);
+                //AddDebug(" acceleration f " + __instance.acceleration.ToString("0.0"));
                 //AddDebug(" powerEfficiencyFactor f " + __instance.powerEfficiencyFactor);
             }
 
             [HarmonyPostfix, HarmonyPatch("FixedUpdate")]
             public static void FixedUpdatePostfix(SeaTruckMotor __instance)
             {
-                __instance.powerEfficiencyFactor = seatruckPowerEfficiency;
+                if (!ConfigToEdit.fixSeatruckAnalogMovement.Value && !ConfigToEdit.seatruckAfterburnerWithoutCooldown.Value && !ConfigToEdit.replaceSeatruckHorsePowerUpgrade.Value && ConfigMenu.seatruckSpeedMult.Value == 1 && seatruckVertMod == 1 && seatruckBackwardMod == 1 && seatruckSidewardMod == 1)
+                    return;
+
+                if (!__instance.piloting)
+                    return;
+
                 __instance.acceleration = origAcceleration;
+                __instance.powerEfficiencyFactor = origSeatruckPowerEfficiency;
+                //AddDebug($"Postfix SeaTruckMotor.acceleration {__instance.acceleration}");
             }
 
         }

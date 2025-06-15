@@ -10,7 +10,7 @@ namespace Tweaks_Fixes
 {
 
     [HarmonyPatch(typeof(Hoverbike))]
-    class Hoverbike_Patch
+    class Hoverbike_
     {
         static float defaultEnginePowerConsumption;
         static float forwardAccel;
@@ -19,7 +19,7 @@ namespace Tweaks_Fixes
         [HarmonyPostfix, HarmonyPatch("Start")]
         static void StartPostfix(Hoverbike __instance)
         {
-            defaultEnginePowerConsumption = __instance.enginePowerConsumption;
+            //defaultEnginePowerConsumption = __instance.enginePowerConsumption;
             //AddDebug("Hoverbike Start enginePowerConsumption " + __instance.enginePowerConsumption);
             if (ConfigToEdit.hoverbikeMoveOnWater.Value)
             {
@@ -53,12 +53,30 @@ namespace Tweaks_Fixes
                 float z = Mathf.Abs(moveDirection.z);
                 if (x > z)
                     __instance.forwardAccel *= x;
-                else if (x < z)
+                else
                     __instance.forwardAccel *= z;
             }
             //AddDebug("forwardAccel " + __instance.forwardAccel);
         }
 
+        [HarmonyPrefix, HarmonyPatch("HoverEngines")]
+        static void HoverEnginesPrefix(Hoverbike __instance)
+        {
+            if (ConfigToEdit.hoverbikeMoveOnWater.Value && __instance.transform.position.y < 1f)
+            {
+                __instance.rb.AddForce(Vector3.up * __instance.boyancy);
+                __instance.wasOnGround = true;
+            }
+            if (ConfigToEdit.hoverbikeBoostWithoutCooldown.Value)
+            {
+                __instance.boostFuel = __instance.forwardBoostForce * Time.deltaTime;
+                if (!boosting && GameInput.GetButtonHeld(GameInput.Button.Sprint))
+                {
+                    boosting = true;
+                    //AddDebug("start boosting");
+                }
+            }
+        }
 
         [HarmonyPostfix, HarmonyPatch("HoverEngines")]
         static void HoverEnginesPostfix(Hoverbike __instance)
@@ -81,25 +99,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPrefix, HarmonyPatch("HoverEngines")]
-        static void HoverEnginesPrefix(Hoverbike __instance)
-        {
-            if (ConfigToEdit.hoverbikeMoveOnWater.Value && __instance.transform.position.y < 1f)
-            {
-                __instance.rb.AddForce(Vector3.up * __instance.boyancy);
-                __instance.wasOnGround = true;
-            }
-            if (ConfigToEdit.hoverbikeBoostWithoutCooldown.Value)
-            {
-                __instance.boostFuel = __instance.forwardBoostForce * Time.deltaTime;
-                if (!boosting && GameInput.GetButtonHeld(GameInput.Button.Sprint))
-                {
-                    boosting = true;
-                    //AddDebug("start boosting");
-                }
-            }
-        }
-
         [HarmonyPrefix, HarmonyPatch("UpdateEnergy")]
         static void UpdateEnergyPrefix(Hoverbike __instance)
         {
@@ -108,7 +107,7 @@ namespace Tweaks_Fixes
                 __instance.enginePowerConsumption = 0;
                 return;
             }
-            __instance.enginePowerConsumption = defaultEnginePowerConsumption;
+            defaultEnginePowerConsumption = __instance.enginePowerConsumption;
             if (ConfigToEdit.hoverbikeBoostWithoutCooldown.Value && __instance.GetPilotingCraft())
             {
                 if (__instance.appliedThrottle && boosting)
@@ -116,6 +115,12 @@ namespace Tweaks_Fixes
             }
             __instance.enginePowerConsumption *= ConfigMenu.vehicleEnergyConsMult.Value;
             //AddDebug("enginePowerConsumption " + __instance.enginePowerConsumption);
+        }
+        [HarmonyPostfix, HarmonyPatch("UpdateEnergy")]
+        static void UpdateEnergyPostfix(Hoverbike __instance)
+        {
+            __instance.enginePowerConsumption = defaultEnginePowerConsumption;
+            //AddDebug("enginePowerConsumption Postfix " + __instance.enginePowerConsumption);
         }
 
     }

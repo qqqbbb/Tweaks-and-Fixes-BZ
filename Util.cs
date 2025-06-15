@@ -41,7 +41,8 @@ namespace Tweaks_Fixes
                     Transform camTr = MainCamera.camera.transform;
                     go.transform.position = camTr.position + camTr.forward * 3f;
                 }
-                go.transform.position = pos;
+                else
+                    go.transform.position = pos;
                 //AddDebug("Spawn " + techType + " " + pos);
                 CrafterLogic.NotifyCraftEnd(go, techType);
             }
@@ -82,17 +83,12 @@ namespace Tweaks_Fixes
             //int currentSlot = Inventory.main.quickSlots.desiredSlot;
             //AddDebug("currentSlot " + currentSlot);
             Inventory.main.quickSlots.DeselectImmediate();
-            //Inventory.main._container.DestroyItem(tt);
-            //Inventory.main.ConsumeResourcesForRecipe(tt);
             TechType processed = TechData.GetProcessed(CraftData.GetTechType(go));
             if (processed != TechType.None)
             { // cooked fish cant be in quickslot
               //AddDebug("CookFish " + processed);
-              //UWE.CoroutineHost.StartCoroutine(Main.AddToInventory(processed));
                 CraftData.AddToInventory(processed);
-                //Inventory.main.quickSlots.desiredSlot
                 UnityEngine.Object.Destroy(go);
-                //Inventory.main.quickSlots.SelectInternal(int slotID);
             }
         }
 
@@ -228,7 +224,7 @@ namespace Tweaks_Fixes
                 if (sts.relay.IsPowered())
                     return ConfigToEdit.insideBaseTemp.Value;
             }
-            return Player_Patches.ambientTemperature;
+            return Player_.ambientTemperature;
         }
 
         public static bool IsPlayerInTruck()
@@ -340,7 +336,7 @@ namespace Tweaks_Fixes
             else
                 fl = ((float)value - (float)min) / (float)oldRange;
 
-            return fl;
+            return Mathf.Clamp01(fl);
         }
 
         public static float NormalizeTo01range(float value, float min, float max)
@@ -353,7 +349,7 @@ namespace Tweaks_Fixes
             else
                 fl = ((float)value - (float)min) / (float)oldRange;
 
-            return fl;
+            return Mathf.Clamp01(fl);
         }
 
         public static float NormalizeToRange(float value, float oldMin, float oldMax, float newMin, float newMax)
@@ -527,6 +523,28 @@ namespace Tweaks_Fixes
             return playerTool.hasBashAnimation;
         }
 
+        public static bool IsPlayerInDropPod()
+        {
+            return Player.main.currentInterior is LifepodDrop;
+        }
+
+        public static bool CanEatFish()
+        {
+            return GameModeManager.GetOption<bool>(GameOption.VegetarianDiet) == false && GameModeManager.GetOption<bool>(GameOption.Hunger) || GameModeManager.GetOption<bool>(GameOption.Thirst); ;
+        }
+
+        public static void PrintOpcodes(List<CodeInstruction> codes, string methodName)
+        {
+            Main.logger.LogMessage($"{methodName} opcodes");
+            for (int i = 0; i < codes.Count; i++)
+            {
+                string operand = "";
+                if (codes[i].operand != null)
+                    operand = "operand " + codes[i].operand.ToString();
+
+                Main.logger.LogMessage($"opcode {codes[i].opcode}  {operand}");
+            }
+        }
 
 
     }

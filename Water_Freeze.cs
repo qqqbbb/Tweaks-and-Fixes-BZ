@@ -15,7 +15,7 @@ namespace Tweaks_Fixes
             //if (tt == TechType.BigFilteredWater)
             //AddDebug(eatable.name + " CheckWater " + temp);
             //AddDebug(eatable.name + " CheckWater " + eatable.timeDecayStart);
-            if (temp < 0f)
+            if (temp <= 0)
             {
                 //AddDebug(" freeze " + eatable.name);
                 //eatable.UnpauseDecay();
@@ -24,12 +24,12 @@ namespace Tweaks_Fixes
                 else if (eatable.timeDecayStart > eatable.waterValue)
                     eatable.timeDecayStart = eatable.waterValue;
             }
-            else if (temp > 0f)
+            else if (temp > 0)
             {
-                if (eatable.timeDecayStart > 0f)
+                if (eatable.timeDecayStart > 0)
                     eatable.timeDecayStart -= ConfigMenu.waterFreezeRate.Value * DayNightCycle.main._dayNightSpeed;
-                else if (eatable.timeDecayStart < 0f)
-                    eatable.timeDecayStart = 0f;
+                else if (eatable.timeDecayStart < 0)
+                    eatable.timeDecayStart = 0;
                 //AddDebug(" thaw " + eatable.name);
                 //eatable.timeDecayStart += eatable.kDecayRate;
                 //if (eatable.GetWaterValue() < eatable.waterValue && eatable.timeDecayPause < DayNightCycle.main.timePassedAsFloat)
@@ -141,8 +141,11 @@ namespace Tweaks_Fixes
                     return false;
 
                 Eatable eatable = item.item.GetComponent<Eatable>();
+                if (eatable == null)
+                    return false;
+
                 bool water = ConfigMenu.waterFreezeRate.Value > 0f && Util.IsWater(eatable);
-                if (eatable == null || water || !eatable.decomposes || !__instance.powerConsumer.IsPowered())
+                if (water || !eatable.decomposes || !__instance.powerConsumer.IsPowered())
                     return false;
 
                 eatable.PauseDecay();

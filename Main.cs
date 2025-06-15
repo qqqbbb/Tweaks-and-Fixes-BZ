@@ -24,10 +24,8 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.17.0";
+            VERSION = "2.20.0";
         public static Survival survival;
-        public static float oceanLevel;
-        public static System.Random rndm = new System.Random();
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
         public static bool visibleLockerInteriorModLoaded = false;
@@ -83,9 +81,6 @@ namespace Tweaks_Fixes
             Battery_Patch.seatruckPRs.Clear();
             CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
             Survival_.healTime = 0;
-            //Player_Movement.invItemsMod = float.MinValue;
-            //Player_Movement.equipmentSpeedMod = float.MaxValue;
-            //Player_Movement.toolMod = float.MaxValue;
             configMain.Load();
         }
 
@@ -95,7 +90,7 @@ namespace Tweaks_Fixes
             static void Postfix(Player __instance)
             {
                 survival = __instance.GetComponent<Survival>();
-                oceanLevel = Ocean.GetOceanLevel();
+                //oceanLevel = Ocean.GetOceanLevel();
                 //equipment = Inventory.main.equipment;
             }
         }
@@ -124,19 +119,18 @@ namespace Tweaks_Fixes
             }
             Player_Movement.UpdateModifiers();
             Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
+            MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
             gameLoaded = true;
             //if (ConfigToEdit.targetFrameRate.Value > 9)
             //    Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
         }
 
 
-        [HarmonyPatch(typeof(uGUI_MainMenu), "Start")]
+        //[HarmonyPatch(typeof(uGUI_MainMenu), "Start")]
         class uGUI_MainMenu_Start_Patch
         {
             static void Postfix(uGUI_MainMenu __instance)
             {
-                if (ConfigToEdit.targetFrameRate.Value >= 10)
-                    Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
             }
         }
 
@@ -210,7 +204,6 @@ namespace Tweaks_Fixes
             {
                 AddDebug("IngameMenu SaveGameAsync ");
                 configMain.Save();
-                AddDebug("IngameMenu SaveGameAsync !!! ");
                 //DeleteSaveSlotData(__instance.saveGame);
 
             }
@@ -222,17 +215,10 @@ namespace Tweaks_Fixes
             logger = this.Logger;
             //Assembly assembly = Assembly.GetExecutingAssembly();
             //new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
+            RegisterSpawns();
             Setup();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
-            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
-            // thermalzone_rock_01_single_a
-            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(21f, -39.5f, -364.3f), new Vector3(30f, 50f, 340f))); // 21 -39.5 -364.3
-            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(-133f, -374f, -1336f), new Vector3(0, 308.571f, 0))); //  -133 -373 -1342
-
-            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("a3f8c8e0-0a2c-4f9b-b585-8804d15bc04b", new Vector3(-412.3f, -100.79f, -388.2f), new Vector3(310f, 0f, 90f))); // -412.3 -100.79 -388.2   
-
-            //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-208f, -376f, -1332f), new Vector3(4f, 114.77f, 0f)));
 
             //RecipeData recipeData = new RecipeData(); 
             //recipeData.Ingredients = new List<Ingredient>()
@@ -242,6 +228,19 @@ namespace Tweaks_Fixes
             //};
             //CraftDataHandler.SetTechData(TechType.CyclopsDecoy, recipeData);
             //CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, TechType.CyclopsDecoy, new string[1] { "Decoy" });
+            Logger.LogInfo($"Plugin {GUID} {VERSION} is loaded ");
+        }
+
+        private static void RegisterSpawns()
+        {
+            //CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.Beacon, new Vector3(-50f, -11f, -430f)));
+            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo(TechType.ScrapMetal, new Vector3(-304f, 15.3f, 256.36f), new Vector3(4f, 114.77f, 0f)));
+            // thermalzone_rock_01_single_a
+            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(21f, -39.5f, -364.3f), new Vector3(30f, 50f, 340f))); // 21 -39.5 -364.3
+            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(-133f, -374f, -1336f), new Vector3(0, 308.571f, 0))); //  -133 -373 -1342
+
+            CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("a3f8c8e0-0a2c-4f9b-b585-8804d15bc04b", new Vector3(-412.3f, -100.79f, -388.2f), new Vector3(310f, 0f, 90f))); // -412.3 -100.79 -388.2   
+
         }
 
         public void Setup()
@@ -267,19 +266,10 @@ namespace Tweaks_Fixes
 
         public static void GetLoadedMods()
         {
-            //logger.LogInfo("Chainloader.PluginInfos Count " + Chainloader.PluginInfos.Count);
-            //AddDebug("Chainloader.PluginInfos Count " + Chainloader.PluginInfos.Count);
-            foreach (var plugin in Chainloader.PluginInfos)
-            {
-                var metadata = plugin.Value.Metadata;
-                //logger.LogInfo("loaded Mod " + metadata.GUID);
-                if (metadata.GUID == "Cookie_BaseLightSwitch")
-                    baseLightSwitchLoaded = true;
-                else if (metadata.GUID == "VisibleLockerInterior")
-                    visibleLockerInteriorModLoaded = true;
-
-                //"c1oud5_SeatruckLightsSwitch"
-            }
+            baseLightSwitchLoaded = Chainloader.PluginInfos.ContainsKey("com.ahk1221.baselightswitch") || Chainloader.PluginInfos.ContainsKey("Cookie_BaseLightSwitch");
+            visibleLockerInteriorModLoaded = Chainloader.PluginInfos.ContainsKey("VisibleLockerInterior");
+            //foreach (var plugin in Chainloader.PluginInfos)
+            //    logger.LogInfo("loaded Mod " + plugin.Value);
         }
 
         private static void AddTechTypesToClassIDtable()

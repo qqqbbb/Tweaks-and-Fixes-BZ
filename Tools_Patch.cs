@@ -45,23 +45,26 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Start")]
             static void StartPostfix(BeaconLabel __instance)
             {
-                Collider collider = __instance.GetComponent<Collider>();
-                if (collider)
-                    UnityEngine.Object.Destroy(collider);
+                if (ConfigToEdit.beaconTweaks.Value)
+                {
+                    Collider collider = __instance.GetComponent<Collider>();
+                    if (collider)
+                        UnityEngine.Object.Destroy(collider);
+                }
             }
 
             [HarmonyPrefix]
             [HarmonyPatch("OnPickedUp")]
             static bool OnPickedUpPrefix(BeaconLabel __instance)
             {
-                return false;
+                return !ConfigToEdit.beaconTweaks.Value;
             }
 
             [HarmonyPrefix]
             [HarmonyPatch("OnDropped")]
             static bool OnDroppedPrefix(BeaconLabel __instance)
             {
-                return false;
+                return !ConfigToEdit.beaconTweaks.Value;
             }
         }
 

@@ -1,10 +1,10 @@
 ﻿using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using System.Text;
+using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -13,7 +13,7 @@ namespace Tweaks_Fixes
     {
         static FMODAsset openSound;
         static FMODAsset closeSound;
-
+        // lava geyser -140 -500
         public class LockerDoorOpener : MonoBehaviour
         {
             public float startRotation;
@@ -192,7 +192,6 @@ namespace Tweaks_Fixes
             string text1 = string.Empty;
             string text2 = string.Empty;
             TechType techType = pickupable.GetTechType();
-            GameInput.Button button = GameInput.Button.AltTool;
 
             if (pickupable.AllowedToPickUp())
             {
@@ -232,7 +231,7 @@ namespace Tweaks_Fixes
                 //handReticle.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
                 handReticle.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
             }
-            text1 = HandReticle.main.GetText(text1, true, button);
+            text1 = HandReticle.main.GetText(text1, true, GameInput.Button.AltTool);
             return text1;
         }
 
@@ -260,9 +259,9 @@ namespace Tweaks_Fixes
         {
             //if (GameInput.GetButtonDown(GameInput.Button.LeftHand))
             //{
-                //if (sc)
-                //    sc.Open(sc.transform);
-                //AddDebug("LeftHand");
+            //if (sc)
+            //    sc.Open(sc.transform);
+            //AddDebug("LeftHand");
             //}
             if (GameInput.GetButtonDown(GameInput.Button.RightHand))
             {
@@ -424,7 +423,7 @@ namespace Tweaks_Fixes
             {
                 TechTag techTag = __instance.GetComponent<TechTag>();
                 if (techTag)
-                { 
+                {
                     if (techTag.type == TechType.SmallLocker)
                     {
                         Transform door = __instance.transform.Find("model/submarine_locker_02/submarine_locker_02_door");
@@ -451,7 +450,7 @@ namespace Tweaks_Fixes
                             rotater.StartCoroutine(rotater.Rotate(doorLeft, doorRight, true));
                         }
                     }
-                
+
                 }
                 else if (__instance.GetComponent<Fridge>())
                 {
@@ -496,7 +495,7 @@ namespace Tweaks_Fixes
                 {
                     label = GetSeaTruckLabel(parent, __instance);
                 }
-                else if(parent.name == "SeaTruckAquariumModule(Clone)")
+                else if (parent.name == "SeaTruckAquariumModule(Clone)")
                 {
                     //AddDebug("StorageContainer OnHandHover aquarium");
                 }
@@ -505,7 +504,7 @@ namespace Tweaks_Fixes
                     label = parent.GetComponentInChildren<ColoredLabel>();
                     ps = parent.GetComponentInChildren<PickupableStorage>();
                     sign = parent.GetComponentInChildren<Sign>();
-                }               
+                }
                 //if (label)
                 //    AddDebug("StorageContainer OnHandHover label");
                 string text = GetText(label, ps, __instance, hand, sign);

@@ -29,12 +29,8 @@ namespace Tweaks_Fixes
                 LiveMixin liveMixin = __instance.creature.liveMixin;
                 if (ConfigMenu.creatureFleeChanceBasedOnHealth.Value && liveMixin && liveMixin.IsAlive())
                 {
-                    int maxHealth = Mathf.RoundToInt(liveMixin.maxHealth);
-                    int rnd1 = Main.rndm.Next(0, maxHealth + 1);
-                    int health = Mathf.RoundToInt(liveMixin.health);
-                    //if (__instance.gameObject == Testing.goToTest)
                     //AddDebug(__instance.name + " max Health " + maxHealth + " Health " + health);
-                    if (health < rnd1)
+                    if (liveMixin.health < Random.Range(0, liveMixin.maxHealth))
                     {
                         //if (__instance.gameObject == Testing.goToTest)
                         //    AddDebug(__instance.name + " health low ");
@@ -54,7 +50,7 @@ namespace Tweaks_Fixes
                     if (ConfigMenu.creatureFleeUseDamageThreshold.Value && __instance.accumulatedDamage <= __instance.damageThreshold)
                         return false;
 
-                    int rnd = Main.rndm.Next(1, 101);
+                    int rnd = Random.Range(1, 101);
                     if (ConfigMenu.CreatureFleeChance.Value >= rnd)
                         doFlee = true;
                 }

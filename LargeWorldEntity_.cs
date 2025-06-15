@@ -124,6 +124,17 @@ namespace Tweaks_Fixes
                     if (__instance.name.StartsWith(s))
                         Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
                 }
+                if (__instance.name == "Alterra_Walkway_Stairs_01(Clone)")
+                { // you get stuck at top of this
+                    Vector3 pos = __instance.transform.position;
+                    int x = (int)pos.x;
+                    int y = (int)pos.y;
+                    int z = (int)pos.z;
+                    if (x == -164 && y == 6 && z == -652)
+                    {
+                        __instance.transform.position = new Vector3(pos.x, pos.y + .15f, pos.z);
+                    }
+                }
                 //if (__instance.name == "treespires_fissure_edge_01_b_straight(Clone)")
                 //{
                 //    int x = (int)__instance.transform.position.x;

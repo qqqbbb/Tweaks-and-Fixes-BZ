@@ -16,15 +16,21 @@ namespace Tweaks_Fixes
         //static public HashSet<Pickupable> gravSphereFish = new HashSet<Pickupable>();
         static public HashSet<TechType> gravTrappable = new HashSet<TechType>();
 
-        [HarmonyPostfix]
-        [HarmonyPatch("IsValidTarget")]
+        [HarmonyPostfix, HarmonyPatch("IsValidTarget")]
         public static void OnPickedUp(Gravsphere __instance, GameObject obj, ref bool __result)
         {
+            //AddDebug($"{obj.name} IsValidTarget");
+            PlayerTool tool = obj.GetComponentInParent<PlayerTool>();
+            if (tool && tool.isDrawn)
+            {
+                //AddDebug($"{obj.name} IsValidTarget isDrawn");
+                __result = false;
+                return;
+            }
             if (__result)
                 return;
 
             TechType t = CraftData.GetTechType(obj);
-
             if (t != TechType.None && gravTrappable.Contains(t))
             {
                 __result = true;
@@ -37,7 +43,7 @@ namespace Tweaks_Fixes
         {
             gravSphere = __instance;
             Pickupable p = r.GetComponent<Pickupable>();
-            //AddDebug("AddAttractable ");
+            //AddDebug($" AddAttractable {r.name}");
             if (p)
             {
                 gravSphereFish.Add(p);
@@ -50,18 +56,6 @@ namespace Tweaks_Fixes
         {
             //AddDebug("ClearAll ");
             gravSphereFish.Clear();
-        }
-
-        //[HarmonyPrefix]
-        //[HarmonyPatch("OnDropped")]
-        public static bool OnTriggerEnter(Gravsphere __instance, Pickupable p)
-        {
-
-            AddDebug(" OnDropped ");
-            //__instance.animator.SetBool("deployed", true);
-            //__instance.trigger.enabled = false;
-            //__instance.StartCoroutine(__instance.ActivateAsync());
-            return false;
         }
 
         [HarmonyPatch(typeof(Pickupable), "Pickup")]

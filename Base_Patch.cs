@@ -352,18 +352,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(CoffeeVendingMachine), "Start")]
-        public static class CoffeeVendingMachine_Start_Patch
-        {
-            static bool Prefix(CoffeeVendingMachine __instance)
-            {
-                //AddDebug("CoffeeVendingMachine Start");
-                if (!uGUI.isLoading)
-                    __instance.idleSound.Play();
-
-                return false;
-            }
-        }
 
         [HarmonyPatch(typeof(FMOD_CustomEmitter), "Awake")]
         class FMOD_CustomEmitter_Awake_Patch
@@ -426,49 +414,21 @@ namespace Tweaks_Fixes
         {
             private static float chairRotSpeed = 70f;
 
-            [HarmonyPrefix]
-            [HarmonyPatch("Update")]
-            static bool Prefix(Bench __instance)
+            [HarmonyPostfix, HarmonyPatch("Update")]
+            static void UpdatePostfix(Bench __instance)
             {
-                if (__instance.currentPlayer == null)
-                    return false;
+                if (__instance.currentPlayer == null || __instance.isSitting == false || __instance.currentPlayer.GetPDA().isInUse)
+                    return;
 
-                if (__instance.isSitting)
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (tt == TechType.StarshipChair)
                 {
-                    if (__instance.currentPlayer.GetPDA().isInUse)
-                        return false;
-
-                    if (GameInput.GetButtonDown(GameInput.Button.Exit))
-                    {
-                        __instance.ExitSittingMode(__instance.currentPlayer);
-                        return false;
-                    }
-                    HandReticle.main.SetText(HandReticle.TextType.Use, "StandUp", true, GameInput.Button.Exit);
-                    TechType tt = CraftData.GetTechType(__instance.gameObject);
-                    if (tt == TechType.StarshipChair)
-                    {
-                        HandReticle.main.SetText(HandReticle.TextType.UseSubscript, UI_Patches.swivelText, false);
-                        if (GameInput.GetButtonHeld(GameInput.Button.MoveRight))
-                            __instance.transform.Rotate(Vector3.up * chairRotSpeed * Time.deltaTime);
-                        else if (GameInput.GetButtonHeld(GameInput.Button.MoveLeft))
-                            __instance.transform.Rotate(-Vector3.up * chairRotSpeed * Time.deltaTime);
-                    }
+                    HandReticle.main.SetText(HandReticle.TextType.UseSubscript, UI_Patches.swivelText, false);
+                    if (GameInput.GetButtonHeld(GameInput.Button.MoveRight))
+                        __instance.transform.Rotate(Vector3.up * chairRotSpeed * Time.deltaTime);
+                    else if (GameInput.GetButtonHeld(GameInput.Button.MoveLeft))
+                        __instance.transform.Rotate(-Vector3.up * chairRotSpeed * Time.deltaTime);
                 }
-                else
-                {
-                    __instance.Subscribe(__instance.currentPlayer, false);
-                    __instance.currentPlayer = null;
-                }
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Bed), "CheckForSpace")]
-        class Bed_CheckForSpace_Patch
-        {
-            static void Postfix(Bed __instance, ref bool __result)
-            {
-                __result = true;
             }
         }
 

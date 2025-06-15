@@ -17,20 +17,19 @@ namespace Tweaks_Fixes
         static GameObject previousTarget;
         static List<string> massList = new List<string>();
 
-
-        //[HarmonyPatch(typeof(SupplyCrate), "Start")]
-        class SupplyCrate_Start_Patch
+        //[HarmonyPatch("OnDraw"), HarmonyPostfix]
+        static void OnDrawPostfix(PlayerTool __instance)
         {
-            static void Prefix(SupplyCrate __instance)
+            //if (Input.GetKeyDown(KeyCode.LeftShift))
+            AddDebug($"PlayerTool OnDraw {__instance.name}");
+        }
+
+        //[HarmonyPatch(typeof(PlayerTool), "OnDraw")]
+        class PlayerTool_OnDraw_Patch
+        {
+            static void Postfix(PlayerTool __instance)
             {
-                int x = (int)__instance.transform.position.x;
-                int y = (int)__instance.transform.position.y;
-                int z = (int)__instance.transform.position.z;
-                if (x == -1195 && y == 16 && z == -691)
-                {
-                    //__instance.transform.position
-                }
-                Main.logger.LogMessage("SupplyCrate Start " + x + " " + y + " " + z);
+                AddDebug($"PlayerTool OnDraw {__instance.name}");
             }
         }
 
@@ -80,7 +79,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("IsPlayerInVehicle " + Util.IsPlayerInVehicle());
+                //AddDebug("CurrentPreset " + GameModeManager.GetCurrentPresetId());
                 //if (Player.main.currentInterior != null)
                 //{
                 //    AddDebug("currentInterior " + __instance.currentInterior.ToString());
@@ -128,7 +127,7 @@ namespace Tweaks_Fixes
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
                     PlayerTool tool = Inventory.main.GetHeldTool();
-                    AddDebug("bloodColor " + Damage_Patch.bloodColor);
+                    AddDebug("bloodColor " + Damage_.bloodColor);
                     //PrintTerrainSurfaceType();
                     //TechType tt = TechType.IceBubble;
                     //string classid = CraftData.GetClassIdForTechType(tt);

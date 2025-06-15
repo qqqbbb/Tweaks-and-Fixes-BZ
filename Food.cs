@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
+using static VFXPool;
 
 namespace Tweaks_Fixes
 {
@@ -68,7 +70,6 @@ namespace Tweaks_Fixes
                     value = false;
             }
 
-
             [HarmonyPrefix]
             [HarmonyPatch("IterateDespawn")]
             static bool IterateDespawnPrefix(Eatable __instance)
@@ -79,7 +80,16 @@ namespace Tweaks_Fixes
                 if (__instance.decomposes && __instance.foodValue > 0f)
                 {
                     CheckFood(__instance);
-                    //return false;
+                }
+                if (__instance.gameObject.activeSelf && __instance.IsRotten() && DayNightCycle.main.timePassedAsFloat - __instance.timeDespawnStart > __instance.despawnDelay)
+                { // fix bug: fish in player hand despawns
+                    PlayerTool tool = Inventory.main.GetHeldTool();
+                    if (tool)
+                    {
+                        Eatable eatable = tool.GetComponent<Eatable>();
+                        if (eatable && eatable == __instance)
+                            return false;
+                    }
                 }
                 return true;
             }

@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -8,8 +10,6 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(BreakableResource))]
     public static class OnHandClickPatch
     {
-
-
         [HarmonyPrefix]
         [HarmonyPatch("OnHandClick")]
         public static bool OnHandClickPrefix()
@@ -22,7 +22,7 @@ namespace Tweaks_Fixes
                 return true;
 
             PlayerTool tool = Inventory.main.GetHeldTool();
-            if (tool && tool.GetComponent<Knife>() != null)
+            if (tool is Knife)
             {
                 return true;
             }
@@ -112,14 +112,22 @@ namespace Tweaks_Fixes
                 {
                     Player.main.guiHand.usedToolThisFrame = true;
                     knife.OnToolActionStart();
-                    rb.isKinematic = false;
+                    if (GameInput.GetButtonDown(GameInput.Button.LeftHand))
+                        CoroutineHost.StartCoroutine(MakeKinematic(rb));
+                    else
+                        rb.isKinematic = false;
                 }
                 return false;
             }
             return true;
         }
-    }
 
+        static IEnumerator MakeKinematic(Rigidbody rb)
+        {
+            yield return new WaitForSeconds(.25f);
+            rb.isKinematic = false;
+        }
+    }
 
 
 }

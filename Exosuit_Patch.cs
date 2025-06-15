@@ -819,7 +819,7 @@ namespace Tweaks_Fixes
             if (Player.main.inExosuit && Player.main.currentMountedVehicle == __instance)
             {
                 //BodyTemperature bt = Player.main.GetComponent<BodyTemperature>();
-                __result = Player_Patches.ambientTemperature;
+                __result = Player_.ambientTemperature;
                 return false;
             }
             return true;

@@ -65,6 +65,31 @@ namespace Tweaks_Fixes
             static float foodBeforeUpdate;
             static float waterBeforeUpdate;
 
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            static void StartPostfix(Survival __instance)
+            {
+                if (ConfigToEdit.consistentHungerUpdateTime.Value)
+                {
+                    __instance.CancelInvoke();
+                    __instance.StartCoroutine(UpdateHunger(__instance));
+                }
+            }
+
+            static IEnumerator UpdateHunger(Survival survival)
+            {
+                while (ConfigToEdit.consistentHungerUpdateTime.Value)
+                {
+                    yield return new WaitForSeconds(GetHungerUpdateTime(survival));
+                    //AddDebug("UpdateHunger");
+                    survival.UpdateHunger();
+                }
+            }
+
+            private static float GetHungerUpdateTime(Survival survival)
+            {
+                return survival.kUpdateHungerInterval / DayNightCycle.main._dayNightSpeed;
+            }
+
             [HarmonyPrefix, HarmonyPatch("UpdateWarningSounds")]
             static bool UpdateWarningSoundsPrefix(Survival __instance)
             {
@@ -92,17 +117,18 @@ namespace Tweaks_Fixes
                 return codeMatcher;
             }
 
-
             [HarmonyPrefix, HarmonyPatch("UpdateStats")]
-            static bool UpdateStatsPrefix(Survival __instance, float timePassed, ref float __result)
+            static bool UpdateStatsPrefix(Survival __instance, ref float timePassed, ref float __result)
             {
-                //if (ConfigMenu.foodLossMult.Value == 1 && ConfigMenu.waterLossMult.Value == 1)
-                //    return true;
-
+                if (Main.gameLoaded == false)
+                    return false;
                 //AddDebug("UpdateStats ");
                 updatingStats = true;
                 foodBeforeUpdate = __instance.food;
                 waterBeforeUpdate = __instance.water;
+                if (ConfigToEdit.consistentHungerUpdateTime.Value)
+                    timePassed *= DayNightCycle.main._dayNightSpeed;
+
                 if (ConfigMenu.newHungerSystem.Value)
                 {
                     __result = UpdateStats(__instance, timePassed);
@@ -114,7 +140,10 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("UpdateStats")]
             static void UpdateStatsPostfix(Survival __instance, float timePassed, ref float __result)
             {
-                if (ConfigMenu.foodLossMult.Value == 1 && ConfigMenu.waterLossMult.Value == 1)
+                if (Main.gameLoaded == false)
+                    return;
+
+                if (ConfigMenu.foodLossMult.Value == 1 && ConfigMenu.waterLossMult.Value == 1 && ConfigMenu.maxPlayerFood.Value == SurvivalConstants.kMaxOverfillStat && ConfigMenu.maxPlayerWater.Value == SurvivalConstants.kMaxStat)
                     return;
 
                 float damage = 0;
@@ -127,7 +156,7 @@ namespace Tweaks_Fixes
                     if (foodToLose > foodBeforeUpdate)
                         damage += ((foodToLose - foodBeforeUpdate) * SurvivalConstants.kStarveDamage);
 
-                    __instance.food = Mathf.Clamp(foodBeforeUpdate - foodToLose, 0, SurvivalConstants.kMaxStat * 2f);
+                    __instance.food = Mathf.Clamp(foodBeforeUpdate - foodToLose, 0, ConfigMenu.maxPlayerFood.Value);
                     float waterToLose = (timePassed / SurvivalConstants.kWaterTime * SurvivalConstants.kMaxStat);
                     waterToLose *= ConfigMenu.waterLossMult.Value;
                     //AddDebug("foodToLose " + foodToLose);
@@ -135,7 +164,7 @@ namespace Tweaks_Fixes
                     if (waterToLose > waterBeforeUpdate)
                         damage += ((waterToLose - waterBeforeUpdate) * SurvivalConstants.kStarveDamage);
 
-                    __instance.water = Mathf.Clamp(waterBeforeUpdate - waterToLose, 0, SurvivalConstants.kMaxStat);
+                    __instance.water = Mathf.Clamp(waterBeforeUpdate - waterToLose, 0, ConfigMenu.maxPlayerWater.Value);
                     updatingStats = false;
                     __instance.UpdateWarningSounds(__instance.foodWarningSounds, __instance.food, foodBeforeUpdate, SurvivalConstants.kLowFoodThreshold, SurvivalConstants.kCriticalFoodThreshold);
                     __instance.UpdateWarningSounds(__instance.waterWarningSounds, __instance.water, waterBeforeUpdate, SurvivalConstants.kLowWaterThreshold, SurvivalConstants.kCriticalWaterThreshold);
@@ -227,9 +256,9 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                int rndFood = Main.rndm.Next(minFood, maxFood);
+                int rndFood = UnityEngine.Random.Range(minFood, maxFood + 1);
                 float finalFood = Mathf.Min(food, rndFood);
-                int rndWater = Main.rndm.Next(minWater, maxWater);
+                int rndWater = UnityEngine.Random.Range(minWater, maxWater + 1);
                 //AddDebug("minWater " + minWater + " maxWater " + maxWater);
                 float finalWater = Mathf.Min(water, rndWater);
                 //AddDebug("finalWater " + finalWater);
@@ -361,7 +390,7 @@ namespace Tweaks_Fixes
                     healthBack = ConfigMenu.medKitHP.Value;
                 else
                 {
-                    Main.configMain.medKitHPtoHeal = ConfigMenu.medKitHP.Value;
+                    Main.configMain.SetHPtoHeal(ConfigMenu.medKitHP.Value);
                     healTime = Time.time;
                     return false;
                 }
@@ -377,17 +406,13 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded)
                     return;
 
-                if (Main.configMain.medKitHPtoHeal > 0 && Time.time > healTime)
+                float hpToHeal = ConfigMain.GetHPtoHeal();
+                if (hpToHeal > 0 && Time.time > healTime)
                 {
                     healTime = Time.time + 1f;
                     __instance.liveMixin.AddHealth(ConfigToEdit.medKitHPperSecond.Value);
-                    Main.configMain.medKitHPtoHeal -= ConfigToEdit.medKitHPperSecond.Value;
-                    if (Main.configMain.medKitHPtoHeal < 0)
-                        Main.configMain.medKitHPtoHeal = 0;
-
-                    //AddDebug("Player Update heal " + Main.config.medKitHPperSecond);
-                    //AddDebug("Player Update medKitHPtoHeal " + Main.config.medKitHPtoHeal);
-                    //Main.config.Save();
+                    //AddDebug("AddHealth " + Main.config.medKitHPperSecond);
+                    Main.configMain.SetHPtoHeal(hpToHeal - ConfigToEdit.medKitHPperSecond.Value);
                 }
             }
         }

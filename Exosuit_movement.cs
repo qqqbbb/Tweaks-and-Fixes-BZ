@@ -26,11 +26,11 @@ namespace Tweaks_Fixes
 
                 if (Player.main.currentMountedVehicle is Exosuit)
                 {
-                    __result *= ConfigMenu.exosuitSpeedMult.Value;
                     //AddDebug("Exosuit z " + z);
                     if (ConfigToEdit.disableExosuitSidestep.Value)
                         __result.x = 0;
 
+                    __result *= ConfigMenu.exosuitSpeedMult.Value;
                     moveDir = __result;
                 }
             }

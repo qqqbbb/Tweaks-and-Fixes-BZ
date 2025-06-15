@@ -12,20 +12,8 @@ namespace Tweaks_Fixes
     {
         static GameObject bubble;
         public static float extraBreathPeriod = 0f;
-        //public static float extraBreathPeriod = 0f;
         public static float bubbleEndTime = 0f;
 
-        public class OxygenArea_Mono : MonoBehaviour
-        {
-            void OnTriggerExit(Collider other)
-            {
-                if (other && other.gameObject.GetComponentInParent<Player>())
-                {
-                    //Main.canBreathe = false;
-                    //AddDebug("OnTriggerExit ");
-                }
-            }
-        }
 
         static void SpawnBubble(Vector3 position)
         {
@@ -43,28 +31,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(OxygenPipe), "UpdatePipe")]
-        class OxygenPipe_UpdatePipe_Patch
-        {
-            public static void Postfix(OxygenPipe __instance)
-            {
-                //AddDebug("UpdatePipe ");
-                if (__instance.oxygenProvider.activeSelf)
-                {
-                    __instance.oxygenProvider.EnsureComponent<OxygenArea_Mono>();
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(OxygenPipe), "OnPickedUp")]
-        class OxygenPipe_OnPickedUp_Patch
-        {
-            public static void Postfix(OxygenPipe __instance)
-            {
-                //Main.canBreathe = false;
-                //AddDebug("OnPickedUp ");
-            }
-        }
         //[HarmonyPatch(typeof(Bubble), "Pop")]
         class Bubble_Pop_Patch
         {

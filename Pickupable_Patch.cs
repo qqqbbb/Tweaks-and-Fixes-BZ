@@ -149,7 +149,7 @@ namespace Tweaks_Fixes
                         }
                         else
                         {
-                            Main.configMain.medKitHPtoHeal += ConfigMenu.medKitHP.Value;
+                            Main.configMain.SetHPtoHeal(ConfigMenu.medKitHP.Value);
                             //healTime = Time.time;
                         }
                     }

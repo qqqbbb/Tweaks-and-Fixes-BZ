@@ -81,7 +81,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> showTempFahrenhiet;
         public static ConfigEntry<string> notRechargableBatteries;
         public static ConfigEntry<bool> vehiclesHurtCreatures;
-        public static ConfigEntry<int> targetFrameRate;
         public static ConfigEntry<bool> removeCreditsButton;
         public static ConfigEntry<bool> removeTroubleshootButton;
         public static ConfigEntry<bool> removeUnstuckButton;
@@ -116,6 +115,14 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> playerBreathBubblesSoundFX;
         public static ConfigEntry<bool> trypophobiaMode;
         public static ConfigEntry<bool> brinicleBreakForNoReason;
+        public static ConfigEntry<bool> consistentHungerUpdateTime;
+        public static ConfigEntry<bool> cameraBobbing;
+        public static ConfigEntry<bool> removeBigParticlesWhenKnifing;
+        public static ConfigEntry<bool> flareFlicker;
+        public static ConfigEntry<bool> propulsionCannonTweaks;
+        public static ConfigEntry<bool> beaconTweaks;
+        public static ConfigEntry<bool> flareTweaks;
+
 
 
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
@@ -124,12 +131,11 @@ namespace Tweaks_Fixes
         public static void Bind()
         { // “ ” ‛
             //Main.logger.LogMessage("ConfigToEdit bind start ");
-            targetFrameRate = Main.configToEdit.Bind("MISC", "Frame rate limiter", 0, "Number of frames the game renders every second will be limited to this. Numbers smaller than 10 are ignored.");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
             dontSpawnKnownFragments = Main.configToEdit.Bind("MISC", "Do not spawn fragments for unlocked blueprints", false);
             noKillParticles = Main.configToEdit.Bind("CREATURES", "No particles when creature dies", false, "No yellow cloud particles will spawn when a creature dies. Game has to be reloaded after changing this. ");
-            alwaysShowHealthFoodNunbers = Main.configToEdit.Bind("UI", "Always show health and food values in UI", false);
-            pdaClock = Main.configToEdit.Bind("UI", "PDA clock", true);
+            alwaysShowHealthFoodNunbers = Main.configToEdit.Bind("UI", "Always show numbers inside health, food and temperature meters in UI", false);
+            pdaClock = Main.configToEdit.Bind("UI", "Show time and temperature in PDA", true);
             newGameLoot = Main.configToEdit.Bind("DROP POD", "Drop pod items", "FilteredWater 0, NutrientBlock 0, Flare 0", "Items you find in your drop pod when you start a new game. The format is item ID, space, number of items. Every entry is separated by comma.");
             crushDepthEquipment = Main.configToEdit.Bind("EQUIPMENT", "Crush depth equipment", "ReinforcedDiveSuit 0", "Allows you to make your equipment increase your crush depth. The format is: item ID, space, number of meters that will be added to your crush depth. Every entry is separated by comma.");
             crushDamageEquipment = Main.configToEdit.Bind("EQUIPMENT", "Crush damage equipment", "ReinforcedDiveSuit 0", "Allows you to make your equipment reduce your crush damage. The format is: item ID, space, crush damage percent that will be blocked. Every entry is separated by comma.");
@@ -196,7 +202,7 @@ namespace Tweaks_Fixes
             cameraShake = Main.configToEdit.Bind("UI", "Screen shaking", true, "");
             removeDeadCreaturesOnLoad = Main.configToEdit.Bind("CREATURES", "Remove dead creatures when loading saved game", true, "");
             scannerFX = Main.configToEdit.Bind("TOOLS", "Wierd visual effect on objects being scanned", true, "");
-            dropItemsAnywhere = Main.configToEdit.Bind("ITEMS", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world, drop items anywhere except seatruck and grab items in your base with propulsion cannon.");
+            dropItemsAnywhere = Main.configToEdit.Bind("ITEMS", "Player can drop inventory items anywhere", false, "This allows you to place placable items anywhere in the world and drop items anywhere except seatruck.");
             showTempFahrenhiet = Main.configToEdit.Bind("UI", "Show temperature in Fahrenhiet instead of Celcius", false, "");
             removeCreditsButton = Main.configToEdit.Bind("MENU BUTTOMS", "Remove credits button from main menu", false);
             removeTroubleshootButton = Main.configToEdit.Bind("MENU BUTTOMS", "Remove troubleshooting button from options menu", false);
@@ -233,6 +239,15 @@ namespace Tweaks_Fixes
             playerBreathBubbles = Main.configToEdit.Bind("PLAYER", "Player breath bubbles particle effect", true);
             playerBreathBubblesSoundFX = Main.configToEdit.Bind("PLAYER", "Player breath bubbles sound effect", true);
             trypophobiaMode = Main.configToEdit.Bind("MISC", "Trypophobia mode", false, "Honeycomb Fungus will be removed from the game if this is true");
+            consistentHungerUpdateTime = Main.configToEdit.Bind("PLAYER", "Consistent hunger update time", false, "In vanilla game your hunger updates every 10 real time seconds. If this is true, hunger update interval will be divided by 'time flow speed multiplier' from the mod options.");
+            cameraBobbing = Main.configToEdit.Bind("PLAYER", "Screen bobbing when swimming", true);
+            removeBigParticlesWhenKnifing = Main.configToEdit.Bind("CREATURES", "Remove big particles when slashing creatures with knife", false, "You will see less blood particles when slashing creatures with knife if this is true.");
+            flareFlicker = Main.configToEdit.Bind("TOOLS", "Flare light flickering", true, "");
+            propulsionCannonTweaks = Main.configToEdit.Bind("TOOLS", "Propulsion cannon tweaks", true, "Improvements to propulsion cannon UI prompts. Ability ot eat fish you are holding with propulsion cannon. When grabbing and holding table coral with propulsion cannon, you can put it in inventory. Your propulsion cannon will break outcrop when you try to grab it. Propulsion cannon can grab fruits on plants ");
+            beaconTweaks = Main.configToEdit.Bind("TOOLS", "Beacon tweaks", true, "You do not have to aim for certain part of a beacon to rename it. You can rename a beacon while holding it in your hands.");
+            flareTweaks = Main.configToEdit.Bind("TOOLS", "Flare tweaks", true, "Tooltip for flare will tell you if it is burnt out. When you look at a dropped flare, you see if it is burnt out. You can light flare and not throw it.");
+
+
 
 
             transferAllItemsButton = Main.configToEdit.Bind("BUTTOM BIND", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
@@ -393,7 +408,7 @@ namespace Tweaks_Fixes
             //Main.logger.LogInfo("decayingFood.Count  " + Food_Patch.decayingFood.Count);
             Player_Movement.CacheSettings();
             SeaTruck_movement.CacheSettings();
-            Damage_Patch.bloodColor = ParseBloodColor(bloodColor.Value);
+            Damage_.bloodColor = ParseBloodColor(bloodColor.Value);
             Player_Movement.waterSpeedEquipment = ParseSpeedEquipmentDic(waterSpeedEquipment.Value);
             Player_Movement.groundSpeedEquipment = ParseSpeedEquipmentDic(groundSpeedEquipment.Value);
         }

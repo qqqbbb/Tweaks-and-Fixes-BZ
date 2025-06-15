@@ -4,6 +4,7 @@ using Nautilus.Handlers;
 using Nautilus.Json;
 using Nautilus.Options;
 using Nautilus.Options.Attributes;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -16,7 +17,6 @@ namespace Tweaks_Fixes
     {
         public ConfigMain()
         {
-            this.Load();
         }
 
         public override string JsonFilePath => Paths.ConfigPath + Path.DirectorySeparatorChar + Main.MODNAME + Path.DirectorySeparatorChar + "config.json";
@@ -28,7 +28,7 @@ namespace Tweaks_Fixes
         public int activeSlot = -1;
 
         public Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>> lockerNames = new Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>>();
-        public float medKitHPtoHeal = 0f;
+        static public Dictionary<string, float> HPtoHeal = new Dictionary<string, float>();
         public Dictionary<string, HashSet<Vector3Int>> iceFruitsPicked = new Dictionary<string, HashSet<Vector3Int>>();
 
         public Dictionary<string, float> podPower = new Dictionary<string, float>();
@@ -38,6 +38,23 @@ namespace Tweaks_Fixes
         //public List<string> biomesRemoveLight = new List<string> { };
 
         public Dictionary<string, Dictionary<string, bool>> baseLights = new Dictionary<string, Dictionary<string, bool>>();
+
+        internal static float GetHPtoHeal()
+        {
+            string currentSlot = SaveLoadManager.main.currentSlot;
+            if (HPtoHeal.ContainsKey(currentSlot))
+                return HPtoHeal[currentSlot];
+
+            return 0;
+        }
+
+        internal void SetHPtoHeal(float hp)
+        {
+            if (hp < 0)
+                hp = 0;
+
+            HPtoHeal[SaveLoadManager.main.currentSlot] = hp;
+        }
         //public Dictionary<string, Dictionary<TechType, int>> deadCreatureLoot = new Dictionary<string, Dictionary<TechType, int>> { { "Stalker", new Dictionary<TechType, int> { { TechType.StalkerTooth, 2 } } }, { "Gasopod", new Dictionary<TechType, int> { { TechType.GasPod, 5 } } } };
 
         //public bool LEDLightWorksInHand = true;

@@ -7,6 +7,7 @@ using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
+using static HandReticle;
 
 namespace Tweaks_Fixes
 {
@@ -321,11 +322,10 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("HandlePickupableResource");
                 Rigidbody rb = guiHand.activeTarget.GetComponent<Rigidbody>();
-
                 if (rb == null || !rb.isKinematic) // attached to terrain
                 {
                     //if (techType != TechType.None)
-                    HandReticle.main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
+                    HandReticle.main.SetText(TextType.Hand, techType.AsString(), true);
                     GUIHand.Send(guiHand.activeTarget, HandTargetEventType.Hover, guiHand);
                 }
                 else if (olayerTool is Knife)
@@ -333,262 +333,22 @@ namespace Tweaks_Fixes
                     //HandReticle.main.SetText(HandReticle.TextType.Hand, Main.config.translatableStrings[18], false, GameInput.Button.RightHand);
                 }
                 else
-                    HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, Language.main.Get("TF_need_knife_to_break_free_resource"));
+                {
+                    HandReticle.main.SetTextRaw(TextType.Hand, Language.main.Get("TF_need_knife_to_break_free_resource"));
+                    HandReticle.main.SetIcon(IconType.Default);
+                }
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("OnUpdate")]
-            public static bool OnUpdatePrefix(GUIHand __instance)
-            {
-                if (!ConfigMenu.noBreakingWithHand.Value)
-                    return true;
-
-                __instance.usedToolThisFrame = false;
-                __instance.usedAltAttackThisFrame = false;
-                __instance.suppressTooltip = false;
-                GameInput.Button button1 = GameInput.Button.LeftHand;
-                GameInput.Button button2 = GameInput.Button.RightHand;
-                GameInput.Button button3 = GameInput.Button.Reload;
-                GameInput.Button button4 = GameInput.Button.Exit;
-                GameInput.Button button5 = GameInput.Button.AltTool;
-                GameInput.Button button6 = GameInput.Button.AutoMove;
-                GameInput.Button button7 = GameInput.Button.PDA;
-                __instance.UpdateInput(button1);
-                __instance.UpdateInput(button2);
-                __instance.UpdateInput(button3);
-                __instance.UpdateInput(button4);
-                __instance.UpdateInput(button5);
-                __instance.UpdateInput(GameInput.Button.Answer);
-                __instance.UpdateInput(GameInput.Button.Exit);
-                __instance.UpdateInput(button6);
-                __instance.UpdateInput(button7);
-
-                if (AvatarInputHandler.main.IsEnabled() && !uGUI.isIntro && !uGUI.isLoading)
-                {
-                    uGUI_PopupNotification popupNotification = uGUI_PopupNotification.main;
-                    if (popupNotification != null && popupNotification.id == "Call")
-                    {
-                        if (__instance.GetInput(GameInput.Button.Answer, GUIHand.InputState.Down))
-                        {
-                            __instance.UseInput(GameInput.Button.Answer, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
-                            popupNotification.Answer();
-                            GameInput.ClearInput();
-                        }
-                        else if (__instance.GetInput(GameInput.Button.Exit, GUIHand.InputState.Down))
-                        {
-                            __instance.UseInput(GameInput.Button.Answer, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
-                            popupNotification.Decline();
-                            GameInput.ClearInput();
-                        }
-                    }
-                }
-                if (__instance.player.IsFreeToInteract() && (AvatarInputHandler.main.IsEnabled() || Builder.inputHandlerActive))
-                {
-                    string text = string.Empty;
-                    InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
-                    Pickupable pickupable = heldItem?.item;
-                    PlayerTool playerTool = pickupable != null ? pickupable.GetComponent<PlayerTool>() : null;
-                    bool dropTool = playerTool != null && playerTool is DropTool;
-                    EnergyMixin energyMixin = null;
-                    if (playerTool != null)
-                    {
-                        text = playerTool.GetCustomUseText();
-                        energyMixin = playerTool.GetComponent<EnergyMixin>();
-                    }
-                    ItemAction action = ItemAction.None;
-                    if (playerTool == null | dropTool && heldItem != null)
-                    {
-                        ItemAction allItemActions = Inventory.main.GetAllItemActions(heldItem);
-                        if ((allItemActions & ItemAction.Eat) != ItemAction.None)
-                            action = ItemAction.Eat;
-                        else if ((allItemActions & ItemAction.Use) != ItemAction.None)
-                            action = ItemAction.Use;
-
-                        if (action == ItemAction.Eat)
-                        {
-                            Plantable component1 = pickupable.GetComponent<Plantable>();
-                            LiveMixin component2 = pickupable.GetComponent<LiveMixin>();
-                            if (component1 == null && component2 != null)
-                                action = ItemAction.None;
-                        }
-                        if (action == ItemAction.None && (allItemActions & ItemAction.Drop) != ItemAction.None)
-                            action = ItemAction.Drop;
-
-                        if (action != ItemAction.None)
-                        {
-                            //AddDebug("HandReticle action " + action);
-                            HandReticle.main.SetText(HandReticle.TextType.Use, GUIHand.GetActionString(action, pickupable), true, GameInput.Button.RightHand);
-                        }
-                    }
-                    if (energyMixin != null && energyMixin.allowBatteryReplacement)
-                    {
-                        int num = Mathf.FloorToInt(energyMixin.GetEnergyScalar() * 100f);
-                        if (__instance.cachedTextEnergyScalar != num)
-                        {
-                            __instance.cachedEnergyHudText = num > 0 ? Language.main.GetFormat<float>("PowerPercent", energyMixin.GetEnergyScalar()) : LanguageCache.GetButtonFormat("ExchangePowerSource", GameInput.Button.Reload);
-                            __instance.cachedTextEnergyScalar = num;
-                        }
-                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
-                        HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, __instance.cachedEnergyHudText);
-                    }
-                    else if (!string.IsNullOrEmpty(text))
-                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
-
-
-                    if (AvatarInputHandler.main.IsEnabled() && !__instance.IsPDAInUse())
-                    {
-                        if (__instance.grabMode == GUIHand.GrabMode.None)
-                            __instance.UpdateActiveTarget();
-
-                        HandReticle.main.SetTargetDistance(__instance.activeHitDistance);
-                        if (__instance.activeTarget != null && !__instance.suppressTooltip)
-                        {
-                            TechType techType = CraftData.GetTechType(__instance.activeTarget);
-
-                            if (ConfigMenu.noBreakingWithHand.Value && techType != TechType.None && PickupablePatch.notPickupableResources.Contains(techType))
-                            {
-                                HandlePickupableResource(__instance, techType, playerTool);
-                            }
-                            else
-                            {
-                                if (techType != TechType.None)
-                                    HandReticle.main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
-
-                                GUIHand.Send(__instance.activeTarget, HandTargetEventType.Hover, __instance);
-                            }
-                        }
-                        if (Inventory.main.container.Contains(TechType.Scanner))
-                        {
-                            PDAScanner.UpdateTarget(8f);
-                            PDAScanner.ScanTarget scanTarget = PDAScanner.scanTarget;
-                            if (scanTarget.isValid && PDAScanner.CanScan(scanTarget) == PDAScanner.Result.Scan)
-                                uGUI_ScannerIcon.main.Show();
-                        }
-                        if (playerTool != null && (!dropTool || action == ItemAction.Drop || action == ItemAction.None))
-                        {
-                            if (__instance.GetInput(button2, GUIHand.InputState.Down))
-                            {
-                                if (playerTool.OnRightHandDown())
-                                {
-                                    __instance.UseInput(button2, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
-                                    __instance.usedToolThisFrame = true;
-                                    playerTool.OnToolActionStart();
-                                }
-                            }
-                            else if (__instance.GetInput(button2, GUIHand.InputState.Held))
-                            {
-                                if (playerTool.OnRightHandHeld())
-                                    __instance.UseInput(button2, GUIHand.InputState.Down | GUIHand.InputState.Held);
-                            }
-                            else if (__instance.GetInput(button2, GUIHand.InputState.Up) && playerTool.OnRightHandUp())
-                                __instance.UseInput(button2, GUIHand.InputState.Up);
-                            if (__instance.GetInput(button1, GUIHand.InputState.Down))
-                            {
-                                if (playerTool.OnLeftHandDown())
-                                {
-                                    __instance.UseInput(button1, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
-                                    playerTool.OnToolActionStart();
-                                }
-                            }
-                            else if (__instance.GetInput(button1, GUIHand.InputState.Held))
-                            {
-                                if (playerTool.OnLeftHandHeld())
-                                    __instance.UseInput(button1, GUIHand.InputState.Down | GUIHand.InputState.Held);
-                            }
-                            else if (__instance.GetInput(button1, GUIHand.InputState.Up) && playerTool.OnLeftHandUp())
-                                __instance.UseInput(button1, GUIHand.InputState.Up);
-                            if (__instance.GetInput(button5, GUIHand.InputState.Down))
-                            {
-                                if (playerTool.OnAltDown())
-                                {
-                                    __instance.UseInput(button5, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
-                                    __instance.usedAltAttackThisFrame = true;
-                                    playerTool.OnToolActionStart();
-                                }
-                            }
-                            else if (__instance.GetInput(button5, GUIHand.InputState.Held))
-                            {
-                                if (playerTool.OnAltHeld())
-                                    __instance.UseInput(button5, GUIHand.InputState.Down | GUIHand.InputState.Held);
-                            }
-                            else if (__instance.GetInput(button5, GUIHand.InputState.Up) && playerTool.OnAltUp())
-                                __instance.UseInput(button5, GUIHand.InputState.Up);
-                            if (__instance.GetInput(button3, GUIHand.InputState.Down) && playerTool.OnReloadDown())
-                                __instance.UseInput(button3, GUIHand.InputState.Down);
-                            if (__instance.GetInput(button4, GUIHand.InputState.Down) && playerTool.OnExitDown())
-                                __instance.UseInput(button4, GUIHand.InputState.Down);
-                        }
-                        if (action != ItemAction.None && __instance.GetInput(button2, GUIHand.InputState.Down))
-                        {
-                            if (action == ItemAction.Drop)
-                            {
-                                __instance.UseInput(button2, GUIHand.InputState.Down | GUIHand.InputState.Held);
-                                Inventory.main.DropHeldItem(true);
-                            }
-                            else
-                            {
-                                __instance.UseInput(button2, GUIHand.InputState.Down | GUIHand.InputState.Held);
-                                Inventory.main.ExecuteItemAction(action, heldItem);
-                            }
-                        }
-                        if (__instance.player.IsFreeToInteract() && !__instance.usedToolThisFrame)
-                        {
-                            if (__instance.activeTarget != null)
-                            {
-                                if (__instance.GetInput(button1, GUIHand.InputState.Down))
-                                {
-                                    __instance.UseInput(button1, GUIHand.InputState.Down | GUIHand.InputState.Held);
-                                    GUIHand.Send(__instance.activeTarget, HandTargetEventType.Click, __instance);
-                                }
-                            }
-                            else if (KnownTech.Contains(TechType.SnowBall) && !__instance.player.isUnderwater.value && !Player.main.IsInside())
-                            {
-                                VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
-                                int layerMask = 1 << LayerID.TerrainCollider | 1 << LayerID.Default;
-                                RaycastHit hitInfo;
-                                if (Physics.Raycast(MainCamera.camera.transform.position, MainCamera.camera.transform.forward, out hitInfo, 3f, layerMask) && hitInfo.collider.gameObject.layer == LayerID.TerrainCollider)
-                                    vfxSurfaceType = Utils.GetTerrainSurfaceType(hitInfo.point, hitInfo.normal);
-                                if (vfxSurfaceType == VFXSurfaceTypes.snow)
-                                {
-                                    HandReticle.main.SetIcon(HandReticle.IconType.Hand);
-                                    HandReticle.main.SetText(HandReticle.TextType.Hand, "PickUpSnow", true, GameInput.Button.LeftHand);
-                                    if (__instance.GetInput(button1, GUIHand.InputState.Down))
-                                    {
-                                        __instance.UseInput(button1, GUIHand.InputState.Down | GUIHand.InputState.Held);
-                                        GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(__instance.snowBallPrefab);
-                                        if (!Inventory.main.Pickup(gameObject.GetComponent<Pickupable>()))
-                                            UnityEngine.Object.Destroy(gameObject);
-                                        else
-                                            Utils.PlayFMODAsset(__instance.snowballPickupSound, MainCamera.camera.transform);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (AvatarInputHandler.main.IsEnabled() && __instance.GetInput(button6, GUIHand.InputState.Down))
-                {
-                    __instance.UseInput(button6, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
-                    GameInput.SetAutoMove(!GameInput.GetAutoMove());
-                }
-
-                if (!AvatarInputHandler.main.IsEnabled() || uGUI.isIntro || (uGUI.isLoading || !__instance.GetInput(button7, GUIHand.InputState.Down)))
-                    return false;
-
-                __instance.UseInput(button7, GUIHand.InputState.Down | GUIHand.InputState.Held | GUIHand.InputState.Up);
-                __instance.player.GetPDA().Open();
-                return false;
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("OnUpdate")]
+            [HarmonyPostfix, HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GUIHand __instance)
-            { // UI tells you if looking at dead fish 
+            {
                 PlayerTool tool = __instance.GetTool();
-                //AddDebug("PlayerTool " + tool);
                 if (tool)
                 {
+                    if (__instance.activeTarget != null && !__instance.suppressTooltip)
+                    {
+
+                    }
                     Flare flare = tool as Flare;
                     if (flare)
                     {
@@ -607,16 +367,20 @@ namespace Tweaks_Fixes
                         else if (!lit && !canThrow)
                             text = lightFlareString;
 
+                        //AddDebug("Flare text " + text);
+                        AddDebug($"lit {lit} canThrow {canThrow}");
                         HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
-                        if (!lit && GameInput.GetButtonDown(GameInput.Button.AltTool))
-                            Flare_Patch.LightFlare(flare);
+
                     }
-                    Beacon beacon = tool as Beacon;
-                    if (beacon)
+                    if (ConfigToEdit.beaconTweaks.Value)
                     {
-                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, beaconToolString);
-                        if (beacon.beaconLabel && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
-                            uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
+                        Beacon beacon = tool as Beacon;
+                        if (beacon)
+                        {
+                            HandReticle.main.SetTextRaw(HandReticle.TextType.Use, beaconToolString);
+                            if (beacon.beaconLabel && GameInput.GetButtonDown(GameInput.Button.Deconstruct))
+                                uGUI.main.userInput.RequestString(beacon.beaconLabel.stringBeaconLabel, beacon.beaconLabel.stringBeaconSubmit, beacon.beaconLabel.labelName, 25, new uGUI_UserInput.UserInputCallback(beacon.beaconLabel.SetLabel));
+                        }
                     }
                 }
                 else if (!Main.baseLightSwitchLoaded && !Player.main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
@@ -628,8 +392,8 @@ namespace Tweaks_Fixes
                     }
                 }
                 InventoryItem heldItem = Inventory.main.quickSlots.heldItem;
-                bool canEatFish = !GameModeManager.GetOption<bool>(GameOption.VegetarianDiet) && GameModeManager.GetOption<bool>(GameOption.Hunger) || GameModeManager.GetOption<bool>(GameOption.Thirst);
-                if (canEatFish && heldItem != null && Util.IsEatableFish(heldItem.item.gameObject))
+                //bool canEatFish = !GameModeManager.GetOption<bool>(GameOption.VegetarianDiet) && GameModeManager.GetOption<bool>(GameOption.Hunger) || GameModeManager.GetOption<bool>(GameOption.Thirst);
+                if (Util.CanEatFish() && heldItem != null && Util.IsEatableFish(heldItem.item.gameObject))
                 {
                     string text = string.Empty;
                     ItemAction allItemActions = Inventory.main.GetAllItemActions(heldItem);
@@ -659,14 +423,21 @@ namespace Tweaks_Fixes
                     }
                     HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
                 }
-                if (!__instance.activeTarget)
+
+                if (__instance.activeTarget == null)
                     return;
-                //AddDebug("activeTarget layer " + __instance.activeTarget.layer);
-                //if (__instance.activeTarget.layer == LayerID.NotUseable)
-                //    AddDebug("activeTarget Not Useable layer ");
+
                 TechType targetTT = CraftData.GetTechType(__instance.activeTarget);
                 if (targetTT == TechType.None)
                     return;
+
+                if (ConfigMenu.noBreakingWithHand.Value && PickupablePatch.notPickupableResources.Contains(targetTT))
+                {
+                    HandlePickupableResource(__instance, targetTT, tool);
+                }
+                //AddDebug("activeTarget layer " + __instance.activeTarget.layer);
+                //if (__instance.activeTarget.layer == LayerID.NotUseable)
+                //    AddDebug("activeTarget Not Useable layer ");
 
                 Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
                 if (flareTarget && flareTarget.energyLeft == 0f)
@@ -997,242 +768,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(uGUI_HealthBar), "LateUpdate")]
-        class uGUI_HealthBar_LateUpdate_Patch
-        {
-            public static bool Prefix(uGUI_HealthBar __instance)
-            {
-                if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
-                    return true;
-
-                int showNumbers = __instance.showNumbers ? 1 : 0;
-                __instance.showNumbers = false;
-                Player main = Player.main;
-                if (main != null)
-                {
-                    LiveMixin component = main.GetComponent<LiveMixin>();
-                    if (component != null)
-                    {
-                        if (!__instance.subscribed)
-                        {
-                            __instance.subscribed = true;
-                            component.onHealDamage.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnHealDamage));
-                        }
-                        float has = component.health - component.tempDamage;
-                        float maxHealth = component.maxHealth;
-                        __instance.SetValue(has, maxHealth);
-                        float time = 1f - Mathf.Clamp01(has / __instance.pulseReferenceCapacity);
-                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
-                        if (__instance.pulseDelay < 0F)
-                            __instance.pulseDelay = 0f;
-                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
-                        if (__instance.pulseTime < 0F)
-                            __instance.pulseTime = 0f;
-                        float num2 = __instance.pulseDelay + __instance.pulseTime;
-                        if (__instance.pulseTween.duration > 0f && num2 <= 0F)
-                            __instance.statePulse.normalizedTime = 0f;
-                        __instance.pulseTween.duration = num2;
-                    }
-                    PDA pda = main.GetPDA();
-                    if (ConfigToEdit.alwaysShowHealthFoodNunbers.Value || pda != null && pda.isInUse)
-                        __instance.showNumbers = true;
-                }
-                if (__instance.statePulse.enabled)
-                {
-                    RectTransform icon = __instance.icon;
-                    icon.localScale = icon.localScale + __instance.punchScale;
-                }
-                else
-                    __instance.icon.localScale = __instance.punchScale;
-                int num3 = __instance.showNumbers ? 1 : 0;
-                if (showNumbers != num3)
-                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
-                if (!MathExtensions.CoinRotation(ref __instance.rotationCurrent, __instance.showNumbers ? 180f : 0f, ref __instance.lastFixedUpdateTime, PDA.time, ref __instance.rotationVelocity, __instance.rotationSpringCoef, __instance.rotationVelocityDamp, __instance.rotationVelocityMax))
-                    return false;
-                __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(uGUI_FoodBar), "LateUpdate")]
-        class uGUI_FoodBar_LateUpdate_Patch
-        {
-            public static bool Prefix(uGUI_FoodBar __instance)
-            {
-                if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
-                    return true;
-
-                int showNumbers = __instance.showNumbers ? 1 : 0;
-                __instance.showNumbers = false;
-                Player main = Player.main;
-                if (main != null)
-                {
-                    //Survival component = main.GetComponent<Survival>();
-                    if (Main.survival != null)
-                    {
-                        if (!__instance.subscribed)
-                        {
-                            __instance.subscribed = true;
-                            Main.survival.onEat.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnEat));
-                        }
-                        float food = Main.survival.food;
-                        float capacity = 100f;
-                        __instance.SetValue(food, capacity);
-                        float time = 1f - Mathf.Clamp01(food / __instance.pulseReferenceCapacity);
-                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
-                        if (__instance.pulseDelay < 0f)
-                            __instance.pulseDelay = 0f;
-                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
-                        if (__instance.pulseTime < 0f)
-                            __instance.pulseTime = 0f;
-
-                        if (GameModeManager.GetOption<bool>(GameOption.ShowHungerAlerts))
-                        {
-                            float num2 = __instance.pulseDelay + __instance.pulseTime;
-                            if (__instance.pulseTween.duration > 0f && num2 <= 0f)
-                                __instance.pulseAnimationState.normalizedTime = 0f;
-                            __instance.pulseTween.duration = num2;
-                        }
-                    }
-                    PDA pda = main.GetPDA();
-                    if (ConfigToEdit.alwaysShowHealthFoodNunbers.Value || pda != null && pda.isInUse)
-                        __instance.showNumbers = true;
-                }
-                if (__instance.pulseAnimationState != null && __instance.pulseAnimation.enabled)
-                {
-                    RectTransform icon = __instance.icon;
-                    icon.localScale = icon.localScale + __instance.punchScale;
-                }
-                else
-                    __instance.icon.localScale = __instance.punchScale;
-                int num3 = __instance.showNumbers ? 1 : 0;
-                if (showNumbers != num3)
-                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
-                if (!MathExtensions.CoinRotation(ref __instance.rotationCurrent, __instance.showNumbers ? 180f : 0.0f, ref __instance.lastFixedUpdateTime, PDA.time, ref __instance.rotationVelocity, __instance.rotationSpringCoef, __instance.rotationVelocityDamp, __instance.rotationVelocityMax))
-                    return false;
-                __instance.icon.localRotation = Quaternion.Euler(0.0f, __instance.rotationCurrent, 0.0f);
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(uGUI_WaterBar), "LateUpdate")]
-        class uGUI_WaterBar_LateUpdate_Patch
-        {
-            public static bool Prefix(uGUI_WaterBar __instance)
-            {
-                if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
-                    return true;
-
-                int showNumbers = __instance.showNumbers ? 1 : 0;
-                __instance.showNumbers = false;
-                Player main = Player.main;
-                if (main != null)
-                {
-                    //Survival component = main.GetComponent<Survival>();
-                    if (Main.survival != null)
-                    {
-                        if (!__instance.subscribed)
-                        {
-                            __instance.subscribed = true;
-                            Main.survival.onDrink.AddHandler(__instance.gameObject, new UWE.Event<float>.HandleFunction(__instance.OnDrink));
-                        }
-                        float water = Main.survival.water;
-                        float capacity = 100f;
-                        __instance.SetValue(water, capacity);
-                        float time = 1f - Mathf.Clamp01(water / __instance.pulseReferenceCapacity);
-                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
-                        if (__instance.pulseDelay < 0f)
-                            __instance.pulseDelay = 0f;
-                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
-                        if (__instance.pulseTime < 0f)
-                            __instance.pulseTime = 0f;
-
-                        if (GameModeManager.GetOption<bool>(GameOption.ShowThirstAlerts))
-                        {
-                            float num2 = __instance.pulseDelay + __instance.pulseTime;
-                            if (__instance.pulseTween.duration > 0f && num2 <= 0f)
-                                __instance.pulseAnimationState.normalizedTime = 0f;
-                            __instance.pulseTween.duration = num2;
-                        }
-                    }
-                    PDA pda = main.GetPDA();
-                    if (ConfigToEdit.alwaysShowHealthFoodNunbers.Value || pda != null && pda.isInUse)
-                        __instance.showNumbers = true;
-                }
-                if (__instance.pulseAnimationState != null && __instance.pulseAnimationState.enabled)
-                {
-                    RectTransform icon = __instance.icon;
-                    icon.localScale = icon.localScale + __instance.punchScale;
-                }
-                else
-                    __instance.icon.localScale = __instance.punchScale;
-                int num3 = __instance.showNumbers ? 1 : 0;
-                if (showNumbers != num3)
-                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
-                if (!MathExtensions.CoinRotation(ref __instance.rotationCurrent, __instance.showNumbers ? 180f : 0.0f, ref __instance.lastFixedUpdateTime, PDA.time, ref __instance.rotationVelocity, __instance.rotationSpringCoef, __instance.rotationVelocityDamp, __instance.rotationVelocityMax))
-                    return false;
-                __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(uGUI_BodyHeatMeter), "LateUpdate")]
-        class uGUI_BodyHeatMeter_LateUpdate_Patch
-        {
-            public static bool Prefix(uGUI_BodyHeatMeter __instance)
-            {
-                if (!ConfigToEdit.alwaysShowHealthFoodNunbers.Value)
-                    return true;
-                int num1 = __instance.showNumbers ? 1 : 0;
-                __instance.showNumbers = false;
-                Player player = Player.main;
-                if (player != null)
-                {
-                    BodyTemperature bt = player.GetComponent<BodyTemperature>();
-                    if (bt != null)
-                    {
-                        float currentBodyHeatValue = bt.currentBodyHeatValue;
-                        float maxBodyHeatValue = bt.maxBodyHeatValue;
-                        __instance.SetValue(currentBodyHeatValue, maxBodyHeatValue);
-                        float time = 1f - Mathf.Clamp01(currentBodyHeatValue / __instance.pulseReferenceCapacity);
-                        __instance.pulseDelay = __instance.pulseDelayCurve.Evaluate(time);
-                        if (__instance.pulseDelay < 0f)
-                            __instance.pulseDelay = 0f;
-                        __instance.pulseTime = __instance.pulseTimeCurve.Evaluate(time);
-                        if (__instance.pulseTime < 0f)
-                            __instance.pulseTime = 0f;
-                        float num2 = __instance.pulseDelay + __instance.pulseTime;
-                        if (__instance.pulseTween.duration > 0f && num2 <= 0f)
-                            __instance.statePulse.normalizedTime = 0f;
-
-                        if (GameModeManager.GetOption<bool>(GameOption.ShowTemperatureAlerts))
-                            __instance.pulseTween.duration = num2;
-
-                        Vector4 vector4 = __instance.bar.overlay1ST;
-                        vector4.w = -Time.time * __instance.overlay1Speed;
-                        __instance.bar.overlay1ST = vector4;
-                        vector4 = __instance.bar.overlay2ST;
-                        vector4.w = -Time.time * __instance.overlay2Speed;
-                        __instance.bar.overlay2ST = vector4;
-                        float num3 = Mathf.Clamp01(MathExtensions.EvaluateLine(0.5f, 1f, 1f, 0f, currentBodyHeatValue / maxBodyHeatValue));
-                        __instance.bar.overlay1Alpha = num3 * __instance.overlay1Alpha;
-                        __instance.bar.overlay2Alpha = num3 * __instance.overlay2Alpha;
-                    }
-                    PDA pda = player.GetPDA();
-                    if (ConfigToEdit.alwaysShowHealthFoodNunbers.Value || pda != null && pda.isInUse)
-                        __instance.showNumbers = true;
-                }
-                if (__instance.stateMaximize.normalizedTime > 0.5F)
-                    __instance.showNumbers = false;
-                int num4 = __instance.showNumbers ? 1 : 0;
-                if (num1 != num4)
-                    __instance.rotationVelocity += UnityEngine.Random.Range(-__instance.rotationRandomVelocity, __instance.rotationRandomVelocity);
-                if (!MathExtensions.CoinRotation(ref __instance.rotationCurrent, __instance.showNumbers ? 180f : 0f, ref __instance.lastFixedUpdateTime, PDA.time, ref __instance.rotationVelocity, __instance.rotationSpringCoef, __instance.rotationVelocityDamp, __instance.rotationVelocityMax))
-                    return false;
-                __instance.icon.localRotation = Quaternion.Euler(0f, __instance.rotationCurrent, 0f);
-                return false;
-            }
-        }
 
         [HarmonyPatch(typeof(uGUI_InputGroup))]
         class uGUI_InputGroup_Patch
