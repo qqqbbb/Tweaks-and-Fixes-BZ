@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.20.0";
+            VERSION = "2.21.1";
         public static Survival survival;
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
@@ -87,8 +87,9 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Player), "Start")]
         class Player_Start_Patch
         {
-            static void Postfix(Player __instance)
+            static void Finalizer(Player __instance)
             {
+                //AddDebug("Player Start Finalizer");
                 survival = __instance.GetComponent<Survival>();
                 //oceanLevel = Ocean.GetOceanLevel();
                 //equipment = Inventory.main.equipment;
@@ -219,7 +220,7 @@ namespace Tweaks_Fixes
             Setup();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
-
+            configMain.Load();
             //RecipeData recipeData = new RecipeData(); 
             //recipeData.Ingredients = new List<Ingredient>()
             //{

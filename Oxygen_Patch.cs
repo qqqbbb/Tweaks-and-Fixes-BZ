@@ -136,15 +136,10 @@ namespace Tweaks_Fixes
 
             [HarmonyPostfix, HarmonyPatch("GetOxygenPerBreath")]
             internal static void GetOxygenPerBreathPostfix(Player __instance, ref float __result, float breathingInterval, int depthClass)
-            {// vanilla script returns wrong value at depth 200-100
-                __result = breathPeriodMax;
-                if (Inventory.main.equipment.GetCount(TechType.Rebreather) == 0 && __instance.mode != Player.Mode.Piloting && __instance.mode != Player.Mode.LockedPiloting && __instance.currentWaterPark == null)
-                {
-                    if (GameModeManager.GetOption<bool>(GameOption.OxygenDepletes))
-                        __result = ConfigMenu.oxygenPerBreath.Value;
-                    else
-                        __result = 0;
-                }
+            {// vanilla script returns wrong value at depth 200 to 100
+                __result = 0f;
+                if (GameModeManager.GetOption<bool>(GameOption.OxygenDepletes))
+                    __result = ConfigMenu.oxygenPerBreath.Value;
                 //AddDebug("GetOxygenPerBreath breathingInterval " + breathingInterval);
                 //AddDebug("GetOxygenPerBreath  " + __result);
             }

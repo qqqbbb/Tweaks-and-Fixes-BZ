@@ -349,28 +349,30 @@ namespace Tweaks_Fixes
                     {
 
                     }
-                    Flare flare = tool as Flare;
-                    if (flare)
+                    if (ConfigToEdit.flareTweaks.Value)
                     {
-                        string text = string.Empty;
-                        bool lit = flare.flareActivateTime > 0;
-                        bool canThrow = Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false);
-                        if (!lit && canThrow)
+                        Flare flare = tool as Flare;
+                        if (flare)
                         {
-                            StringBuilder stringBuilder = new StringBuilder(lightAndThrowFlareString);
-                            stringBuilder.Append(",  ");
-                            stringBuilder.Append(lightFlareString);
-                            text = stringBuilder.ToString();
+                            string text = string.Empty;
+                            bool lit = flare.flareActivateTime > 0;
+                            bool canThrow = Inventory.CanDropItemHere(tool.GetComponent<Pickupable>(), false);
+                            if (!lit && canThrow)
+                            {
+                                StringBuilder stringBuilder = new StringBuilder(lightAndThrowFlareString);
+                                stringBuilder.Append(",  ");
+                                stringBuilder.Append(lightFlareString);
+                                text = stringBuilder.ToString();
+                            }
+                            else if (lit && canThrow)
+                                text = throwFlareString;
+                            else if (!lit && !canThrow)
+                                text = lightFlareString;
+
+                            //AddDebug("Flare text " + text);
+                            //AddDebug($"lit {lit} canThrow {canThrow}");
+                            HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
                         }
-                        else if (lit && canThrow)
-                            text = throwFlareString;
-                        else if (!lit && !canThrow)
-                            text = lightFlareString;
-
-                        //AddDebug("Flare text " + text);
-                        AddDebug($"lit {lit} canThrow {canThrow}");
-                        HandReticle.main.SetTextRaw(HandReticle.TextType.Use, text);
-
                     }
                     if (ConfigToEdit.beaconTweaks.Value)
                     {

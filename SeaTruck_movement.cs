@@ -69,6 +69,7 @@ namespace Tweaks_Fixes
             {
                 if (ConfigToEdit.seatruckAfterburnerWithoutCooldown.Value && techType == TechType.SeaTruckUpgradeAfterburner)
                     afterBurnerActive = true;
+
             }
             //[HarmonyPostfix, HarmonyPatch("OnUpgradeModuleChange")]
             public static void OnUpgradeModuleChangePostfix(SeaTruckUpgrades __instance, int slotID, TechType techType, bool added)
@@ -118,11 +119,12 @@ namespace Tweaks_Fixes
                         afterBurnerActive = false;
                     else
                         afterBurnerActive = true;
+
+                    __instance.afterBurnerActive = afterBurnerActive;
                 }
                 else
                     powerEfficiencyFactor = origSeatruckPowerEfficiency;
 
-                __instance.afterBurnerActive = afterBurnerActive;
                 if (moveDirection == Vector3.zero)
                     return;
 

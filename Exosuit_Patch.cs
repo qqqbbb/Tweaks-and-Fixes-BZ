@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -274,7 +273,7 @@ namespace Tweaks_Fixes
             //AddDebug("ShortenArmName armName " + armName);
             armName = armName.Replace(exosuitName, "");
             armName = armName.Trim();
-            armName = armName[0].ToString().ToUpper() + armName.Substring(1);
+            armName = Util.UppercaseFirstCharacter(armName);
             return armName;
         }
 

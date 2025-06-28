@@ -34,7 +34,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> fixMelon;
         public static ConfigEntry<bool> randomPlantRotation;
         public static ConfigEntry<bool> silentReactor;
-        //public static ConfigEntry<bool> newUIstrings;
         public static ConfigEntry<bool> disableUseText;
         public static ConfigEntry<bool> craftWithoutBattery;
         public static ConfigEntry<bool> builderPlacingWhenFinishedBuilding;

@@ -546,6 +546,10 @@ namespace Tweaks_Fixes
             }
         }
 
+        public static string UppercaseFirstCharacter(string s)
+        {
+            return s[0].ToString().ToUpper() + s.Substring(1);
+        }
 
     }
 }
