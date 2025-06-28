@@ -441,13 +441,16 @@ namespace Tweaks_Fixes
                 //if (__instance.activeTarget.layer == LayerID.NotUseable)
                 //    AddDebug("activeTarget Not Useable layer ");
 
-                Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
-                if (flareTarget && flareTarget.energyLeft == 0f)
+                if (ConfigToEdit.flareTweaks.Value)
                 {
-                    //AddDebug("activeTarget Flare");
-                    StringBuilder sb = new StringBuilder(Language.main.Get("TF_burnt_out_flare"));
-                    sb.Append(Language.main.Get(targetTT));
-                    HandReticle.main.SetText(HandReticle.TextType.Hand, sb.ToString(), false);
+                    Flare flareTarget = __instance.activeTarget.GetComponent<Flare>();
+                    if (flareTarget && flareTarget.energyLeft == 0f)
+                    {
+                        //AddDebug("activeTarget Flare");
+                        StringBuilder sb = new StringBuilder(Language.main.Get("TF_burnt_out_flare"));
+                        sb.Append(Language.main.Get(targetTT));
+                        HandReticle.main.SetText(HandReticle.TextType.Hand, sb.ToString(), false);
+                    }
                 }
                 //AddDebug("OnUpdate " + __instance.activeTarget.name);
                 LiveMixin liveMixin = __instance.activeTarget.GetComponentInParent<LiveMixin>();
@@ -614,14 +617,17 @@ namespace Tweaks_Fixes
             [HarmonyPatch("ItemCommons")]
             static void ItemCommonsPrefix(StringBuilder sb, TechType techType, GameObject obj)
             {
-                Flare flare = obj.GetComponent<Flare>();
-                if (flare)
+                if (ConfigToEdit.flareTweaks.Value)
                 {
-                    //AddDebug("flare.energyLeft " + flare.energyLeft);
-                    if (flare.energyLeft <= 0f)
-                        TooltipFactory.WriteTitle(sb, Language.main.Get("TF_burnt_out_flare"));
-                    else if (flare.flareActivateTime > 0f)
-                        TooltipFactory.WriteTitle(sb, Language.main.Get("TF_lit_flare"));
+                    Flare flare = obj.GetComponent<Flare>();
+                    if (flare)
+                    {
+                        //AddDebug("flare.energyLeft " + flare.energyLeft);
+                        if (flare.energyLeft <= 0f)
+                            TooltipFactory.WriteTitle(sb, Language.main.Get("TF_burnt_out_flare"));
+                        else if (flare.flareActivateTime > 0f)
+                            TooltipFactory.WriteTitle(sb, Language.main.Get("TF_lit_flare"));
+                    }
                 }
             }
 
