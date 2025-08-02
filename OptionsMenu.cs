@@ -108,6 +108,7 @@ namespace Tweaks_Fixes
             AddItem(ConfigMenu.creatureFleeChanceBasedOnHealth.ToModToggleOption());
             AddItem(ConfigMenu.waterparkCreaturesBreed.ToModToggleOption());
             AddItem(ConfigMenu.noFishCatching.ToModToggleOption());
+            AddItem(ConfigMenu.disableCreatureAggression.ToModToggleOption());
             AddItem(ConfigMenu.noBreakingWithHand.ToModToggleOption());
             AddItem(ConfigMenu.damageImpactEffect.ToModToggleOption());
             AddItem(ConfigMenu.damageScreenFX.ToModToggleOption());

@@ -22,5 +22,6 @@
   "TF_SeaTruckUpgradeEnergyEfficiency_tooltip": "Уменьшает энергопотребление на 20%.",
   "TF_frozen_water": " заморожено",
   "TF_propulsion_cannon_release": "Отпустить ",
-  "TF_too_much_weight_message": "Вы несете неподъемный вес"
+  "TF_too_much_weight_message": "Вы несете неподъемный вес",
+  "TF_peaceful_creatures_message": "Все существа теперь мирные."
 }

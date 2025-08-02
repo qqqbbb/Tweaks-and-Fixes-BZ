@@ -22,7 +22,8 @@
   "TF_SeaTruckUpgradeEnergyEfficiency_tooltip": "Reduces vehicle energy consumption by 20%.",
   "TF_frozen_water": " frozen",
   "TF_propulsion_cannon_release": "Release ",
-  "TF_too_much_weight_message": "You are carrying too much weight."
+  "TF_too_much_weight_message": "You are carrying too much weight.",
+  "TF_peaceful_creatures_message": "All creatures are now peaceful."
 
 
 }
