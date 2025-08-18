@@ -79,6 +79,10 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
+                //if (GameInput.GetButtonHeld(GameInput.Button.Reload))
+                //{
+                //    AddDebug($"test reload Button !!! ");
+                //}
                 //AddDebug("CurrentPreset " + GameModeManager.GetCurrentPresetId());
                 //if (Player.main.currentInterior != null)
                 //{

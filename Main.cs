@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "2.21.2";
+            VERSION = "3.0.0";
         public static Survival survival;
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
@@ -122,8 +122,7 @@ namespace Tweaks_Fixes
             Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
             MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
             gameLoaded = true;
-            //if (ConfigToEdit.targetFrameRate.Value > 9)
-            //    Application.targetFrameRate = ConfigToEdit.targetFrameRate.Value;
+
         }
 
 
@@ -132,20 +131,6 @@ namespace Tweaks_Fixes
         {
             static void Postfix(uGUI_MainMenu __instance)
             {
-            }
-        }
-
-        [HarmonyPatch(typeof(WaitScreen), "Hide")]
-        internal class WaitScreen_Hide_Patch
-        { // fires after game loads
-            public static void Postfix(WaitScreen __instance)
-            {
-                //AddDebug(" WaitScreen Hide");
-                //if (!Main.gameLoaded)
-                {
-                    //AddDebug(" WaitScreen Hide  !!!");
-                    LoadedGameSetup();
-                }
             }
         }
 
@@ -201,7 +186,6 @@ namespace Tweaks_Fixes
         class IngameMenu_SaveGameAsync_Patch
         {
             static void Postfix(IngameMenu __instance)
-
             {
                 AddDebug("IngameMenu SaveGameAsync ");
                 configMain.Save();
@@ -216,11 +200,8 @@ namespace Tweaks_Fixes
             logger = this.Logger;
             //Assembly assembly = Assembly.GetExecutingAssembly();
             //new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
-            RegisterSpawns();
             Setup();
-            Harmony harmony = new Harmony(GUID);
-            harmony.PatchAll();
-            configMain.Load();
+            //configMain.Load();
             //RecipeData recipeData = new RecipeData(); 
             //recipeData.Ingredients = new List<Ingredient>()
             //{
@@ -250,7 +231,7 @@ namespace Tweaks_Fixes
             ConfigToEdit.Bind();
             configMenu = new ConfigFile(configMenuPath, true);
             ConfigMenu.Bind();
-            //SaveUtils.RegisterOnFinishLoadingEvent(LoadedGameSetup); // runs before game loads
+            WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LoadedGameSetup());
             LanguageHandler.RegisterLocalizationFolder();
             SaveUtils.RegisterOnSaveEvent(SaveData);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
@@ -259,6 +240,9 @@ namespace Tweaks_Fixes
             options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
             AddTechTypesToClassIDtable();
+            RegisterSpawns();
+            Harmony harmony = new Harmony(GUID);
+            harmony.PatchAll();
             //// vanilla desc just copies the name
             //LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, config.translatableStrings[21]);
             //// vanilla desc does not tell percent
@@ -275,10 +259,13 @@ namespace Tweaks_Fixes
 
         private static void AddTechTypesToClassIDtable()
         {
+            if (CraftData.entClassTechTable == null)
+                CraftData.entClassTechTable = new Dictionary<string, TechType>();
             //CraftData.entClassTechTable["769f9f44-30f6-46ed-aaf6-fbba358e1676"] = TechType.BaseBioReactor;
             //CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
             CraftData.entClassTechTable["ef9ca323-9e02-4903-991c-eb3e597a279d"] = TechType.HoneyCombPlant;
         }
+
 
 
     }

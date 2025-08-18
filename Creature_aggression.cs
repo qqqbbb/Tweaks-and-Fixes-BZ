@@ -254,7 +254,7 @@ namespace Tweaks_Fixes
                 //float agr = Main.config.aggrMult > 1 ? Main.config.aggrMult : 1;
                 HashSet<IEcoTarget> ecoTargetSet;
                 float minSqrMagnitude = float.MaxValue;
-                if (!__instance.ecoTargets.TryGetValue(type, out ecoTargetSet))
+                if (!__instance.ecoTargets.TryGetValue((int)type, out ecoTargetSet))
                     return;
 
                 foreach (IEcoTarget ecoTarget in ecoTargetSet)

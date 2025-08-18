@@ -210,7 +210,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("LoseItems");
                 __result = false;
-                if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Vanilla)
+                if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Default)
                     return true;
                 else if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Do_not_drop_anything)
                     return false;

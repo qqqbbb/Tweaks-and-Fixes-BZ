@@ -117,13 +117,13 @@ namespace Tweaks_Fixes
             crushDamageProgression = Main.configMenu.Bind("", "Crush damage progression", 0f, "If this is more than 0, the crush damage you take will be: 'Crush damage' value + 'Crush damage' value * this * number of meters below crush depth.");
             vehicleCrushDamageMult = Main.configMenu.Bind("", "Vehicle crush damage multiplier", 1f, "Vehicle crush damage will be multiplied by this.");
 
-            emptyVehiclesCanBeAttacked = Main.configMenu.Bind("", "Unmanned vehicles can be attacked", EmptyVehiclesCanBeAttacked.Vanilla, "By default unmanned seamoth or prawn suit can be attacked but cyclops can not.");
+            emptyVehiclesCanBeAttacked = Main.configMenu.Bind("", "Unmanned vehicles can be attacked", EmptyVehiclesCanBeAttacked.Default, "By default unmanned seamoth or prawn suit can be attacked but cyclops can not.");
             //hungerUpdateInterval = Main.configMenu.Bind("", "Hunger update interval", 10, "Time in seconds it takes your hunger and thirst to update.");
             newHungerSystem = Main.configMenu.Bind("", "New hunger system", false, "You do not regenerate health when you are full. When you sprint you get hungry and thirsty twice as fast. You don't lose health when your food or water value is 0. Your food and water values can go as low as -100. When your food or water value is below 0 your movement speed will be reduced proportionally to that value. When either your food or water value is -100 your movement speed will be reduced by 50% and you will start taking hunger damage. The higher your food value above 100 is the less food you get when eating: when your food value is 110 you lose 10% of food, when it is 190 you lose 90%.");
             maxPlayerFood = Main.configMenu.Bind("", "Max player food", (int)SurvivalConstants.kMaxOverfillStat, "You food meter will be capped at this.");
             maxPlayerWater = Main.configMenu.Bind("", "Max player water", (int)SurvivalConstants.kMaxStat, "You water meter will be capped at this.");
             fishFoodWaterRatio = Main.configMenu.Bind("", "Fish water/food value ratio", 0f, "Fish's water value will be proportional to its food value if this is more than 0. If this is 0.1 then water value will be 10% of food value. If this is 0.9 then water value will be 90% of food value. Game has to be reloaded after changing this.");
-            eatRawFish = Main.configMenu.Bind("", "Eating raw fish", EatingRawFish.Vanilla, "This changes amount of food you get by eating raw fish. Harmless: it is a random number between 0 and fish's food value. Risky: it is a random number between fish's negative food value and fish's food value. Harmful: it is a random number between fish's negative food value and 0.");
+            eatRawFish = Main.configMenu.Bind("", "Eating raw fish", EatingRawFish.Default, "This changes amount of food you get by eating raw fish. Harmless: it is a random number between 0 and fish's food value. Risky: it is a random number between fish's negative food value and fish's food value. Harmful: it is a random number between fish's negative food value and 0.");
             cantEatUnderwater = Main.configMenu.Bind("", "Can not eat underwater", false, "You will not be able to eat or drink when swimming underwater if this is on.");
             cantUseMedkitUnderwater = Main.configMenu.Bind("", "Can not use first aid kit underwater", false, "You will not be able to use first aid kit when swimming underwater if this is on.");
             foodDecayRateMult = Main.configMenu.Bind("", "Food decay rate multiplier", 1f, "Food decay rate will be multiplied by this. You have to reload the game after changing this.");
@@ -144,7 +144,7 @@ namespace Tweaks_Fixes
             dropPodMaxPower = Main.configMenu.Bind("", "Drop pod max power", 0, "If this is not 0, your drop pod's max power will be set to this. Drop pod's power will regenerate during the day. The game has to be reloaded after changing this.");
             batteryChargeMult = Main.configMenu.Bind("", "Battery charge multiplier", 1f, "Max charge of batteries and power cells will be multiplied by this. Game has to be reloaded after changing this.");
             craftedBatteryCharge = Main.configMenu.Bind("", "Crafted battery charge percent", 100, "Charge percent of batteries and power cells you craft will be set to this.");
-            dropItemsOnDeath = Main.configMenu.Bind("", "Drop items when you die", DropItemsOnDeath.Vanilla);
+            dropItemsOnDeath = Main.configMenu.Bind("", "Drop items when you die", DropItemsOnDeath.Default);
             invMultWater = Main.configMenu.Bind("", "Inventory weight multiplier in water", 0f, "When this is not 0 and you are swimming you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
             invMultLand = Main.configMenu.Bind("", "Inventory weight multiplier on land", 0f, "When this is not 0 and you are on land you lose 1% of your max speed for every kilo of mass in your inventory multiplied by this.");
             waterFreezeRate = Main.configMenu.Bind("", "Water freeze rate multiplier", 0f, "Bottled water will freeze at this rate if ambient temperature is below 0 C°. The game has to be reloaded after changing this.");
@@ -155,18 +155,17 @@ namespace Tweaks_Fixes
             waterLossMult = Main.configMenu.Bind("", "Water loss multiplier", 1f, "Water value you lose when your hunger updates will be multiplied by this.");
             foodWaterHealThreshold = Main.configMenu.Bind("", "Food heal threshold", 150, "Your health regenerates when sum of your food and water values is greater than this");
 
-            transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");
-            transferSameItemsButton = Main.configMenu.Bind("", "Move same items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items of the same type. If you are using a keyboard, you have to hold down this key and click an item.");
-            quickslotButton = Main.configMenu.Bind("", "Quickslot cycle button", KeyCode.None, "Press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to cycle tools in your current quickslot.");
-            //lightButton = Main.configMenu.Bind("", "Light intensity button", KeyCode.None, "When holding a tool in your hand or driving a vehicle press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to change the tool or vehicle light intensity. This works only with controller.");
-            previousPDATabKey = Main.configMenu.Bind("", "Previous PDA tab key", KeyCode.None, "Key to switch to left PDA Tab. This works only with keyboard.");
-            nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab. This works only with keyboard.");
+            //transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");
+            //transferSameItemsButton = Main.configMenu.Bind("", "Move same items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items of the same type. If you are using a keyboard, you have to hold down this key and click an item.");
+            //quickslotButton = Main.configMenu.Bind("", "Quickslot cycle button", KeyCode.None, "Press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to cycle tools in your current quickslot.");
+            //previousPDATabKey = Main.configMenu.Bind("", "Previous PDA tab key", KeyCode.None, "Key to switch to left PDA Tab. This works only with keyboard.");
+            //nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab. This works only with keyboard.");
 
 
         }
 
-        public enum DropItemsOnDeath { Vanilla, Drop_everything, Do_not_drop_anything }
-        public enum EmptyVehiclesCanBeAttacked { Vanilla, Yes, No, Only_if_lights_on }
-        public enum EatingRawFish { Vanilla, Harmless, Risky, Harmful }
+        public enum DropItemsOnDeath { Default, Drop_everything, Do_not_drop_anything }
+        public enum EmptyVehiclesCanBeAttacked { Default, Yes, No, Only_if_lights_on }
+        public enum EatingRawFish { Default, Harmless, Risky, Harmful }
     }
 }

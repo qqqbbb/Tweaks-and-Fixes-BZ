@@ -527,12 +527,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(uGUI_PDA), "Update")]
+        //[HarmonyPatch(typeof(uGUI_PDA), "Update")]
         class uGUI_PDA_Update_Patch
         {
             public static void Postfix(uGUI_PDA __instance)
             {
-                if (uGUI.isLoading || GameInput.lastDevice != GameInput.Device.Keyboard || IngameMenu.main.isActiveAndEnabled || !Player.main.pda.isOpen)
+                if (Main.gameLoaded == false || GameInput.lastDevice != GameInput.Device.Keyboard || IngameMenu.main.isActiveAndEnabled || !Player.main.pda.isOpen)
                     return;
 
                 //if (Input.GetAxis("Mouse ScrollWheel") > 0f)
@@ -650,7 +650,7 @@ namespace Tweaks_Fixes
                     TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }
                 Eatable eatable = obj.GetComponent<Eatable>();
-                if (ConfigMenu.eatRawFish.Value != ConfigMenu.EatingRawFish.Vanilla && fishTechTypes.Contains(techType) && GameModeManager.GetOption<bool>(GameOption.Hunger))
+                if (ConfigMenu.eatRawFish.Value != ConfigMenu.EatingRawFish.Default && fishTechTypes.Contains(techType) && GameModeManager.GetOption<bool>(GameOption.Hunger))
                 {
                     //Eatable eatable = obj.GetComponent<Eatable>();
                     if (eatable)

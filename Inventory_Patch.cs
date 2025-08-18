@@ -101,8 +101,8 @@ namespace Tweaks_Fixes
                 //Creature creature = item.item.GetComponent<Creature>();
                 //FixPeeperLOD(Creature peeper, bool alive = false)
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
             public static bool ExecuteItemActionPrefix(Inventory __instance, InventoryItem item, ItemAction action)
             {
                 //AddDebug("ExecuteItemAction AltUseItem " + item.item.GetTechType());
@@ -123,11 +123,11 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(GamepadInputModule))]
+        //[HarmonyPatch(typeof(GamepadInputModule))]
         class GamepadInputModule_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("ProcessInput")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("ProcessInput")]
             public static void OnUpdatePostfix(GamepadInputModule __instance)
             {
                 if (Input.GetKeyDown(ConfigMenu.transferAllItemsButton.Value) || GameInput.GetButtonDown(transferAllItemsButton))

@@ -182,7 +182,13 @@ namespace Tweaks_Fixes
                 //if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla && !Main.config.newHungerSystem && ConfigMenu.maxPlayerWater.Value == 100 && ConfigMenu.maxPlayerFood.Value == 200)
                 //    return true;
 
+                if (useObj == null)
+                    return false;
+
                 Eatable eatable = useObj.GetComponent<Eatable>();
+                if (eatable == null)
+                    return false;
+
                 //bool removeOnUse = false;
                 //bool wasUsed = false;
                 bool canBeUsed = eatable.maxCharges == 0 || eatable.charges > 0;
@@ -211,7 +217,7 @@ namespace Tweaks_Fixes
                 {
                     if (food > 0)
                     {
-                        if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla)
+                        if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Default)
                         {
                             minFood = food;
                             maxFood = food;
@@ -234,7 +240,7 @@ namespace Tweaks_Fixes
                     }
                     if (water > 0)
                     {
-                        if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla)
+                        if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Default)
                         {
                             minWater = water;
                             maxWater = water;

@@ -1,9 +1,9 @@
 ﻿
-using System;
-using UnityEngine;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -84,7 +84,7 @@ namespace Tweaks_Fixes
                     //AddDebug("Inventory OnAddItem ");
                 }
             }
-          
+
             [HarmonyPostfix]
             [HarmonyPatch("OnRemoveItem")]
             public static void OnRemoveItemPostfix(Inventory __instance, InventoryItem item)
@@ -119,8 +119,8 @@ namespace Tweaks_Fixes
                 GetEquippedTools();
                 //AddDebug(" Bind ");
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("SlotNext")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("SlotNext")]
             public static bool SlotNextPrefix(QuickSlots __instance)
             {
                 if (Input.GetKey(ConfigMenu.quickslotButton.Value) || GameInput.GetButtonHeld(quickslotButton))
@@ -133,8 +133,8 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("SlotPrevious")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("SlotPrevious")]
             public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
                 if (Input.GetKey(ConfigMenu.quickslotButton.Value) || GameInput.GetButtonHeld(quickslotButton))

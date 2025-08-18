@@ -151,7 +151,7 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                if (!uGUI.isLoading && GameModeManager.GetOption<bool>(GameOption.BaseWaterPressureDamage) && !Mathf.Approximately(strength, __instance.totalStrength))
+                if (Main.gameLoaded && GameModeManager.GetOption<bool>(GameOption.BaseWaterPressureDamage) && !Mathf.Approximately(strength, __instance.totalStrength))
                     AddMessage(Language.main.GetFormat("BaseHullStrChanged", strength - __instance.totalStrength, strength));
 
                 __instance.totalStrength = strength;
@@ -385,7 +385,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("NotifyConstructedChanged")]
             public static void Postfix(Constructable __instance, bool constructed)
             {
-                if (!constructed || uGUI.isLoading)
+                if (!constructed || Main.gameLoaded == false)
                     return;
                 //Main.config.builderPlacingWhenFinishedBuilding = false;
                 //AddDebug(" NotifyConstructedChanged " + __instance.techType);

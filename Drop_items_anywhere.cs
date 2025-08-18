@@ -28,7 +28,7 @@ namespace Tweaks_Fixes
             if (lwe && lwe.isActiveAndEnabled)
                 lwe.enabled = false;
 
-            if (!uGUI.isLoading && !subRoot.IsLeaking())
+            if (Main.gameLoaded && !subRoot.IsLeaking())
             {
                 HandleFish(pickupable.gameObject, false);
             }
@@ -226,7 +226,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             static void AwakePostfix(Pickupable __instance)
             {
-                if (!ConfigToEdit.dropItemsAnywhere.Value || !uGUI.isLoading)
+                if (!ConfigToEdit.dropItemsAnywhere.Value || Main.gameLoaded)
                     return;
 
                 if (__instance.inventoryItem != null)
