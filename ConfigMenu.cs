@@ -61,6 +61,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> creatureFleeChanceBasedOnHealth;
         public static ConfigEntry<bool> waterparkCreaturesBreed;
         public static ConfigEntry<bool> noFishCatching;
+        public static ConfigEntry<bool> disableCreatureAggression;
         public static ConfigEntry<bool> noBreakingWithHand;
         public static ConfigEntry<bool> damageImpactEffect;
         public static ConfigEntry<bool> damageScreenFX;
@@ -135,6 +136,7 @@ namespace Tweaks_Fixes
             creatureFleeChanceBasedOnHealth = Main.configMenu.Bind("", "Creature flee chance depends on its health", false, "Only creatures's health will be used to decide if it should flee when under attack. Creature with 90% health has 10% chance to flee. Creature with 10% health has 90% chance to flee. This setting overrides both 'Creature flee chance percent' and 'Damage threshold for fleeing creatures'.");
             waterparkCreaturesBreed = Main.configMenu.Bind("", "Creatures in alien containment can breed", true);
             noFishCatching = Main.configMenu.Bind("", "Can not catch fish with bare hands", false, "To catch fish you will have to use knife, propulsion cannon, stasis rifle or grav trap. Does not apply if you are inside alien containment.");
+            disableCreatureAggression = Main.configMenu.Bind("", "Disable creature aggression", false, "All creatures will be peaceful and won't attack the player or vehicles.");
             noBreakingWithHand = Main.configMenu.Bind("", "Can not break outcrop with bare hands", false, "You will have to use a knife or propulsion cannon to break outcrops or collect resources attached to rock or seabed. To craft your first knife pick up scrap metal next to your crashed ship.");
             damageImpactEffect = Main.configMenu.Bind("", "Player impact damage screen effects", true, "This toggles cracks on your swimming mask when you take damage.");
             damageScreenFX = Main.configMenu.Bind("", "Player damage screen effects", true, "This toggles red screen effects when you take damage.");

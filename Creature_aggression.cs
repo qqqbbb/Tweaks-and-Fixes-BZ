@@ -254,7 +254,7 @@ namespace Tweaks_Fixes
                 //float agr = Main.config.aggrMult > 1 ? Main.config.aggrMult : 1;
                 HashSet<IEcoTarget> ecoTargetSet;
                 float minSqrMagnitude = float.MaxValue;
-                if (!__instance.ecoTargets.TryGetValue((int)type, out ecoTargetSet))
+                if (!__instance.ecoTargets.TryGetValue(type, out ecoTargetSet))
                     return;
 
                 foreach (IEcoTarget ecoTarget in ecoTargetSet)
@@ -463,6 +463,17 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(GameModeManager), "GetCreatureAggressionModifier")]
+        internal class GameModeManager_GetCreatureAggressionModifier_Patch
+        {
+            public static void Postfix(ref float __result)
+            {
+                if (ConfigMenu.disableCreatureAggression.Value)
+                {
+                    __result = 0f;
+                }
+            }
+        }
 
 
     }
