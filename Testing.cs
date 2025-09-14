@@ -17,19 +17,13 @@ namespace Tweaks_Fixes
         static GameObject previousTarget;
         static List<string> massList = new List<string>();
 
-        //[HarmonyPatch("OnDraw"), HarmonyPostfix]
-        static void OnDrawPostfix(PlayerTool __instance)
-        {
-            //if (Input.GetKeyDown(KeyCode.LeftShift))
-            AddDebug($"PlayerTool OnDraw {__instance.name}");
-        }
 
-        //[HarmonyPatch(typeof(PlayerTool), "OnDraw")]
-        class PlayerTool_OnDraw_Patch
+        //[HarmonyPatch(typeof(SoundOnDamage), "OnTakeDamage")]
+        class SoundOnDamage_OnTakeDamage_Patch
         {
-            static void Postfix(PlayerTool __instance)
+            static void Postfix(SoundOnDamage __instance)
             {
-                AddDebug($"PlayerTool OnDraw {__instance.name}");
+                AddDebug($"SoundOnDamage OnTakeDamage {__instance.name}");
             }
         }
 
@@ -130,8 +124,10 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    PlayerTool tool = Inventory.main.GetHeldTool();
-                    AddDebug("bloodColor " + Damage_.bloodColor);
+                    string currentSlot = SaveLoadManager.main.currentSlot;
+                    AddDebug("exosuitLights.Contains " + currentSlot + " " + Main.configMain.exosuitLights.ContainsKey(currentSlot));
+                    //PlayerTool tool = Inventory.main.GetHeldTool();
+                    //AddDebug("bloodColor " + Damage_.bloodColor);
                     //PrintTerrainSurfaceType();
                     //TechType tt = TechType.IceBubble;
                     //string classid = CraftData.GetClassIdForTechType(tt);

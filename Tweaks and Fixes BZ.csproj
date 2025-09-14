@@ -34,6 +34,26 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
       <HintPath>..\..\..\DLL\0Harmony.dll</HintPath>
@@ -50,8 +70,9 @@
     <Reference Include="FMODUnity">
       <HintPath>..\..\..\DLL\FMODUnity.dll</HintPath>
     </Reference>
-    <Reference Include="Nautilus">
-      <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\SubnauticaZero\BepInEx\plugins\Nautilus\Nautilus.dll</HintPath>
+    <Reference Include="Nautilus, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\GAMES\Subnautica Below Zero\BepInEx\plugins\Nautilus\Nautilus.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -91,7 +112,9 @@
     <Compile Include="ConfigMain.cs" />
     <Compile Include="CreatureDeath_Patch.cs" />
     <Compile Include="Creature_aggression.cs" />
+    <Compile Include="Drillable_.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
+    <Compile Include="Exosuit_Drill.cs" />
     <Compile Include="Exosuit_movement.cs" />
     <Compile Include="Food.cs" />
     <Compile Include="Knife_Patch.cs" />

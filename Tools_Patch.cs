@@ -16,7 +16,6 @@ namespace Tweaks_Fixes
 
         //public static List<GameObject> repCannonGOs = new List<GameObject>();
         public static PlayerTool equippedTool;
-        public static List<PlayerTool> fixedFish = new List<PlayerTool>();
 
         [HarmonyPatch(typeof(PlayerTool))]
         class PlayerTool_OnDraw_Patch
@@ -35,6 +34,25 @@ namespace Tweaks_Fixes
                 //    return;
                 //}
                 equippedTool = __instance;
+            }
+        }
+
+        public static void SaveSeaglideState(Seaglide seaglide)
+        {
+            var seaglideMap = seaglide.GetComponent<VehicleInterface_MapController>();
+            if (seaglideMap && seaglideMap.miniWorld)
+            {
+                if (seaglideMap.miniWorld.active)
+                    Main.configMain.DeleteSeaglideMap(seaglide.gameObject);
+                else
+                    Main.configMain.SaveSeaglideMap(seaglide.gameObject);
+            }
+            if (seaglide.toggleLights)
+            {
+                if (seaglide.toggleLights.lightsActive)
+                    Main.configMain.SaveSeaglideLights(seaglide.gameObject);
+                else
+                    Main.configMain.DeleteSeaglideLights(seaglide.gameObject);
             }
         }
 
@@ -114,48 +132,109 @@ namespace Tweaks_Fixes
         }
 
 
-        [HarmonyPatch(typeof(VehicleInterface_MapController), "Start")]
+        //[HarmonyPatch(typeof(VehicleInterface_MapController), "Start")]
         class VehicleInterface_MapController_Start_Patch
         {
             public static void Postfix(VehicleInterface_MapController __instance)
             {
                 //AddDebug("VehicleInterface_MapController Start " + __instance.name);
-                __instance.mapActive = Main.configMain.seaglideMap;
+                //__instance.mapActive = Main.configMain.seaglideMap;
             }
         }
 
         [HarmonyPatch(typeof(Seaglide))]
         class Seaglide_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
-            public static void StartPostfix(Seaglide __instance)
+            public static IEnumerator LoadSeaglideState(Seaglide seaglide)
             {
-                __instance.toggleLights.SetLightsActive(Main.configMain.seaglideLights);
+                if (seaglide == null)
+                    yield break;
+
+                if (seaglide.toggleLights == null)
+                    yield return null;
+
+                bool lightOn = Main.configMain.GetSeaglideLights(seaglide.gameObject);
+                //AddDebug("Seaglide saved light " + lightOn);
+                seaglide.toggleLights.SetLightsActive(lightOn);
+                //AddDebug("Seaglide GetLightsActive " + seaglide.toggleLights.GetLightsActive());
+                var map = seaglide.GetComponent<VehicleInterface_MapController>();
+                if (map == null)
+                    yield break;
+
+                if (map.miniWorld == null)
+                    yield return null;
+
+                bool mapOn = Main.configMain.GetSeaglideMap(seaglide.gameObject);
+                //AddDebug("Seaglide map " + mapOn);
+                map.miniWorld.active = mapOn;
+                map.mapActive = mapOn;
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("OnHolster")]
-            public static void OnHolsterPostfix(Seaglide __instance)
-            {// fires when saving
-                //AddDebug("Seaglide OnHolster");
-                Main.configMain.seaglideLights = __instance.toggleLights.lightsActive;
-                var mc = __instance.GetComponent<VehicleInterface_MapController>();
-                if (mc != null)
-                    Main.configMain.seaglideMap = mc.mapActive;
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            public static void StartPostfix(Seaglide __instance)
+            {
+                //__instance.toggleLights.SetLightsActive(Main.configMain.GetSeaglideLights(__instance.gameObject));
+                CoroutineHost.StartCoroutine(LoadSeaglideState(__instance));
+            }
+            [HarmonyPrefix, HarmonyPatch("OnHolster")]
+            public static void OnHolsterPrefix(Seaglide __instance)
+            { // fires when saving, after nautilus SaveEvent
+                //AddDebug("Seaglide OnHolster lightsActive " + __instance.toggleLights.lightsActive);
+                SaveSeaglideState(__instance);
             }
         }
 
-        [HarmonyPatch(typeof(BuilderTool), "HasEnergyOrInBase")]
-        class BuilderTool_HasEnergyOrInBase_Patch
+        [HarmonyPatch(typeof(BuilderTool))]
+        class BuilderTool_Patch
         {
-            static void Postfix(BuilderTool __instance, ref bool __result)
+            [HarmonyPostfix, HarmonyPatch("HasEnergyOrInBase")]
+            static void HasEnergyOrInBasePostfix(BuilderTool __instance, ref bool __result)
             {
                 if (!ConfigToEdit.builderToolBuildsInsideWithoutPower.Value && __instance.energyMixin.charge <= 0)
                 {
                     __result = false;
                 }
             }
+            [HarmonyPostfix, HarmonyPatch("HandleInput")]
+            public static void HandleInputPostfix(BuilderTool __instance)
+            {
+                if (Builder.isPlacing && GameInput.GetButtonDown(GameInput.Button.Exit))
+                {
+                    //AddDebug("BuilderTool HandleInput Exit");
+                    //__instance.OnHolster();
+                    Inventory.main.quickSlots.Deselect();
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Constructable))]
+        class Constructable_Construct_Patch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("NotifyConstructedChanged")]
+            public static void Postfix(Constructable __instance, bool constructed)
+            {
+                if (!constructed || !Main.gameLoaded)
+                    return;
+
+                //AddDebug(" NotifyConstructedChanged " + __instance.techType);
+                //AddDebug(" NotifyConstructedChanged isPlacing " + Builder.isPlacing);
+                if (!ConfigToEdit.builderPlacingWhenFinishedBuilding.Value)
+                    Player.main.StartCoroutine(BuilderEnd(2));
+            }
+        }
+
+        static IEnumerator BuilderEnd(int waitFrames)
+        {
+            //AddDebug("BuilderEnd start ");
+            //yield return new WaitForSeconds(waitTime);
+            while (waitFrames > 0)
+            {
+                waitFrames--;
+                yield return null;
+            }
+            Builder.End();
+            //AddDebug("BuilderEnd end ");
         }
 
 

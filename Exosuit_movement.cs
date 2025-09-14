@@ -130,6 +130,17 @@ namespace Tweaks_Fixes
                 return false;
             }
 
+            [HarmonyPostfix, HarmonyPatch("GetHUDValues")]
+            [HarmonyPatch("GetHUDValues", new Type[] { typeof(float), typeof(float), typeof(float) }, new[] { ArgumentType.Out, ArgumentType.Out, ArgumentType.Out })]
+            public static void GetHUDValuesPostfix(Exosuit __instance, float health, ref float power, ref float thrust)
+            {
+                if (Main.gameLoaded && ConfigToEdit.exosuitThrusterWithoutLimit.Value && __instance.GetPilotingMode())
+                {
+                    thrust = power;
+                    //thrust = .4f;
+                }
+                //AddDebug($"GetHUDValues power {power} thrust {thrust}");
+            }
         }
 
 

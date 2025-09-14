@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.0.0";
+            VERSION = "3.1.0";
         public static Survival survival;
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
@@ -77,7 +77,7 @@ namespace Tweaks_Fixes
             fridges.Clear();
             UI_Patches.recyclotrons.Clear();
             Base_Patch.baseHullStrengths.Clear();
-            Tools_Patch.fixedFish.Clear();
+            //Tools_Patch.fixedFish.Clear();
             Battery_Patch.seatruckPRs.Clear();
             CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
             Survival_.healTime = 0;
@@ -121,10 +121,10 @@ namespace Tweaks_Fixes
             Player_Movement.UpdateModifiers();
             Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
             MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
+            //Exosuit_Patch.GetExosuitLights();
             gameLoaded = true;
 
         }
-
 
         //[HarmonyPatch(typeof(uGUI_MainMenu), "Start")]
         class uGUI_MainMenu_Start_Patch
@@ -140,17 +140,9 @@ namespace Tweaks_Fixes
             static void Postfix(MainMenuLoadButton __instance)
             {
                 //AddDebug("MainMenuLoadButton Delete " + __instance.saveGame);
-                DeleteSaveSlotData(__instance.saveGame);
+                //DeleteSaveSlotData(__instance.saveGame);
+                configMain.DeleteCurrentSaveSlotData();
             }
-        }
-
-        public static void DeleteSaveSlotData(string slotName)
-        {
-            //AddDebug("ClearSlotAsync " + slotName);
-            configMain.podPower.Remove(slotName);
-            configMain.lockerNames.Remove(slotName);
-            configMain.iceFruitsPicked.Remove(slotName);
-            configMain.Save();
         }
 
         static void SaveData()
@@ -166,12 +158,6 @@ namespace Tweaks_Fixes
 
             if (heldItem != null)
             {
-                var mc = heldItem.item.GetComponent<VehicleInterface_MapController>();
-                if (mc)
-                {
-                    //AddDebug(" save seaglide");
-                    configMain.seaglideMap = mc.mapActive;
-                }
                 PlaceTool pt = heldItem.item.GetComponent<PlaceTool>();
                 if (pt)
                 {
@@ -201,7 +187,7 @@ namespace Tweaks_Fixes
             //Assembly assembly = Assembly.GetExecutingAssembly();
             //new Harmony($"qqqbbb_{assembly.GetName().Name}").PatchAll(assembly);
             Setup();
-            //configMain.Load();
+            configMain.Load();
             //RecipeData recipeData = new RecipeData(); 
             //recipeData.Ingredients = new List<Ingredient>()
             //{
@@ -232,6 +218,7 @@ namespace Tweaks_Fixes
             configMenu = new ConfigFile(configMenuPath, true);
             ConfigMenu.Bind();
             WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LoadedGameSetup());
+            WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => AddTechTypesToClassIDtable());
             LanguageHandler.RegisterLocalizationFolder();
             SaveUtils.RegisterOnSaveEvent(SaveData);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
@@ -239,7 +226,6 @@ namespace Tweaks_Fixes
             ConfigToEdit.ParseConfig();
             options = new OptionsMenu();
             OptionsPanelHandler.RegisterModOptions(options);
-            AddTechTypesToClassIDtable();
             RegisterSpawns();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
@@ -259,8 +245,7 @@ namespace Tweaks_Fixes
 
         private static void AddTechTypesToClassIDtable()
         {
-            if (CraftData.entClassTechTable == null)
-                CraftData.entClassTechTable = new Dictionary<string, TechType>();
+            CraftData.PreparePrefabIDCache();
             //CraftData.entClassTechTable["769f9f44-30f6-46ed-aaf6-fbba358e1676"] = TechType.BaseBioReactor;
             //CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
             CraftData.entClassTechTable["ef9ca323-9e02-4903-991c-eb3e597a279d"] = TechType.HoneyCombPlant;

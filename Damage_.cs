@@ -241,6 +241,9 @@ namespace Tweaks_Fixes
             {
                 //    Main.Log("deathEffect " + __instance.name);
                 //    AddDebug("deathEffect " + __instance.name);
+                if (ConfigToEdit.bloodColor.Value == "0.784 1.0 0.157")
+                    return;
+
                 VFXSurface surface = __instance.GetComponent<VFXSurface>();
                 if (surface && surface.surfaceType == VFXSurfaceTypes.organic)
                 {
@@ -308,11 +311,11 @@ namespace Tweaks_Fixes
                 if (__result <= 0f)
                     return;
 
-                if (type == DamageType.Drill)
-                {
-                    __result *= ConfigMenu.drillDamageMult.Value;
-                    //AddDebug("CalculateDamage Drill");
-                }
+                //if (type == DamageType.Drill)
+                //{
+                //    __result *= ConfigMenu.drillDamageMult.Value;
+                //AddDebug("CalculateDamage Drill");
+                //}
                 if (techType == TechType.Player)
                 {
                     //__result *= Main.config.playerDamageMult;
@@ -405,12 +408,11 @@ namespace Tweaks_Fixes
         {
             static void Postfix(VFXSurfaceTypeDatabase __instance, VFXSurfaceTypes surfaceType, VFXEventTypes eventType, GameObject prefab)
             {
-                if (surfaceType == VFXSurfaceTypes.organic)
+                if (surfaceType == VFXSurfaceTypes.organic && ConfigToEdit.bloodColor.Value != "0.784 1.0 0.157")
                 {
                     //Main.Log("VFXSurfaceTypeDatabase SetPrefab surfaceType " + surfaceType + " eventType " + eventType);
                     SetBloodColor(prefab);
                 }
-
             }
         }
 
@@ -441,29 +443,6 @@ namespace Tweaks_Fixes
                     return false;
 
                 return true;
-            }
-        }
-
-        [HarmonyPatch(typeof(Drillable))]
-        class Drillable_Start_Patch
-        {
-            [HarmonyPostfix, HarmonyPatch("Start")]
-            static void StartPostfix(Drillable __instance)
-            {
-                for (int index = 0; index < __instance.health.Length; ++index)
-                {
-                    __instance.health[index] /= ConfigMenu.drillDamageMult.Value;
-                    //AddDebug("Drillable Start " + __instance.health[index]);
-                }
-            }
-            [HarmonyPostfix, HarmonyPatch("Restore")]
-            static void RestorePostfix(Drillable __instance)
-            {
-                for (int index = 0; index < __instance.health.Length; ++index)
-                {
-                    __instance.health[index] /= ConfigMenu.drillDamageMult.Value;
-                    //AddDebug("Drillable Restore " + __instance.health[index]);
-                }
             }
         }
 

@@ -47,6 +47,12 @@ namespace Tweaks_Fixes
             {
                 VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
                 surface.surfaceType = VFXSurfaceTypes.metal;
+                DealDamageOnImpact ddoi = __instance.GetComponent<DealDamageOnImpact>();
+                if (ddoi && ddoi.impactSound)
+                {
+                    SoundOnDamage sod = __instance.gameObject.EnsureComponent<SoundOnDamage>();
+                    sod.sound = ddoi.impactSound.asset;
+                }
             }
 
             [HarmonyPrefix]
@@ -151,6 +157,13 @@ namespace Tweaks_Fixes
                     Utils.PlayFMODAsset(__instance.enterSound, __instance.transform);
                 }
             }
+
+            //[HarmonyPostfix, HarmonyPatch("UpdatePowerRelay")]
+            public static void UpdatePowerRelayPostfix(SeaTruckSegment __instance)
+            {
+                AddDebug("SeaTruckSegment UpdatePowerRelay ");
+
+            }
         }
 
 
@@ -196,27 +209,26 @@ namespace Tweaks_Fixes
             public static void Prefix(LightingController __instance, int targetState)
             {
                 prevState = (int)__instance.state;
-                //AddDebug(__instance.name + " lights " + (LightingController.LightingState)targetState);
             }
             public static void Postfix(LightingController __instance, int targetState)
             {
-                if (prevState == targetState || !__instance.GetComponent<SeaTruckLights>())
+                if (prevState == targetState || !__instance.GetComponent<SeaTruckSegment>())
                     return;
 
                 //AddDebug(__instance.name + " lights " + (LightingController.LightingState)targetState);
-                Light[] lights = Util.GetComponentsInDirectChildren<Light>(__instance, true);
-                if ((LightingController.LightingState)targetState == LightingController.LightingState.Damaged)
-                {
-                    foreach (Light light in lights)
-                        light.enabled = false;
-                    //AddDebug(__instance.name + " turn off lights ");
-                }
-                else if ((LightingController.LightingState)targetState == LightingController.LightingState.Operational)
-                {
-                    foreach (Light light in lights)
-                        light.enabled = true;
-                    //AddDebug(__instance.name + " turn on lights ");
-                }
+                bool off = (LightingController.LightingState)targetState == LightingController.LightingState.Damaged;
+                ToggleLights(__instance.gameObject, !off);
+            }
+
+            private static void ToggleLights(GameObject go, bool on)
+            {
+                Light[] lights = Util.GetComponentsInDirectChildren<Light>(go, true);
+                foreach (Light light in lights)
+                    light.enabled = on;
+                //AddDebug(go.name + " ToggleLights ");
+                Transform jukebox = go.transform.Find("Jukebox/UI");
+                if (jukebox)
+                    jukebox.gameObject.SetActive(on);
             }
         }
 
@@ -274,13 +286,9 @@ namespace Tweaks_Fixes
             }
         }
 
-
-
         [HarmonyPatch(typeof(SeaTruckUpgrades))]
         class SeaTruckUpgrades_Patch
         {
-
-
             [HarmonyPostfix]
             [HarmonyPatch("OnUpgradeModuleChange")]
             public static void OnUpgradeModuleChangePostfix(SeaTruckUpgrades __instance, TechType techType, bool added)

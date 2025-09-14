@@ -18,6 +18,14 @@ namespace Tweaks_Fixes
         static float knifeRangeDefault;
         static float knifeDamageDefault;
 
+        public static float GetKnifeDamage()
+        {
+            if (knifeDamageDefault == 0)
+                return 20;
+
+            return knifeDamageDefault;
+        }
+
         [HarmonyPatch(typeof(PlayerTool))]
         public class PlayerTool_Patch
         {
@@ -29,11 +37,6 @@ namespace Tweaks_Fixes
                 Knife knife = __instance as Knife;
                 if (knife)
                 {
-                    if (knifeRangeDefault == 0f)
-                        knifeRangeDefault = knife.attackDist;
-                    if (knifeDamageDefault == 0f)
-                        knifeDamageDefault = knife.damage;
-
                     knife.attackDist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
                     knife.damage = knifeDamageDefault * ConfigMenu.knifeDamageMult.Value;
                     //AddDebug(" attackDist  " + knife.attackDist);
@@ -45,6 +48,15 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Knife))]
         class Knife_Patch_
         {
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            public static void StartPostfix(Knife __instance)
+            {
+                if (knifeRangeDefault == 0f)
+                    knifeRangeDefault = __instance.attackDist;
+                if (knifeDamageDefault == 0f)
+                    knifeDamageDefault = __instance.damage;
+            }
+
             [HarmonyPrefix]
             [HarmonyPatch("OnToolUseAnim")]
             public static bool OnToolUseAnimPrefix(Knife __instance, GUIHand hand)
@@ -163,7 +175,7 @@ namespace Tweaks_Fixes
                             spawnPos = camTr.position;
 
                     }
-                    CoroutineHost.StartCoroutine(Util.Spawn(techType, spawnPos));
+                    CoroutineHost.StartCoroutine(Util.SpawnAsync(techType, spawnPos));
                 }
             }
         }

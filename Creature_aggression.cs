@@ -215,6 +215,9 @@ namespace Tweaks_Fixes
         {
             static void Postfix(AttackLastTarget __instance, GameObject target, ref bool __result)
             {
+                if (target == null)
+                    return;
+
                 Vehicle vehicle = target.GetComponent<Vehicle>();
                 SeaTruckSegment sts = target.GetComponent<SeaTruckSegment>();
                 if (vehicle || sts)
@@ -224,8 +227,7 @@ namespace Tweaks_Fixes
                         __result = false;
                         return;
                     }
-                    bool playerInSeaTruck = Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment;
-                    if ((vehicle && !Player.main.inExosuit) || (sts && !playerInSeaTruck))
+                    if ((vehicle && !Player.main.inExosuit) || (sts && !Util.IsPlayerInTruck()))
                     {
                         if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on)
                         {

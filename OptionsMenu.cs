@@ -38,7 +38,7 @@ namespace Tweaks_Fixes
             //ModSliderOption hungerUpdateIntervalSlider = ConfigMenu.hungerUpdateInterval.ToModSliderOption(1, 100, 1);
             ModSliderOption maxFoodSlider = ConfigMenu.maxPlayerFood.ToModSliderOption(100, 300, 10);
             ModSliderOption maxWaterSlider = ConfigMenu.maxPlayerWater.ToModSliderOption(100, 300, 10);
-            ModSliderOption fishFoodWaterRatioSlider = ConfigMenu.fishFoodWaterRatio.ToModSliderOption(0f, 1f, .01f, "{0:0.0#}");
+            ModSliderOption fishFoodWaterRatioSlider = ConfigMenu.fishFoodWaterRatio.ToModSliderOption(0, 100, 1);
             ModSliderOption foodDecayRateSlider = ConfigMenu.foodDecayRateMult.ToModSliderOption(0f, 3f, .1f, "{0:0.#}");
             ModSliderOption fruitGrowTimeSlider = ConfigMenu.fruitGrowTime.ToModSliderOption(0, 30, 1);
             ModSliderOption fishSpeedSlider = ConfigMenu.fishSpeedMult.ToModSliderOption(0.1f, 5f, .1f, "{0:0.#}");

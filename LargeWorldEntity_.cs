@@ -11,6 +11,7 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(LargeWorldEntity))]
     class LargeWorldEntity_
     {
+
         static HashSet<TechType> plantSurfaces = new HashSet<TechType> { TechType.PurpleVegetablePlant, TechType.Creepvine, TechType.HeatFruitPlant, TechType.IceFruitPlant, TechType.FrozenRiverPlant2, TechType.JellyPlant, TechType.LeafyFruitPlant, TechType.KelpRoot, TechType.KelpRootPustule, TechType.HangingFruitTree, TechType.MelonPlant, TechType.SnowStalkerPlant, TechType.CrashHome, TechType.DeepLilyShroom, TechType.DeepLilyPadsLanternPlant, TechType.BlueFurPlant, TechType.GlacialTree, TechType.GlowFlower, TechType.OrangePetalsPlant, TechType.HoneyCombPlant, TechType.CavePlant, TechType.GlacialPouchBulb, TechType.PurpleRattle, TechType.ThermalLily, TechType.GlacialBulb, TechType.PinkFlower, TechType.SmallMaroonPlant, TechType.DeepTwistyBridgesLargePlant, TechType.GenericShellDouble, TechType.TwistyBridgeCliffPlant, TechType.GenericCrystal, TechType.CaveFlower, TechType.TrianglePlant, TechType.PurpleBranches, TechType.GenericBigPlant2, TechType.GenericBigPlant1, TechType.GenericShellSingle, TechType.OxygenPlant, TechType.TwistyBridgeCoralLong, TechType.GenericCage, TechType.TapePlant, TechType.GenericBowl, TechType.TallShootsPlant, TechType.TreeSpireMushroom, TechType.RedBush, TechType.GenericRibbon, TechType.MohawkPlant, TechType.GenericSpiral, TechType.SpottedLeavesPlant, TechType.TornadoPlates, TechType.ThermalSpireBarnacle, TechType.TwistyBridgesLargePlant, TechType.PurpleStalk, TechType.LargeVentGarden, TechType.SmallVentGarden };
 
         static HashSet<TechType> LilyPadTechtypes = new HashSet<TechType> { TechType.LilyPadFallen, TechType.LilyPadMature, TechType.LilyPadResource, TechType.LilyPadRoot, TechType.LilyPadStage1, TechType.LilyPadStage2, TechType.LilyPadStage3 };
@@ -317,10 +318,10 @@ namespace Tweaks_Fixes
 
             //AddDebug(__instance.name + " StartFading ");
             //AddDebug(" Tools_Patch.equippedTool " + Tools_Patch.equippedTool.name);
-            if (Util.spawning)
+            if (spawning)
             {
                 //AddDebug(" spawning " + __instance.name);
-                Util.spawning = false;
+                spawning = false;
                 return false;
             }
             if (__instance.gameObject == Drop_items_anywhere.droppedObject)
@@ -366,7 +367,7 @@ namespace Tweaks_Fixes
             { new InstanceToFix("treespires_eroded_rock_01_d(Clone)", -193, -399, -1469), new TransformData(new Vector3(float.NaN, -401f, float.NaN))},
             { new InstanceToFix("treespires_eroded_rock_01_e(Clone)", -222, -396, -1394), treespires_eroded_rock_01_e}
         };
-
+        internal static bool spawning;
     }
 
     public struct InstanceToFix : IEquatable<InstanceToFix>

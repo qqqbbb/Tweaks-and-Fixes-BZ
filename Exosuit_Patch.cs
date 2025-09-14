@@ -397,7 +397,10 @@ namespace Tweaks_Fixes
                 armNamesChanged = true;
             }
             CreateSounds(__instance);
-            SetLights(__instance, Main.configMain.exosuitLights);
+            //AddDebug("Exosuit Start GetExosuitLights");
+            if (Main.configMain.GetExosuitLights(__instance.gameObject))
+                SetLights(__instance, false);
+
             exosuitStarted = true;
         }
 
@@ -465,14 +468,12 @@ namespace Tweaks_Fixes
                 if (!lightsT.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
                 {
                     lightsT.gameObject.SetActive(true);
-                    Main.configMain.exosuitLights = true;
-                    Utils.PlayFMODAsset(lightOnSound, Player.main.transform);
+                    Main.configMain.DeleteExosuitLights(exosuit.gameObject);
                 }
                 else if (lightsT.gameObject.activeSelf)
                 {
                     lightsT.gameObject.SetActive(false);
-                    Main.configMain.exosuitLights = false;
-                    Utils.PlayFMODAsset(lightOffSound, Player.main.transform);
+                    Main.configMain.SaveExosuitLights(exosuit.gameObject);
                 }
                 //AddDebug("lights " + lightsT.gameObject.activeSelf);
             }
@@ -811,14 +812,14 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch("GetTemperature")]
+        [HarmonyPrefix, HarmonyPatch("GetTemperature")]
         public static bool GetTemperaturePrefix(Vehicle __instance, ref float __result)
         { // fix thermometer values wnen above water
             if (Player.main.inExosuit && Player.main.currentMountedVehicle == __instance)
             {
                 //BodyTemperature bt = Player.main.GetComponent<BodyTemperature>();
                 __result = Player_.ambientTemperature;
+                //AddDebug("ambient Temperature " + (int)Player_.ambientTemperature);
                 return false;
             }
             return true;
@@ -851,48 +852,6 @@ namespace Tweaks_Fixes
             Exosuit_Patch.selectedTorpedoRight = null;
         }
     }
-
-    [HarmonyPatch(typeof(ExosuitDrillArm))]
-    class ExosuitDrillArm_Patch
-    { // dont stop drilling sound when not hitting anything
-        [HarmonyPrefix]
-        [HarmonyPatch("StopEffects")]
-        static bool StopEffectsPrefix(ExosuitDrillArm __instance)
-        {
-            if (__instance.drillFXinstance != null)
-            {
-                __instance.drillFXinstance.GetComponent<VFXLateTimeParticles>().Stop();
-                UnityEngine.Object.Destroy(__instance.drillFXinstance.gameObject, 1.6f);
-                __instance.drillFXinstance = null;
-            }
-            if (__instance.fxControl.emitters[0].fxPS != null && __instance.fxControl.emitters[0].fxPS.emission.enabled)
-                __instance.fxControl.Stop(0);
-            //__instance.loop.Stop();
-            __instance.loopHit.Stop();
-            return false;
-        }
-        [HarmonyPostfix]
-        [HarmonyPatch("IExosuitArm.OnUseUp")]
-        static void OnUseUpPostfix(ExosuitDrillArm __instance)
-        {
-            //AddDebug("OnUseUp ");
-            __instance.loop.Stop();
-        }
-        //[HarmonyPrefix]
-        //[HarmonyPatch("IExosuitArm.OnUseDown")]
-        static bool OnUseDownPostfix(ExosuitDrillArm __instance, ref bool __result, ref float cooldownDuration)
-        {
-            AddDebug("OnUseDown ");
-            //__instance.animator.SetBool("use_tool", true);
-            __instance.drilling = true;
-            __instance.loop.Play();
-            cooldownDuration = 0f;
-            __instance.drillTarget = null;
-            __result = true;
-            return false;
-        }
-    }
-
 
     [HarmonyPatch(typeof(SeamothStorageContainer), "OnCraftEnd")]
     class SeamothStorageContainer_OnCraftEnd_Patch

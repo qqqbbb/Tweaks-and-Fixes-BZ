@@ -14,24 +14,16 @@ namespace Tweaks_Fixes
 {
     internal static class Util
     {
-        static Dictionary<TechType, GameObject> prefabs = new Dictionary<TechType, GameObject>();
-        public static bool spawning;
 
-        public static IEnumerator Spawn(TechType techType, Vector3 pos = default, bool fadeIn = false)
+        public static IEnumerator SpawnAsync(TechType techType, Vector3 pos = default, bool fadeIn = false)
         {
-            //AddDebug("try Spawn " + techType);
+            //AddDebug("Spawn " + techType + " " + pos);
             GameObject prefab;
-            if (prefabs.ContainsKey(techType))
-                prefab = prefabs[techType];
-            else
-            {
-                TaskResult<GameObject> result = new TaskResult<GameObject>();
-                yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
-                prefab = result.Get();
-                prefabs[techType] = prefab;
-            }
+            TaskResult<GameObject> result = new TaskResult<GameObject>();
+            yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
+            prefab = result.Get();
             if (!fadeIn)
-                spawning = true;
+                LargeWorldEntity_.spawning = true;
 
             GameObject go = prefab == null ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
             if (go != null)
@@ -44,9 +36,37 @@ namespace Tweaks_Fixes
                 else
                     go.transform.position = pos;
                 //AddDebug("Spawn " + techType + " " + pos);
+                //AttachPing(go);
                 CrafterLogic.NotifyCraftEnd(go, techType);
             }
-            spawning = false;
+            LargeWorldEntity_.spawning = false;
+        }
+
+        public static IEnumerator AddToContainerAsync(TechType techType, ItemsContainer container, bool pickupSound)
+        {
+            TaskResult<GameObject> prefabResult = new TaskResult<GameObject>();
+            yield return CraftData.InstantiateFromPrefabAsync(techType, prefabResult);
+            GameObject gameObject = prefabResult.Get();
+            if (gameObject == null)
+                yield break;
+
+            Pickupable pickupable = gameObject.GetComponent<Pickupable>();
+            if (!pickupable)
+            {
+                UnityEngine.Object.Destroy(gameObject);
+                yield break;
+            }
+            if (!container.HasRoomFor(pickupable))
+            {
+                UnityEngine.Object.Destroy(gameObject);
+                yield break;
+            }
+            pickupable.Initialize();
+            if (pickupSound)
+                pickupable.PlayPickupSound();
+
+            InventoryItem item = new InventoryItem(pickupable);
+            container.UnsafeAdd(item);
         }
 
         public static bool CanPlayerEat()

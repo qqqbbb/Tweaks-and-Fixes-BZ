@@ -58,7 +58,7 @@ namespace Tweaks_Fixes
                 if (ConfigMenu.fishFoodWaterRatio.Value > 0)
                 {
                     if (Util.IsEatableFish(__instance.gameObject) && __instance.foodValue > 0)
-                        __instance.waterValue = __instance.foodValue * ConfigMenu.fishFoodWaterRatio.Value;
+                        __instance.waterValue = __instance.foodValue * ConfigMenu.fishFoodWaterRatio.Value * .01f;
                 }
             }
 

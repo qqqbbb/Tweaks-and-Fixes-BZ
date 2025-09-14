@@ -121,6 +121,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> propulsionCannonTweaks;
         public static ConfigEntry<bool> beaconTweaks;
         public static ConfigEntry<bool> flareTweaks;
+        public static ConfigEntry<bool> spawnResourcesWhenDrilling;
 
 
 
@@ -150,9 +151,9 @@ namespace Tweaks_Fixes
 
             eatingOutsideCold = Main.configToEdit.Bind("SURVIVAL", "Warmth lost when eating ouside", 0, "You will lose this amount of warmth when eating ouside.");
 
-            fixMelon = Main.configToEdit.Bind("PLANTS", "Fix melon and Preston plant", false, "If true, you will be able to plant only 1 Preston plant or melon in a pot and only 4 in a planter.");
-            randomPlantRotation = Main.configToEdit.Bind("PLANTS", "Random plant rotation", true, "If true plants in planters to have random rotation.");
-            silentReactor = Main.configToEdit.Bind("BASE", "Silent nuclear reactor", false, "If true nuclear reactor will be silent.");
+            fixMelon = Main.configToEdit.Bind("PLANTS", "Fix melon and Preston plant", false, "You will be able to plant only 1 Preston plant or melon in a pot and only 4 in a planter if this is true.");
+            randomPlantRotation = Main.configToEdit.Bind("PLANTS", "Random plant rotation", true, "Plants in planters will have random rotation if this is true.");
+            silentReactor = Main.configToEdit.Bind("BASE", "Silent nuclear reactor", false, "");
             //newUIstrings = Main.configB.Bind("", "New UI text", true, "If false new UI elements added by the mod wil be disabled.");
             newStorageUI = Main.configToEdit.Bind("UI", "New storage UI", true);
             disableUseText = Main.configToEdit.Bind("UI", "Disable quickslots text", false, "If true text above your quickslots will be disabled.");
@@ -245,7 +246,7 @@ namespace Tweaks_Fixes
             propulsionCannonTweaks = Main.configToEdit.Bind("TOOLS", "Propulsion cannon tweaks", true, "Improvements to propulsion cannon UI prompts. Ability ot eat fish you are holding with propulsion cannon. When grabbing and holding table coral with propulsion cannon, you can put it in inventory. Your propulsion cannon will break outcrop when you try to grab it. Propulsion cannon can grab fruits on plants ");
             beaconTweaks = Main.configToEdit.Bind("TOOLS", "Beacon tweaks", true, "You do not have to aim for certain part of a beacon to rename it. You can rename a beacon while holding it in your hands.");
             flareTweaks = Main.configToEdit.Bind("TOOLS", "Flare tweaks", true, "Tooltip for flare will tell you if it is burnt out. When you look at a dropped flare, you see if it is burnt out. You can light flare and not throw it.");
-
+            spawnResourcesWhenDrilling = Main.configToEdit.Bind("TOOLS", "Spawn resources instead of adding them to prawn suit container when drilling", false, "");
 
 
 
@@ -403,13 +404,14 @@ namespace Tweaks_Fixes
             Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);
             Enum.TryParse(quickslotButton.Value.ToString(), out QuickSlots_Patch.quickslotButton);
             Battery_Patch.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
-            //Main.logger.LogInfo("decayingFood str  " + decayingFood.Value);
             //Main.logger.LogInfo("decayingFood.Count  " + Food_Patch.decayingFood.Count);
             Player_Movement.CacheSettings();
             SeaTruck_movement.CacheSettings();
-            Damage_.bloodColor = ParseBloodColor(bloodColor.Value);
             Player_Movement.waterSpeedEquipment = ParseSpeedEquipmentDic(waterSpeedEquipment.Value);
             Player_Movement.groundSpeedEquipment = ParseSpeedEquipmentDic(groundSpeedEquipment.Value);
+            //Main.logger.LogInfo("bloodColor  " + bloodColor.Value);
+            if (bloodColor.Value != "0.784 1.0 0.157")
+                Damage_.bloodColor = ParseBloodColor(bloodColor.Value);
         }
 
         private static Color ParseBloodColor(string input)

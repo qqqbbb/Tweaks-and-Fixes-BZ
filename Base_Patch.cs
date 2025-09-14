@@ -9,47 +9,7 @@ namespace Tweaks_Fixes
 {
     public static class Base_Patch
     {
-        static bool lightOn
-        {
-            get
-            {
-                bool on = true;
-                SubRoot currentSub = Player.main.currentSub;
-                if (currentSub)
-                {
-                    //BaseCellLighting[] bcls = subRoot.GetComponentsInChildren<BaseCellLighting>();
-                    Vector3 pos = currentSub.transform.position;
-                    int x = (int)pos.x;
-                    int y = (int)pos.y;
-                    int z = (int)pos.z;
-                    string key = x + "_" + y + "_" + z;
-                    string currentSlot = SaveLoadManager.main.currentSlot;
-                    if (Main.configMain.baseLights.ContainsKey(currentSlot) && Main.configMain.baseLights[currentSlot].ContainsKey(key))
-                        return Main.configMain.baseLights[currentSlot][key];
-                }
-                return on;
-            }
-            set
-            {
-                SubRoot currentSub = Player.main.currentSub;
-                if (currentSub)
-                {
-                    Vector3 pos = currentSub.transform.position;
-                    int x = (int)pos.x;
-                    int y = (int)pos.y;
-                    int z = (int)pos.z;
-                    string key = x + "_" + y + "_" + z;
-                    string currentSlot = SaveLoadManager.main.currentSlot;
-                    if (Main.configMain.baseLights.ContainsKey(currentSlot))
-                        Main.configMain.baseLights[currentSlot][key] = value;
-                    else
-                    {
-                        Main.configMain.baseLights[currentSlot] = new Dictionary<string, bool>();
-                        Main.configMain.baseLights[currentSlot][key] = value;
-                    }
-                }
-            }
-        }
+
         public static Dictionary<BaseHullStrength, SubRoot> baseHullStrengths = new Dictionary<BaseHullStrength, SubRoot>();
 
         //public static Dictionary<SubRoot, bool> baseBuilt = new Dictionary<SubRoot, bool>();
@@ -92,35 +52,25 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static bool isLightOn(SubRoot subRoot)
-        {
-            BaseCellLighting[] bcls = subRoot.GetComponentsInChildren<BaseCellLighting>();
-            Vector3 pos = subRoot.transform.position;
-            int x = (int)pos.x;
-            int y = (int)pos.y;
-            int z = (int)pos.z;
-            string key = x + "_" + y + "_" + z;
-            string currentSlot = SaveLoadManager.main.currentSlot;
-            if (Main.configMain.baseLights.ContainsKey(currentSlot) && Main.configMain.baseLights[currentSlot].ContainsKey(key))
-                return Main.configMain.baseLights[currentSlot][key];
-
-            return true;
-        }
-
         public static void ToggleBaseLight(SubRoot subRoot)
         {
-            if (subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
+            if (subRoot.powerRelay == null || subRoot.powerRelay.GetPowerStatus() == PowerSystem.Status.Offline)
+                return;
+
+            //AddDebug("ToggleBaseLight " + lightOn);
+            subRoot.subLightsOn = !subRoot.subLightsOn;
+            if (subRoot.subLightsOn)
+                Main.configMain.DeleteBaseLights(subRoot.transform.position);
+            else
+                Main.configMain.SaveBaseLights(subRoot.transform.position);
+
+            BaseCellLighting[] bcls = subRoot.GetComponentsInChildren<BaseCellLighting>();
+            foreach (BaseCellLighting bcl in bcls)
             {
-                BaseCellLighting[] bcls = subRoot.GetComponentsInChildren<BaseCellLighting>();
-                //AddDebug("ToggleBaseLight " + lightOn);
-                lightOn = !lightOn;
-                foreach (BaseCellLighting bcl in bcls)
-                {
-                    //AddDebug("currentIntensity " + bcl.currentIntensity);
-                    //AddDebug("PowerLossValue " + bcl.GetPowerLossValue());
-                    //AddDebug("appliedIntensity " + bcl.appliedIntensity);
-                    bcl.ApplyCurrentIntensity();
-                }
+                //AddDebug("currentIntensity " + bcl.currentIntensity);
+                //AddDebug("PowerLossValue " + bcl.GetPowerLossValue());
+                //AddDebug("appliedIntensity " + bcl.appliedIntensity);
+                bcl.ApplyCurrentIntensity();
             }
         }
 
@@ -200,42 +150,41 @@ namespace Tweaks_Fixes
             static void PostfixAwake(SubRoot __instance)
             {
                 //Light[] lights = __instance.GetComponentsInChildren<Light>();
-                if (__instance.isBase)
-                {
-                    //if (!Main.loadingDone)
-                    //    baseBuilt[__instance] = true;
-                    //bool canToggle = __instance.powerRelay && __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Normal;
-                    //AddDebug("SubRoot Awake canToggle " + canToggle);
-                    //if (!canToggle)
-                    //    return;
+                if (__instance.isCyclops)
+                    return;
+                //if (!Main.loadingDone)
+                //    baseBuilt[__instance] = true;
+                //bool canToggle = __instance.powerRelay && __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Normal;
+                //AddDebug("SubRoot Awake canToggle " + canToggle);
+                //if (!canToggle)
+                //    return;
 
-                    int x = (int)__instance.transform.position.x;
-                    int y = (int)__instance.transform.position.y;
-                    int z = (int)__instance.transform.position.z;
-                    string key = x + "_" + y + "_" + z;
-                    string currentSlot = SaveLoadManager.main.currentSlot;
-                    if (Main.configMain.baseLights.ContainsKey(currentSlot) && Main.configMain.baseLights[currentSlot].ContainsKey(key))
+                int x = (int)__instance.transform.position.x;
+                int y = (int)__instance.transform.position.y;
+                int z = (int)__instance.transform.position.z;
+                string key = x + "_" + y + "_" + z;
+                string currentSlot = SaveLoadManager.main.currentSlot;
+                if (Main.configMain.baseLights.ContainsKey(currentSlot) && Main.configMain.baseLights[currentSlot].Contains(key))
+                {
+                    ToggleBaseLight(__instance);
+                    BaseCellLighting[] bcls = __instance.GetComponentsInChildren<BaseCellLighting>();
+                    //togglingLight = true;
+                    //AddDebug("saved Lights " + lightOn);
+                    //AddDebug("saved BaseCellLighting " + bcls.Length);
+                    foreach (BaseCellLighting bcl in bcls)
                     {
-                        lightOn = Main.configMain.baseLights[currentSlot][key];
-                        BaseCellLighting[] bcls = __instance.GetComponentsInChildren<BaseCellLighting>();
-                        //togglingLight = true;
-                        //AddDebug("saved Lights " + lightOn);
-                        //AddDebug("saved BaseCellLighting " + bcls.Length);
-                        foreach (BaseCellLighting bcl in bcls)
+                        //AddDebug("currentIntensity " + bcl.currentIntensity);
+                        //AddDebug("PowerLossValue " + bcl.GetPowerLossValue());
+                        //AddDebug("appliedIntensity " + bcl.appliedIntensity);
+                        if (bcl.GetPowerLossValue() == 0f)
                         {
-                            //AddDebug("currentIntensity " + bcl.currentIntensity);
-                            //AddDebug("PowerLossValue " + bcl.GetPowerLossValue());
-                            //AddDebug("appliedIntensity " + bcl.appliedIntensity);
-                            if (bcl.GetPowerLossValue() == 0f)
-                            {
-                                bcl.ApplyCurrentIntensity();
-                                //ApplyIntensity(bcl, lightOn);
-                            }
+                            //bcl.ApplyCurrentIntensity();
+                            //ApplyIntensity(bcl, lightOn);
                         }
-                        //togglingLight = false;
-                        //__instance.subLightsOn = Main.config.baseLights[currentSlot][key];
-                        //AddDebug(" BaseLight " + key + " " + __instance.subLightsOn);
                     }
+                    //togglingLight = false;
+                    //__instance.subLightsOn = Main.config.baseLights[currentSlot][key];
+                    //AddDebug(" BaseLight " + key + " " + __instance.subLightsOn);
                 }
             }
 
@@ -292,7 +241,7 @@ namespace Tweaks_Fixes
                 float powerLoss = __instance.GetPowerLossValue();
                 float newIntensity = powerLoss;
                 if (powerLoss == 0)
-                    newIntensity = lightOn ? 0 : 1;
+                    newIntensity = Main.configMain.GetBaseLights() ? 0 : 1;
 
                 //AddDebug("BaseCellLighting ApplyCurrentIntensity " + newIntensity);
                 if (__instance.appliedIntensity == newIntensity && !__instance.geometryChanged)
@@ -331,7 +280,7 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(SolarPanel))]
         public static class SolarPanel_Patch
-        { // dont show hand cursor
+        { // dont show hand icon
             [HarmonyPrefix]
             [HarmonyPatch("OnHandHover")]
             static bool OnHandHoverPrefix(SolarPanel __instance, GUIHand hand)
@@ -377,37 +326,6 @@ namespace Tweaks_Fixes
                     __result = false;
             }
         }
-
-        [HarmonyPatch(typeof(Constructable))]
-        class Constructable_Construct_Patch
-        {
-            [HarmonyPostfix]
-            [HarmonyPatch("NotifyConstructedChanged")]
-            public static void Postfix(Constructable __instance, bool constructed)
-            {
-                if (!constructed || Main.gameLoaded == false)
-                    return;
-                //Main.config.builderPlacingWhenFinishedBuilding = false;
-                //AddDebug(" NotifyConstructedChanged " + __instance.techType);
-                //AddDebug(" NotifyConstructedChanged isPlacing " + Builder.isPlacing);
-                if (!ConfigToEdit.builderPlacingWhenFinishedBuilding.Value)
-                    Player.main.StartCoroutine(BuilderEnd(2));
-            }
-        }
-
-        static IEnumerator BuilderEnd(int waitFrames)
-        {
-            //AddDebug("BuilderEnd start ");
-            //yield return new WaitForSeconds(waitTime);
-            while (waitFrames > 0)
-            {
-                waitFrames--;
-                yield return null;
-            }
-            Builder.End();
-            //AddDebug("BuilderEnd end ");
-        }
-
 
         [HarmonyPatch(typeof(Bench))]
         class Bench_Patch
