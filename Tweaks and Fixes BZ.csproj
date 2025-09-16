@@ -117,7 +117,7 @@
     <Compile Include="Exosuit_Drill.cs" />
     <Compile Include="Exosuit_movement.cs" />
     <Compile Include="Food.cs" />
-    <Compile Include="Knife_Patch.cs" />
+    <Compile Include="Knife_.cs" />
     <Compile Include="Main_Menu.cs" />
     <Compile Include="Menu_Buttons.cs" />
     <Compile Include="OptionsMenu.cs" />

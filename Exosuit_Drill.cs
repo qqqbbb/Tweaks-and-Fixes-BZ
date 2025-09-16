@@ -53,7 +53,7 @@ namespace Tweaks_Fixes
                         wasAlive = targetLiveMixin.IsAlive();
                         if (targetHealthGiveResourceThreshold == float.MaxValue)
                         {
-                            targetHealthGiveResourceThreshold = targetLiveMixin.health - Knife_Patch.GetKnifeDamage();
+                            targetHealthGiveResourceThreshold = targetLiveMixin.health - Knife_.GetKnifeDamage();
                             //AddDebug("OnHit targetHealthGiveResourceThreshold " + (int)targetHealthGiveResourceThreshold);
                         }
                         if (targetLiveMixin.IsAlive())

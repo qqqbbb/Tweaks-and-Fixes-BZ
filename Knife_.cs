@@ -11,7 +11,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    internal class Knife_Patch
+    internal class Knife_
     {
         public static bool giveResourceOnDamage;
         static Vector3 knifeTargetPos;
@@ -29,17 +29,32 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(PlayerTool))]
         public class PlayerTool_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnDraw")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
+            public static void StartPostfix(PlayerTool __instance)
+            {
+                Knife knife = __instance as Knife;
+                if (knife)
+                {
+                    if (knifeRangeDefault == 0)
+                        knifeRangeDefault = knife.attackDist;
+                    if (knifeDamageDefault == 0)
+                        knifeDamageDefault = knife.damage;
+                    //AddDebug("Awake knifeDamageDefault  " + knifeDamageDefault);
+                }
+            }
+            [HarmonyPostfix, HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(PlayerTool __instance)
             {
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 Knife knife = __instance as Knife;
                 if (knife)
                 {
-                    knife.attackDist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
-                    knife.damage = knifeDamageDefault * ConfigMenu.knifeDamageMult.Value;
-                    //AddDebug(" attackDist  " + knife.attackDist);
+                    if (knifeRangeDefault > 0)
+                        knife.attackDist = knifeRangeDefault * ConfigMenu.knifeRangeMult.Value;
+
+                    if (knifeDamageDefault > 0)
+                        knife.damage = knifeDamageDefault * ConfigMenu.knifeDamageMult.Value;
+                    //AddDebug("OnDraw knifeDamageDefault  " + knifeDamageDefault);
                     //AddDebug(" damage  " + knife.damage);
                 }
             }
@@ -48,13 +63,15 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Knife))]
         class Knife_Patch_
         {
-            [HarmonyPostfix, HarmonyPatch("Start")]
+            //[HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(Knife __instance)
-            {
+            { // runs after OnDraw
                 if (knifeRangeDefault == 0f)
                     knifeRangeDefault = __instance.attackDist;
                 if (knifeDamageDefault == 0f)
                     knifeDamageDefault = __instance.damage;
+
+                AddDebug("Knife Start knifeDamageDefault " + knifeDamageDefault);
             }
 
             [HarmonyPrefix]
