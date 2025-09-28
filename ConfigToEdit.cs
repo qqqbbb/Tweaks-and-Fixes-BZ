@@ -122,6 +122,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> beaconTweaks;
         public static ConfigEntry<bool> flareTweaks;
         public static ConfigEntry<bool> spawnResourcesWhenDrilling;
+        public static ConfigEntry<bool> canPickUpContainerWithItems;
 
 
 
@@ -253,6 +254,7 @@ namespace Tweaks_Fixes
             transferAllItemsButton = Main.configToEdit.Bind("BUTTOM BIND", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             transferSameItemsButton = Main.configToEdit.Bind("BUTTOM BIND", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             quickslotButton = Main.configToEdit.Bind("BUTTOM BIND", "Quickslot cycle button", Button.None, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
+            canPickUpContainerWithItems = Main.configToEdit.Bind("MISC", "Can pick up containers with items", true, "");
 
 
             //Main.logger.LogMessage("ConfigToEdit bind end ");
@@ -388,12 +390,12 @@ namespace Tweaks_Fixes
         {
             Crush_Damage.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
             Crush_Damage.crushDamageEquipment = ParseIntDicFromString(crushDamageEquipment.Value);
-            Pickupable_Patch.itemMass = ParseFloatDicFromString(itemMass.Value);
-            Pickupable_Patch.unmovableItems = ParseSetFromString(unmovableItems.Value);
+            Pickupable_.itemMass = ParseFloatDicFromString(itemMass.Value);
+            Pickupable_.unmovableItems = ParseSetFromString(unmovableItems.Value);
             Gravsphere_Patch.gravTrappable = ParseSetFromString(gravTrappable.Value);
             //Creature_Tweaks.silentCreatures = ParseSetFromString<TechType>(silentCreatures.Value);
-            Pickupable_Patch.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
-            Pickupable_Patch.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
+            Pickupable_.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
+            Pickupable_.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
             Drop_Pod_Patch.newGameLoot = ParseIntDicFromString(newGameLoot.Value);
             CreatureDeath_Patch.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
             CreatureDeath_Patch.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Nautilus.Utility;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,13 +8,14 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Pickupable_Patch
+    class Pickupable_
     {
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
         public static HashSet<TechType> unmovableItems = new HashSet<TechType>();
         public static Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> { };
         public static Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { };
-
+        public static Dictionary<Pickupable, StorageContainer> pickupableStorage = new Dictionary<Pickupable, StorageContainer>();
+        public static Dictionary<Pickupable, PickupableStorage> pickupableStorage_ = new Dictionary<Pickupable, PickupableStorage>();
 
         [HarmonyPatch(typeof(Pickupable))]
         class Pickupable_Patch_
@@ -24,7 +26,16 @@ namespace Tweaks_Fixes
             {
                 TechType tt = __instance.GetTechType();
                 //Main.logger.LogDebug("Pickupable  Awake " + tt);
+                if (tt == TechType.SmallStorage || tt == TechType.QuantumLocker)
+                {
+                    PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>();
+                    if (ps)
+                        pickupableStorage_.Add(__instance, ps);
 
+                    StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
+                    if (sc)
+                        pickupableStorage.Add(__instance, sc);
+                }
                 if (eatableFoodValue.ContainsKey(tt))
                 {
                     Util.MakeEatable(__instance.gameObject, eatableFoodValue[tt]);
@@ -47,62 +58,48 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("OnHandHover")]
-            static bool OnHandHoverPrefix(Pickupable __instance, GUIHand hand)
+            [HarmonyPostfix, HarmonyPatch("OnHandHover")]
+            static void OnHandHoverPostfix(Pickupable __instance, GUIHand hand)
             {
-                HandReticle main = HandReticle.main;
-                if (!hand.IsFreeToInteract())
-                    return false;
-
-                TechType techType = __instance.GetTechType();
-                if (__instance.AllowedToPickUp())
+                //AddDebug("Pickupable OnHandHover " + __instance.name);
+                Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
+                if (ConfigToEdit.canPickUpContainerWithItems.Value == false && pickupableStorage_.ContainsKey(__instance) && exosuit)
                 {
-                    string text1 = string.Empty;
-                    string text2 = string.Empty;
-                    Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
-                    bool canPickUp = exosuit == null || exosuit.HasClaw();
-                    if (canPickUp)
+                    //AddDebug(__instance.name + " Pickupable OnHandHover AllowedToPickUp " + __instance.AllowedToPickUp());
+                    if (__instance.AllowedToPickUp() == false)
                     {
-                        ISecondaryTooltip component = __instance.gameObject.GetComponent<ISecondaryTooltip>();
-                        if (component != null)
-                            text2 = component.GetSecondaryTooltip();
-                        text1 = __instance.usePackUpIcon ? LanguageCache.GetPackUpText(techType) : LanguageCache.GetPickupText(techType);
-                        main.SetIcon(__instance.usePackUpIcon ? HandReticle.IconType.PackUp : HandReticle.IconType.Hand);
-                    }
-                    if (exosuit)
-                    {
-                        GameInput.Button button = canPickUp ? GameInput.Button.LeftHand : GameInput.Button.None;
-                        if (exosuit.leftArmType != TechType.ExosuitClawArmModule)
-                            button = GameInput.Button.RightHand;
-                        HandReticle.main.SetText(HandReticle.TextType.Hand, text1, false, button);
-                        HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
-                    }
-                    else if (techType == TechType.Beacon)
-                    {
-                        HandleBeaconText(__instance, text1, text2);
-                    }
-                    else
-                    {
-                        HandReticle.main.SetText(HandReticle.TextType.Hand, text1, false, GameInput.Button.LeftHand);
-                        HandReticle.main.SetText(HandReticle.TextType.HandSubscript, text2, false);
+                        PickupableStorage ps = pickupableStorage_[__instance];
+                        HandReticle.main.SetText(HandReticle.TextType.HandSubscript, Language.main.Get(ps.cantPickupClickText), true);
                     }
                 }
-                else if (__instance.isPickupable && !Player.main.HasInventoryRoom(__instance))
-                {
-                    main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
-                    main.SetText(HandReticle.TextType.HandSubscript, "InventoryFull", true);
-                }
-                else
-                {
-                    main.SetText(HandReticle.TextType.Hand, techType.AsString(), true);
-                    main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
-                }
-                return false;
+                HandleBeaconText(__instance);
             }
 
-            private static void HandleBeaconText(Pickupable pickupable, string text1, string text2)
+            [HarmonyPostfix, HarmonyPatch("AllowedToPickUp")]
+            public static void AllowedToPickUpPostfix(Pickupable __instance, ref bool __result)
             {
+                if (pickupableStorage.ContainsKey(__instance))
+                { // fix bug: exosuit can pick up containers with items
+                    if (ConfigToEdit.canPickUpContainerWithItems.Value)
+                        __result = true;
+                    else
+                        __result = pickupableStorage[__instance].container.IsEmpty();
+                    //AddDebug(__instance.name + " Pickupable AllowedToPickUp " + __result);
+                    return;
+                }
+            }
+            private static void HandleBeaconText(Pickupable pickupable)
+            {
+                if (pickupable.name != "Beacon(Clone)" || pickupable.AllowedToPickUp() == false)
+                    return;
+
+                Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
+                if (exosuit && !exosuit.HasClaw())
+                    return;
+
+                string text1 = LanguageCache.GetPickupText(TechType.Beacon);
+                string text2 = string.Empty;
+                HandReticle.main.SetIcon(HandReticle.IconType.Hand);
                 BeaconLabel beaconLabel = pickupable.GetComponentInChildren<BeaconLabel>();
                 if (beaconLabel)
                 {
@@ -118,54 +115,28 @@ namespace Tweaks_Fixes
             }
         }
 
-
-        //[HarmonyPatch(typeof(Survival), "Use")]
-        class Survival_Awake_Patch
+        [HarmonyPatch(typeof(ExosuitClawArm))]
+        public static class ExosuitClawArm_Patch
         {
-            static bool Prefix(Survival __instance, GameObject useObj, ref bool __result, Inventory inventory)
+            [HarmonyPrefix, HarmonyPatch("OnPickup")]
+            public static bool OnPickupPrefix(ExosuitClawArm __instance)
             {
-                __result = false;
-                if (useObj == null)
-                    return false;
+                if (ConfigToEdit.canPickUpContainerWithItems.Value)
+                    return true;
 
-                TechType techType = CraftData.GetTechType(useObj);
-                //AddDebug("Use" + techType);
-                if (techType == TechType.None)
+                GameObject target = __instance.exosuit.GetActiveTarget();
+                if (target)
                 {
-                    Pickupable p = useObj.GetComponent<Pickupable>();
-                    if (p)
-                        techType = p.GetTechType();
-                }
-                if (techType == TechType.FirstAidKit)
-                {
-                    if (Player.main.GetComponent<LiveMixin>().health > 99.9f)
-                        AddMessage(Language.main.Get("HealthFull"));
-                    else
+                    Pickupable p = target.GetComponent<Pickupable>();
+                    //AddDebug("ExosuitClawArm OnPickup pickupableStorage " + pickupableStorage.ContainsKey(p));
+                    if (p && pickupableStorage.ContainsKey(p))
                     {
-                        __result = true;
-                        if (ConfigToEdit.medKitHPperSecond.Value >= ConfigMenu.medKitHP.Value)
-                        {
-                            Player.main.GetComponent<LiveMixin>().AddHealth(ConfigMenu.medKitHP.Value);
-                        }
-                        else
-                        {
-                            Main.configMain.SetHPtoHeal(ConfigMenu.medKitHP.Value);
-                            //healTime = Time.time;
-                        }
+                        bool empty = pickupableStorage[p].IsEmpty();
+                        //AddDebug("ExosuitClawArm OnPickup pickupableStorage " + empty);
+                        return empty;
                     }
                 }
-                else if (techType == TechType.WaterPurificationTablet && inventory.DestroyItem(TechType.SnowBall))
-                {
-                    __instance.StartCoroutine(CraftData.AddToInventoryAsync(TechType.BigFilteredWater, (IOut<GameObject>)DiscardTaskResult<GameObject>.Instance));
-                    __result = true;
-                }
-                if (__result)
-                {
-                    FMODAsset useSound = Player.main.GetUseSound(TechData.GetSoundType(techType));
-                    if (useSound)
-                        Utils.PlayFMODAsset(useSound, Player.main.transform.position);
-                }
-                return false;
+                return true;
             }
         }
 

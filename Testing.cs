@@ -13,6 +13,7 @@ namespace Tweaks_Fixes
 {
     class Testing
     {// purpleVent -29 -79 -861
+     // lava geyser -140 -500
      // crypto -90 -7 -340
         static GameObject previousTarget;
         static List<string> massList = new List<string>();
@@ -124,8 +125,6 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    string currentSlot = SaveLoadManager.main.currentSlot;
-                    AddDebug("exosuitLights.Contains " + currentSlot + " " + Main.configMain.exosuitLights.ContainsKey(currentSlot));
                     //PlayerTool tool = Inventory.main.GetHeldTool();
                     //AddDebug("bloodColor " + Damage_.bloodColor);
                     //PrintTerrainSurfaceType();
@@ -243,7 +242,7 @@ namespace Tweaks_Fixes
 
                 if (!target)
                     return;
-                //AddDebug("target " + target.name);
+                AddDebug("target " + target.name);
                 VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
                 TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
                 if (tcpc)
@@ -261,19 +260,19 @@ namespace Tweaks_Fixes
                 {
                     AddDebug("brinicle " + brinicle.state);
                 }
-                PrefabIdentifier lwe = target.GetComponentInParent<PrefabIdentifier>();
-                if (lwe)
+                PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
+                if (pi)
                 {
-                    target = lwe.gameObject;
-                    int posX = (int)lwe.transform.position.x;
-                    int posY = (int)lwe.transform.position.y;
-                    int posZ = (int)lwe.transform.position.z;
+                    target = pi.gameObject;
+                    int posX = (int)pi.transform.position.x;
+                    int posY = (int)pi.transform.position.y;
+                    int posZ = (int)pi.transform.position.z;
                     //AddDebug(" position " + posX + " " + posY + " " + posZ);
                     //AddDebug(" cellLevel " + lwe.cellLevel);
                     if (vfxSurfaceType != VFXSurfaceTypes.none)
                         AddDebug("vfxSurfaceType  " + vfxSurfaceType);
 
-                    LiveMixin lm = lwe.GetComponent<LiveMixin>();
+                    LiveMixin lm = pi.GetComponent<LiveMixin>();
                     if (lm)
                         AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
                 }

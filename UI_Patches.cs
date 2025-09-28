@@ -100,7 +100,6 @@ namespace Tweaks_Fixes
             slot1Button = "(" + uGUI.FormatButton(GameInput.Button.Slot1) + ")";
             slot2Button = "(" + uGUI.FormatButton(GameInput.Button.Slot2) + ")";
             slot1Plus2Button = slot1Button + slot2Button;
-            Exosuit_Patch.exosuitName = Language.main.Get("Exosuit");
             exosuitChangeTorpedoButton = Language.main.Get("TF_change_torpedo") + "(" + deconstructButton + ")";
             constructorString = Language.main.Get("Climb") + "(" + leftHandButton + "), " + LanguageCache.GetPackUpText(TechType.Constructor) + " (" + rightHandButton + ")";
         }

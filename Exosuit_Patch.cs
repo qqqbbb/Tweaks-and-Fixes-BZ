@@ -5,7 +5,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Assertions;
 using static ErrorMessage;
+using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -16,12 +18,7 @@ namespace Tweaks_Fixes
         //{fe76457f-0c94-4245-a080-8a5b2f8853c4}
         //event:/sub/seamoth/seaglide_light_off
         //{b52592a9-19f5-45d1-ad56-7d355fc3dcc3}
-        static FMODAsset lightOnSound;
-        static FMODAsset lightOffSound;
-        private const float vertThrustAcc = 4.25f;
-        private const float horThrustAcc = 7.5f;
-        private const float thrustUpgradeAcc = 1.33f;
-        public static string exosuitName;
+
         public static string leftArm;
         public static string rightArm;
         public static bool armNamesChanged = false;
@@ -33,6 +30,8 @@ namespace Tweaks_Fixes
         public static float changeTorpedoTimeLeft = 0;
         public static float changeTorpedoTimeRight = 0;
         public static float changeTorpedoInterval = .5f;
+        static Vector3 aimTargetLeftPos;
+        static Vector3 aimTargetRightPos;
 
         public static List<TorpedoType> GetTorpedos(Exosuit exosuit, ItemsContainer torpedoStorage)
         {
@@ -271,7 +270,7 @@ namespace Tweaks_Fixes
         private static string ShortenArmName(string armName)
         {
             //AddDebug("ShortenArmName armName " + armName);
-            armName = armName.Replace(exosuitName, "");
+            armName = armName.Replace(Language.main.Get("Exosuit"), "");
             armName = armName.Trim();
             armName = Util.UppercaseFirstCharacter(armName);
             return armName;
@@ -396,7 +395,6 @@ namespace Tweaks_Fixes
                 GetArmNames(__instance);
                 armNamesChanged = true;
             }
-            CreateSounds(__instance);
             //AddDebug("Exosuit Start GetExosuitLights");
             if (Main.configMain.GetExosuitLights(__instance.gameObject))
                 SetLights(__instance, false);
@@ -404,31 +402,18 @@ namespace Tweaks_Fixes
             exosuitStarted = true;
         }
 
-        private static void CreateSounds(Exosuit __instance)
+
+        [HarmonyPrefix, HarmonyPatch("Update")]
+        public static void UpdatePrefix(Exosuit __instance)
         {
-            lightOnSound = ScriptableObject.CreateInstance<FMODAsset>();
-            lightOnSound.path = "event:/sub/seamoth/seaglide_light_on";
-            lightOnSound.id = "{fe76457f-0c94-4245-a080-8a5b2f8853c4}";
-            lightOffSound = ScriptableObject.CreateInstance<FMODAsset>();
-            lightOffSound.path = "event:/sub/seamoth/seaglide_light_off";
-            lightOffSound.id = "{b52592a9-19f5-45d1-ad56-7d355fc3dcc3}";
-            CollisionSound collisionSound = __instance.gameObject.EnsureComponent<CollisionSound>();
-            FMODAsset so = ScriptableObject.CreateInstance<FMODAsset>();
-            so.path = "event:/sub/common/fishsplat";
-            so.id = "{0e47f1c6-6178-41bd-93bf-40bfca179cb6}";
-            collisionSound.hitSoundSmall = so;
-            so = ScriptableObject.CreateInstance<FMODAsset>();
-            so.path = "event:/sub/seamoth/impact_solid_hard";
-            so.id = "{ed65a390-2e80-4005-b31b-56380500df33}";
-            collisionSound.hitSoundFast = so;
-            so = ScriptableObject.CreateInstance<FMODAsset>();
-            so.path = "event:/sub/seamoth/impact_solid_medium";
-            so.id = "{cb2927bf-3f8d-45d8-afe2-c82128f39062}";
-            collisionSound.hitSoundMedium = so;
-            so = ScriptableObject.CreateInstance<FMODAsset>();
-            so.path = "event:/sub/seamoth/impact_solid_soft";
-            so.id = "{15dc7344-7b0a-4ffd-9b5c-c40f923e4f4d}";
-            collisionSound.hitSoundSlow = so;
+            if (!Main.gameLoaded)
+                return;
+
+            if (__instance.IsPowered() == false)
+            {
+                aimTargetLeftPos = __instance.aimTargetLeft.position;
+                aimTargetRightPos = __instance.aimTargetRight.position;
+            }
         }
 
         [HarmonyPostfix]
@@ -444,6 +429,11 @@ namespace Tweaks_Fixes
             //if (__instance.thrustPower < 1F)
             //    AddDebug("thrustPower " + __instance.thrustPower.ToString("0.0"));
             CheckExosuitButtons(__instance);
+            if (__instance.IsPowered() == false)
+            { // fix bug: exosuit can move arms when unpowered
+                __instance.aimTargetLeft.position = aimTargetLeftPos;
+                __instance.aimTargetRight.position = aimTargetRightPos;
+            }
         }
 
         private static void SetLights(Exosuit exosuit, bool on)
@@ -469,11 +459,15 @@ namespace Tweaks_Fixes
                 {
                     lightsT.gameObject.SetActive(true);
                     Main.configMain.DeleteExosuitLights(exosuit.gameObject);
+                    if (Exosuit_Sounds.lightOnSound)
+                        Utils.PlayFMODAsset(Exosuit_Sounds.lightOnSound, exosuit.gameObject.transform.position);
                 }
                 else if (lightsT.gameObject.activeSelf)
                 {
                     lightsT.gameObject.SetActive(false);
                     Main.configMain.SaveExosuitLights(exosuit.gameObject);
+                    if (Exosuit_Sounds.lightOffSound)
+                        Utils.PlayFMODAsset(Exosuit_Sounds.lightOffSound, exosuit.gameObject.transform.position);
                 }
                 //AddDebug("lights " + lightsT.gameObject.activeSelf);
             }
@@ -679,47 +673,6 @@ namespace Tweaks_Fixes
         }
     }
 
-    [HarmonyPatch(typeof(CollisionSound), "OnCollisionEnter")]
-    class CollisionSound_OnCollisionEnter_Patch
-    {
-        static bool Prefix(CollisionSound __instance, Collision col)
-        {
-            //AddDebug("OnCollisionEnter");
-            if (col.contacts.Length == 0)
-                return false;
-
-            Exosuit exosuit = __instance.GetComponent<Exosuit>();
-            Rigidbody rb = UWE.Utils.GetRootRigidbody(col.gameObject);
-            if (exosuit && !rb)
-                return false;// no sounds when walking on ground
-
-            float magnitude = col.relativeVelocity.magnitude;
-            //FMODAsset asset = !rootRigidbody || rootRigidbody.mass >= 10.0 ? (magnitude <= 8.0 ? (magnitude <= 4.0 ? __instance.hitSoundSlow : __instance.hitSoundMedium) : __instance.hitSoundFast) : __instance.hitSoundSmall;
-            FMODAsset asset = null;
-            if (!rb || rb.mass >= 10f)
-            {
-                if (magnitude < 4f)
-                    asset = __instance.hitSoundSlow;
-                else if (magnitude < 8f)
-                    asset = __instance.hitSoundMedium;
-                else
-                    asset = __instance.hitSoundFast;
-            }
-            else if (col.gameObject.GetComponent<Creature>())
-                asset = __instance.hitSoundSmall;// fish splat sound
-            else
-                asset = __instance.hitSoundSlow;
-
-            if (asset)
-            {
-                //AddDebug("col magnitude " + magnitude);
-                float soundRadiusObsolete = Mathf.Clamp01(magnitude / 8f);
-                Utils.PlayFMODAsset(asset, col.contacts[0].point, soundRadiusObsolete);
-            }
-            return false;
-        }
-    }
-
     [HarmonyPatch(typeof(Vehicle))]
     class Vehicle_patch
     {
@@ -889,111 +842,139 @@ namespace Tweaks_Fixes
         }
     }
 
-
+    [HarmonyPatch(typeof(SupplyCrate), "Start")]
+    class SupplyCrate_Start_Patch
+    {
+        public static void Postfix(SupplyCrate __instance)
+        {
+            ExosuitClawArm_Patch.supplyCrates.Add(__instance.gameObject);
+        }
+    }
 
     [HarmonyPatch(typeof(ExosuitClawArm))]
     class ExosuitClawArm_Patch
     {
-        [HarmonyPostfix]
-        [HarmonyPatch("IExosuitArm.GetInteractableRoot")]
+        public static HashSet<GameObject> supplyCrates = new HashSet<GameObject>();
+
+        [HarmonyPostfix, HarmonyPatch("IExosuitArm.GetInteractableRoot")]
         static void GetInteractableRootPostfix(ExosuitClawArm __instance, GameObject target, ref GameObject __result)
         {
-            //AddDebug("ExosuitClawArm GetInteractableRoot Postfix target " + target.name);
-            if (__result == null && target.GetComponent<SupplyCrate>())
-                __result = target;
-        }
-        [HarmonyPrefix]
-        [HarmonyPatch("TryUse", new Type[] { typeof(float) }, new[] { ArgumentType.Out })]
-        static bool TryUsePrefix(ExosuitClawArm __instance, ref float cooldownDuration, ref bool __result)
-        { // open supply crates
-            if (Time.time - __instance.timeUsed >= __instance.cooldownTime)
+            if (target && supplyCrates.Contains(target))
             {
-                Pickupable pickupable = null;
-                PickPrefab pickPrefab = null;
-                SupplyCrate supplyCrate = null;
-                __result = false;
-                bool playAnim = false;
-                GameObject target = __instance.exosuit.GetActiveTarget();
-                if (target)
-                {
-                    pickupable = target.GetComponent<Pickupable>();
-                    pickPrefab = target.GetComponent<PickPrefab>();
-                    supplyCrate = target.GetComponent<SupplyCrate>();
-                }
-                if (pickupable != null && pickupable.isPickupable)
-                {
-                    if (__instance.exosuit.storageContainer.container.HasRoomFor(pickupable))
-                    {
-                        __instance.animator.SetTrigger("use_tool");
-                        __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
-                        __result = true;
-                        return false;
-                    }
-                    else
-                        AddMessage(Language.main.Get(ExosuitClawArm.noRoomNotification));
-                }
-                else if (pickPrefab)
-                {
-                    __instance.animator.SetTrigger("use_tool");
-                    __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
-                    __result = true;
-                    return false;
-                }
-                else if (supplyCrate)
-                {
-                    if (supplyCrate.sealedComp && supplyCrate.sealedComp.IsSealed())
-                        return false;
-
-                    if (!supplyCrate.open)
-                    {
-                        supplyCrate.ToggleOpenState();
-                        playAnim = true;
-                    }
-                    else if (supplyCrate.open)
-                    {
-                        if (supplyCrate.itemInside)
-                        {
-                            if (__instance.exosuit.storageContainer.container.HasRoomFor(supplyCrate.itemInside))
-                            {
-                                ItemsContainer container = __instance.exosuit.storageContainer.container;
-                                supplyCrate.itemInside.Initialize();
-                                InventoryItem inventoryItem = new InventoryItem(supplyCrate.itemInside);
-                                container.UnsafeAdd(inventoryItem);
-                                Utils.PlayFMODAsset(__instance.pickupSounds.GetPickupSound(TechData.GetSoundType(supplyCrate.itemInside.GetTechType())), __instance.front, 5f);
-                                supplyCrate.itemInside = null;
-                                playAnim = true;
-                            }
-                            else
-                            {
-                                AddMessage(Language.main.Get(ExosuitClawArm.noRoomNotification));
-                                return false;
-                            }
-                        }
-                    }
-                    if (playAnim)
-                    {
-                        __instance.animator.SetTrigger("use_tool");
-                        __instance.cooldownTime = cooldownDuration = __instance.cooldownPickup;
-                        //supplyCrate.OnHandClick(null);
-                        __result = true;
-                    }
-                    return false;
-                }
-                else
-                {
-                    __instance.animator.SetTrigger("bash");
-                    __instance.cooldownTime = cooldownDuration = __instance.cooldownPunch;
-                    __instance.fxControl.Play(0);
-                    __result = true;
-                    return false;
-                }
+                //AddDebug("ExosuitClawArm GetInteractableRoot Postfix target " + target.name);
+                __result = target;
             }
-            cooldownDuration = 0f;
-            __result = false;
+        }
+
+        [HarmonyPostfix, HarmonyPatch("TryUse", new Type[] { typeof(float) }, new[] { ArgumentType.Out })]
+        static void TryUsePostfix(ExosuitClawArm __instance, ref float cooldownDuration, ref bool __result)
+        {
+            if (__instance.timeUsed + __instance.cooldownPickup > Time.time)
+                return;
+
+            //GameObject target = __instance.exosuit.GetActiveTarget();
+            //if (target)
+            //    AddDebug("TryUse target " + target.name);
+            //else
+            //    AddDebug("TryUse no target ");
+
+            __instance.animator.ResetTrigger("bash");
+            __instance.animator.SetTrigger("use_tool");
+            __instance.timeUsed = Time.time;
+            if (TryPickUpGrabbedObject(__instance))
+                return;
+
+            TryUseCrate(__instance);
+        }
+
+        private static bool TryUseCrate(ExosuitClawArm clawArm)
+        {
+            GameObject target = clawArm.exosuit.GetActiveTarget();
+            if (target == null)
+                return false;
+
+            SupplyCrate supplyCrate = null;
+            if (supplyCrates.Contains(target))
+                supplyCrate = target.GetComponent<SupplyCrate>();
+
+            if (supplyCrate == null)
+                return false;
+
+            if (supplyCrate.sealedComp && supplyCrate.sealedComp.IsSealed())
+                return false;
+
+            if (supplyCrate.open == false)
+            {
+                supplyCrate.ToggleOpenState();
+                return true;
+            }
+            if (supplyCrate.itemInside == null)
+                return false;
+
+            if (AddToExosuitContainer(clawArm.exosuit, supplyCrate.itemInside, clawArm.pickupSounds, clawArm.front, 5f))
+            {
+                supplyCrate.itemInside = null;
+                return true;
+            }
             return false;
         }
-    }
 
+        private static bool TryPickUpGrabbedObject(ExosuitClawArm clawArm)
+        {
+            GameObject grabbedObject = GetGrabbedObject(clawArm.exosuit);
+            if (grabbedObject == null)
+                return false;
+
+            Pickupable pickupable = grabbedObject.GetComponent<Pickupable>();
+            if (pickupable == null)
+                return false;
+            //AddDebug("Pick Up Grabbed Object " + pickupable.name);
+            return AddToExosuitContainer(clawArm.exosuit, pickupable, clawArm.pickupSounds, clawArm.front, 5f);
+        }
+
+        private static bool AddToExosuitContainer(Exosuit exosuit, Pickupable pickupable, TechSoundData pickupSounds = null, Transform soundPos = default, float soundRadius = default)
+        {
+            if (ConfigToEdit.canPickUpContainerWithItems.Value == false && Pickupable_.pickupableStorage_.ContainsKey(pickupable))
+            {
+                PickupableStorage ps = Pickupable_.pickupableStorage_[pickupable];
+                ErrorMessage.AddDebug(Language.main.Get(ps.cantPickupClickText));
+                return false;
+            }
+            ItemsContainer exosuitContainer = exosuit.storageContainer.container;
+            if (exosuitContainer.HasRoomFor(pickupable))
+            {
+                pickupable.Initialize();
+                InventoryItem inventoryItem = new InventoryItem(pickupable);
+                exosuitContainer.UnsafeAdd(inventoryItem);
+                if (pickupSounds)
+                    Utils.PlayFMODAsset(pickupSounds.GetPickupSound(TechData.GetSoundType(pickupable.GetTechType())), soundPos, soundRadius);
+
+                return true;
+            }
+            else
+            {
+                ErrorMessage.AddMessage(Language.main.Get("ContainerCantFit"));
+            }
+            return false;
+        }
+
+        private static GameObject GetGrabbedObject(Exosuit exosuit)
+        {
+            if (exosuit.currentLeftArmType == TechType.ExosuitPropulsionArmModule)
+            {
+                ExosuitPropulsionArm propArm = exosuit.leftArm as ExosuitPropulsionArm;
+                if (propArm && propArm.propulsionCannon.grabbedObject)
+                    return propArm.propulsionCannon.grabbedObject;
+            }
+            if (exosuit.currentRightArmType == TechType.ExosuitPropulsionArmModule)
+            {
+                ExosuitPropulsionArm propArm = exosuit.rightArm as ExosuitPropulsionArm;
+                if (propArm && propArm.propulsionCannon.grabbedObject)
+                    return propArm.propulsionCannon.grabbedObject;
+            }
+            return null;
+        }
+    }
 
 }
 

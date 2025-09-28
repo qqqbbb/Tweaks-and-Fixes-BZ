@@ -24,7 +24,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.1.1";
+            VERSION = "3.2.0";
         public static Survival survival;
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
@@ -81,6 +81,8 @@ namespace Tweaks_Fixes
             Battery_Patch.seatruckPRs.Clear();
             CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
             Survival_.healTime = 0;
+            Pickupable_.pickupableStorage.Clear();
+            Pickupable_.pickupableStorage_.Clear();
             configMain.Load();
         }
 

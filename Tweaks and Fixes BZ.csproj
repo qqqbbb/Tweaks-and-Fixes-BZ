@@ -114,10 +114,12 @@
     <Compile Include="Creature_aggression.cs" />
     <Compile Include="Drillable_.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
+    <Compile Include="Exosuit_Sounds.cs" />
     <Compile Include="Exosuit_Drill.cs" />
     <Compile Include="Exosuit_movement.cs" />
     <Compile Include="Food.cs" />
     <Compile Include="Knife_.cs" />
+    <Compile Include="Locker_Door_Animation.cs" />
     <Compile Include="Main_Menu.cs" />
     <Compile Include="Menu_Buttons.cs" />
     <Compile Include="OptionsMenu.cs" />
@@ -153,7 +155,7 @@
     <Compile Include="Testing.cs" />
     <Compile Include="QuickSlots_Patch.cs" />
     <Compile Include="Player_.cs" />
-    <Compile Include="Pickupable_Patch.cs" />
+    <Compile Include="Pickupable_.cs" />
     <Compile Include="Oxygen_Patch.cs" />
     <Compile Include="NoBreakingWithHands.cs" />
     <Compile Include="Gravsphere_Patch.cs" />
