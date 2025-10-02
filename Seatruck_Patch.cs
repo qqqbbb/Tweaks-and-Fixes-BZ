@@ -241,12 +241,12 @@ namespace Tweaks_Fixes
                 float deltaTime = Time.deltaTime;
                 if (deltaTime <= 0F)
                     return false;
-                AddDebug(__instance.name + " Update lights " + __instance.fadeDuration);
+                //AddDebug(__instance.name + " Update lights " + __instance.fadeDuration);
                 __instance.timer.Update(deltaTime);
                 int state = (int)__instance.state;
                 if (__instance.prevState != state)
                 {
-                    AddDebug(__instance.name + " Update lights ");
+                    //AddDebug(__instance.name + " Update lights ");
                     __instance.LerpToState(state);
                     __instance.prevState = state;
                 }

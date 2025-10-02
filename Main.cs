@@ -15,7 +15,6 @@ using System.Text;
 using UnityEngine;
 using static ErrorMessage;
 
-//GameModeManager.GetOption<bool>(GameOption.Hunger)
 namespace Tweaks_Fixes
 {
     [BepInPlugin(GUID, MODNAME, VERSION)]
@@ -24,7 +23,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.2.0";
+            VERSION = "3.2.1";
         public static Survival survival;
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;

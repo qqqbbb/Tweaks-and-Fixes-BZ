@@ -25,7 +25,7 @@ namespace Tweaks_Fixes
 
             if (bubble)
             {
-                AddDebug("bubble ");
+                //AddDebug("bubble ");
                 //GameObject ent = UWE.Utils.InstantiateWrap(bubble, position, Quaternion.identity);
                 UnityEngine.Object.Instantiate<GameObject>(bubble, position, Quaternion.identity);
             }

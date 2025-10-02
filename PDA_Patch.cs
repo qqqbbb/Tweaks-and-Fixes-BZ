@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
-using HarmonyLib;
-using System.Text;
+﻿using HarmonyLib;
 using RootMotion.FinalIK;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
 using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     class PDA_Patch
-    { 
+    {
 
         static void showPDA(PDA pda)
         {
@@ -31,7 +31,7 @@ namespace Tweaks_Fixes
                 Vector3 pdaLookForwardPos = new Vector3(pdaLocalPos.x, pdaLocalPos.y, .16f);
                 Vector3 pdaUpLookPos = new Vector3(pdaLocalPos.x, pdaLocalPos.y, .2f);
                 Vector3 v3 = Vector3.Slerp(pda.transform.forward, pda.transform.up, cameraTr.forward.y);
-                AddDebug("cameraTr.forward.y " + cameraTr.forward.y + " " + v3.z);
+                //AddDebug("cameraTr.forward.y " + cameraTr.forward.y + " " + v3.z);
                 //float bValue = Mathf.Slerp(bLow, bHigh, normal);
                 //transform = __instance.cameraOffsetTransform;
                 //pda.transform.localPosition = new Vector3(pdaLocalPos.x, pdaLocalPos.y, v3.z);
@@ -239,7 +239,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(SNCameraRoot __instance, float fov)
             {
-                AddDebug("SNCameraRoot SetFov fov " + fov);
+                //AddDebug("SNCameraRoot SetFov fov " + fov);
                 //AddDebug("SNCameraRoot SetFov isInUse " + Main.pda.isInUse);
                 return false;
             }
@@ -250,7 +250,7 @@ namespace Tweaks_Fixes
         {
             static bool Prefix(PDAOffsetHelper __instance)
             {
-                AddDebug("PDAOffsetHelper SetFOV ");
+                //AddDebug("PDAOffsetHelper SetFOV ");
                 //AddDebug("SNCameraRoot SetFov isInUse " + Main.pda.isInUse);
                 return false;
             }
@@ -264,10 +264,10 @@ namespace Tweaks_Fixes
             {
                 if (__instance.revealContentRoutine != null)
                 {
-                    AddDebug("uGUI_PDA RevealContentRoutine revealContentRoutine");
+                    //AddDebug("uGUI_PDA RevealContentRoutine revealContentRoutine");
                 }
-                else
-                    AddDebug("uGUI_PDA RevealContentRoutine revealContentRoutine null");
+                //else
+                //    AddDebug("uGUI_PDA RevealContentRoutine revealContentRoutine null");
                 //AddDebug("SNCameraRoot SetFov isInUse " + Main.pda.isInUse);
                 //return false;
             }

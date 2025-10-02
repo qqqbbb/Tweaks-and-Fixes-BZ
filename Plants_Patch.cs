@@ -195,7 +195,7 @@ namespace Tweaks_Fixes
             //[HarmonyPrefix]
             public static void OnHandHoverPrefix(PickPrefab __instance)
             {
-                AddDebug("OnHandHover " + __instance.pickTech);
+                //AddDebug("OnHandHover " + __instance.pickTech);
             }
         }
 
@@ -391,7 +391,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(FruitPlant __instance, PickPrefab fruit)
             {
-                AddDebug("FruitPlant OnFruitHarvest " + fruit.pickTech);
+                //AddDebug("FruitPlant OnFruitHarvest " + fruit.pickTech);
             }
         }
 
@@ -402,7 +402,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance.GetTechType() == TechType.KelpRootPustule)
                 {
-                    AddDebug("KelpRootPustule Pickupable OnHandClick ");
+                    //AddDebug("KelpRootPustule Pickupable OnHandClick ");
                 }
             }
         }
@@ -414,7 +414,7 @@ namespace Tweaks_Fixes
             {
                 if (__instance.GetTechType() == TechType.KelpRootPustule)
                 {
-                    AddDebug("KelpRootPustule PickPrefab OnHandClick ");
+                    //AddDebug("KelpRootPustule PickPrefab OnHandClick ");
                 }
             }
         }

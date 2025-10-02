@@ -86,7 +86,7 @@ namespace Tweaks_Fixes
                 if (currentInterior != null)
                 {
                     __result = currentInterior.GetInsideTemperature();
-                    AddDebug("GetAmbientTemperatureFromEnvironment currentInterior " + currentInterior.GetType());
+                    //AddDebug("GetAmbientTemperatureFromEnvironment currentInterior " + currentInterior.GetType());
                     //AddDebug("GetAmbientTemperatureFromEnvironment GetInsideTemperature " + (int)__result);
                     return false;
                 }
@@ -143,10 +143,10 @@ namespace Tweaks_Fixes
             {
                 if (__instance.depthCache == null)
                 {
-                    AddDebug("__instance.depthCache == null");
+                    //AddDebug("__instance.depthCache == null");
                 }
-                else
-                    AddDebug("depthCache" + __instance.depthCache.Get());
+                //else
+                //    AddDebug("depthCache" + __instance.depthCache.Get());
             }
         }
 

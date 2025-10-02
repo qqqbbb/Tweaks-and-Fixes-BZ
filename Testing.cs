@@ -15,6 +15,8 @@ namespace Tweaks_Fixes
     {// purpleVent -29 -79 -861
      // lava geyser -140 -500
      // crypto -90 -7 -340
+     //GameModeManager.GetOption<bool>(GameOption.Hunger)
+
         static GameObject previousTarget;
         static List<string> massList = new List<string>();
 

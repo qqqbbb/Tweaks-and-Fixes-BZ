@@ -308,7 +308,7 @@ namespace Tweaks_Fixes
                     __result *= invItemsMod;
 
                 if (canMove && __result == 0)
-                    AddDebug(Language.main.Get("TF_too_much_weight_message"));
+                    ErrorMessage.AddDebug(Language.main.Get("TF_too_much_weight_message"));
 
                 //if (UnityEngine.Input.GetKey(KeyCode.V))
                 //{
@@ -377,7 +377,7 @@ namespace Tweaks_Fixes
 
                 //AddDebug(" mod: " + mod);
                 if (canMove && mod == 0)
-                    AddDebug(Language.main.Get("TF_too_much_weight_message"));
+                    ErrorMessage.AddDebug(Language.main.Get("TF_too_much_weight_message"));
 
                 __instance.forwardMaxSpeed = __instance.playerController.walkRunForwardMaxSpeed * ConfigMenu.playerGroundSpeedMult.Value * mod;
                 return true;
@@ -410,8 +410,8 @@ namespace Tweaks_Fixes
         {
             static void Prefix(Player __instance, Player.MotorMode newMotorMode)
             {// 
-                AddDebug("Player SetMotorMode " + newMotorMode);
-                AddDebug("Player SetMotorMode " + __instance.IsUnderwaterForSwimming());
+                //AddDebug("Player SetMotorMode " + newMotorMode);
+                //AddDebug("Player SetMotorMode " + __instance.IsUnderwaterForSwimming());
                 //if (swimming != __instance.IsUnderwaterForSwimming())
                 //{
                 //    AddDebug("UpdateMotorMode update swimming");
@@ -428,7 +428,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(PlayerController __instance, Player.MotorMode newMotorMode)
             {// newMotorMode is Run when player surfaces. This does not fire when player goes from water surface to ground
-                AddDebug("PlayerController SetMotorMode " + newMotorMode);
+                //AddDebug("PlayerController SetMotorMode " + newMotorMode);
                 //bool swimming = newMotorMode == Player.MotorMode.Dive || newMotorMode == Player.MotorMode.Seaglide;
                 //AddDebug("SetMotorMode swimming " + swimming);
                 //AddDebug("SetMotorMode isUnderwaterForSwimming " + Player.main.IsUnderwaterForSwimming());
@@ -440,8 +440,8 @@ namespace Tweaks_Fixes
                 __instance.underWaterController.strafeMaxSpeed *= playerSidewardSpeedMod;
                 __instance.groundController.strafeMaxSpeed *= playerSidewardSpeedMod;
                 __instance.underWaterController.verticalMaxSpeed *= playerVerticalSpeedMod;
-                AddDebug("playerSidewardSpeedMod " + playerSidewardSpeedMod);
-                AddDebug("strafeMaxSpeed " + __instance.underWaterController.strafeMaxSpeed);
+                //AddDebug("playerSidewardSpeedMod " + playerSidewardSpeedMod);
+                //AddDebug("strafeMaxSpeed " + __instance.underWaterController.strafeMaxSpeed);
 
             }
         }
