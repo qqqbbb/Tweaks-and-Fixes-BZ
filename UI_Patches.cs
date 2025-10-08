@@ -13,7 +13,6 @@ namespace Tweaks_Fixes
 {
     class UI_Patches
     {
-        static bool textInput = false;
         static bool chargerOpen = false;
 
         public static Dictionary<ItemsContainer, Recyclotron> recyclotrons = new Dictionary<ItemsContainer, Recyclotron>();
@@ -341,6 +340,10 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("OnUpdate")]
             public static void OnUpdatePostfix(GUIHand __instance)
             {
+                //AddDebug("GUIHand OnUpdate lockMovement " + FPSInputModule.current.lockMovement);
+                if (FPSInputModule.current.lockMovement)
+                    return;
+
                 PlayerTool tool = __instance.GetTool();
                 if (tool)
                 {
@@ -384,7 +387,7 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                else if (!Main.baseLightSwitchLoaded && !Player.main.pda.isInUse && !textInput && !uGUI._main.craftingMenu.selected)
+                else if (!Main.baseLightSwitchLoaded && !Player.main.pda.isInUse && !uGUI._main.craftingMenu.selected)
                 {
                     SubRoot subRoot = Player.main.currentSub;
                     if (subRoot && subRoot.isBase && subRoot.powerRelay && subRoot.powerRelay.GetPowerStatus() != PowerSystem.Status.Offline)
@@ -772,26 +775,6 @@ namespace Tweaks_Fixes
                         TooltipFactory.WriteDescription(sb, Language.main.Get("TF_mass") + rb.mass + Language.main.Get("TF_kg"));
                     }
                 }
-            }
-        }
-
-
-        [HarmonyPatch(typeof(uGUI_InputGroup))]
-        class uGUI_InputGroup_Patch
-        {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnSelect")]
-            static void OnSelectPostfix(uGUI_InputGroup __instance)
-            {
-                //AddDebug("uGUI_InputGroup OnSelect");
-                textInput = true;
-            }
-            [HarmonyPostfix]
-            [HarmonyPatch("OnDeselect")]
-            static void OnDeselectPostfix(uGUI_InputGroup __instance)
-            {
-                //AddDebug("uGUI_InputGroup OnDeselect");
-                textInput = false;
             }
         }
 

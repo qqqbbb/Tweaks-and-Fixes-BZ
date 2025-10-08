@@ -88,6 +88,7 @@ namespace Tweaks_Fixes
                     return;
                 }
             }
+
             private static void HandleBeaconText(Pickupable pickupable)
             {
                 if (pickupable.name != "Beacon(Clone)" || pickupable.AllowedToPickUp() == false)
