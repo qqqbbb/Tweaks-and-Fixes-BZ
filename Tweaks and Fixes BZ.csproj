@@ -109,6 +109,7 @@
     <Compile Include="Battery_Patch.cs" />
     <Compile Include="Bed_.cs" />
     <Compile Include="Camera.cs" />
+    <Compile Include="Charger_.cs" />
     <Compile Include="ConfigMain.cs" />
     <Compile Include="CreatureDeath_Patch.cs" />
     <Compile Include="Creature_aggression.cs" />

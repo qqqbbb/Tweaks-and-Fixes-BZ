@@ -178,9 +178,11 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Eat")]
             public static bool EatPrefix(Survival __instance, GameObject useObj, ref bool __result)
             {
+                if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Default && !ConfigMenu.newHungerSystem.Value
+                    && ConfigMenu.maxPlayerWater.Value == 100 && ConfigMenu.maxPlayerFood.Value == 200 && ConfigMenu.waterFreezeRate.Value == 0)
+                    return true;
+
                 //AddDebug("Survival eat " + useObj.name);
-                //if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.Vanilla && !Main.config.newHungerSystem && ConfigMenu.maxPlayerWater.Value == 100 && ConfigMenu.maxPlayerFood.Value == 200)
-                //    return true;
 
                 if (useObj == null)
                     return false;
@@ -204,6 +206,7 @@ namespace Tweaks_Fixes
                 int playerMinFood = ConfigMenu.newHungerSystem.Value ? -100 : 0;
                 float playerMaxWater = ConfigMenu.maxPlayerWater.Value;
                 float playerMaxFood = ConfigMenu.maxPlayerFood.Value;
+
                 int minFood = food;
                 int maxFood = food;
                 int minWater = water;
@@ -291,11 +294,7 @@ namespace Tweaks_Fixes
                     //AddDebug("foodDamage " + foodDamage);
                     Player.main.liveMixin.TakeDamage(Mathf.Abs(foodDamage), Player.main.gameObject.transform.position, DamageType.Starve);
                 }
-                if (ConfigToEdit.eatingOutsideCold.Value > 0 && __instance.bodyTemperature.isExposed)
-                {
-                    //AddDebug("eating  isExposed ");
-                    __instance.bodyTemperature.AddCold(ConfigToEdit.eatingOutsideCold.Value);
-                }
+
                 //AddDebug("finalFood " + finalFood);
                 //AddDebug("finalWater " + finalWater);
                 if (finalFood > 0)
@@ -337,7 +336,6 @@ namespace Tweaks_Fixes
                 if (useSound)
                     Utils.PlayFMODAsset(useSound, __instance.player.transform.position);
 
-
                 if (techType == TechType.Bladderfish)
                     Player.main.GetComponent<OxygenManager>().AddOxygen(15f);
 
@@ -345,7 +343,9 @@ namespace Tweaks_Fixes
                     eatable.ConsumeCharge();
 
                 __instance.water = Mathf.Clamp(__instance.water, playerMinFood, playerMaxWater);
+                //if (ConfigMenu.maxPlayerFood.Value == 200 && __instance.food > 100)
                 __instance.food = Mathf.Clamp(__instance.food, playerMinFood, playerMaxFood);
+
                 int warn = ConfigMenu.newHungerSystem.Value ? 0 : 20;
                 if (!__instance.InConversation())
                 {
@@ -355,7 +355,7 @@ namespace Tweaks_Fixes
                     else if (finalFood > 0f && __instance.food > warn && __instance.food - finalWater < warn)
                         __instance.vitalsOkNotification.Play();
                 }
-                if (ConfigMenu.waterFreezeRate.Value > 0f && Util.IsWater(eatable))
+                if (ConfigMenu.waterFreezeRate.Value > 0)
                 {
                     float notFrozenWater = eatable.GetWaterValue();
                     eatable.removeOnUse = eatable.waterValue == notFrozenWater;
@@ -373,6 +373,18 @@ namespace Tweaks_Fixes
                 return false;
             }
 
+            [HarmonyPostfix, HarmonyPatch("Eat")]
+            public static void EatPostfix(Survival __instance, GameObject useObj, bool __result)
+            {
+                if (useObj == null)
+                    return;
+
+                if (ConfigToEdit.eatingOutsideCold.Value > 0 && __instance.bodyTemperature.isExposed)
+                {
+                    //AddDebug("eating  isExposed ");
+                    __instance.bodyTemperature.AddCold(ConfigToEdit.eatingOutsideCold.Value);
+                }
+            }
             [HarmonyPrefix, HarmonyPatch("Use")]
             public static void UsePrefix(Survival __instance, GameObject useObj, ref bool __result)
             {

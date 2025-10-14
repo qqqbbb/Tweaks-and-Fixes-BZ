@@ -286,7 +286,7 @@ namespace Tweaks_Fixes
                         {
                             if (chargerOpen)
                             {
-                                if (Battery_Patch.notRechargableBatteries.Contains(tt))
+                                if (Charger_.notRechargableBatteries.Contains(tt))
                                 {
                                     pair.Value.SetChroma(0f);
                                     continue;
@@ -341,7 +341,7 @@ namespace Tweaks_Fixes
             public static void OnUpdatePostfix(GUIHand __instance)
             {
                 //AddDebug("GUIHand OnUpdate lockMovement " + FPSInputModule.current.lockMovement);
-                if (FPSInputModule.current.lockMovement)
+                if (Main.gameLoaded == false || FPSInputModule.current.lockMovement)
                     return;
 
                 PlayerTool tool = __instance.GetTool();

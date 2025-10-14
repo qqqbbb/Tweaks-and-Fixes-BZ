@@ -571,5 +571,15 @@ namespace Tweaks_Fixes
             return s[0].ToString().ToUpper() + s.Substring(1);
         }
 
+        public static bool IsAnimationPlaying(Animator animator, int layerIndex = 0)
+        {
+            if (animator == null || !animator.enabled || !animator.gameObject.activeInHierarchy)
+                return false;
+
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(layerIndex);
+            return stateInfo.length > 0 && stateInfo.normalizedTime < 1.0f;
+        }
+
+
     }
 }

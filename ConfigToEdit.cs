@@ -405,7 +405,7 @@ namespace Tweaks_Fixes
             Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
             Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);
             Enum.TryParse(quickslotButton.Value.ToString(), out QuickSlots_Patch.quickslotButton);
-            Battery_Patch.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
+            Charger_.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
             //Main.logger.LogInfo("decayingFood.Count  " + Food_Patch.decayingFood.Count);
             Player_Movement.CacheSettings();
             SeaTruck_movement.CacheSettings();
