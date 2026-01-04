@@ -101,8 +101,8 @@ namespace Tweaks_Fixes
                 //Creature creature = item.item.GetComponent<Creature>();
                 //FixPeeperLOD(Creature peeper, bool alive = false)
             }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
+            [HarmonyPrefix]
+            [HarmonyPatch("ExecuteItemAction", new Type[] { typeof(ItemAction), typeof(InventoryItem) })]
             public static bool ExecuteItemActionPrefix(Inventory __instance, InventoryItem item, ItemAction action)
             {
                 //AddDebug("ExecuteItemAction AltUseItem " + item.item.GetTechType());
@@ -113,28 +113,28 @@ namespace Tweaks_Fixes
 
                 if (GameInput.lastDevice == GameInput.Device.Keyboard)
                 {
-                    if (Input.GetKey(ConfigMenu.transferSameItemsButton.Value))
+                    if (Input.GetKey(ConfigMenu.transferSameItemsKey.Value))
                         return !MoveSameItems(item);
 
-                    if (Input.GetKey(ConfigMenu.transferAllItemsButton.Value))
+                    if (Input.GetKey(ConfigMenu.transferAllItemsKey.Value))
                         return !MoveAllItems(item);
                 }
                 return true;
             }
         }
 
-        //[HarmonyPatch(typeof(GamepadInputModule))]
+        [HarmonyPatch(typeof(GamepadInputModule))]
         class GamepadInputModule_Patch
         {
-            //[HarmonyPostfix]
-            //[HarmonyPatch("ProcessInput")]
+            [HarmonyPostfix]
+            [HarmonyPatch("ProcessInput")]
             public static void OnUpdatePostfix(GamepadInputModule __instance)
             {
-                if (Input.GetKeyDown(ConfigMenu.transferAllItemsButton.Value) || GameInput.GetButtonDown(transferAllItemsButton))
+                if (Input.GetKeyDown(ConfigMenu.transferAllItemsKey.Value) || GameInput.GetButtonDown(transferAllItemsButton))
                 {
                     MoveAllItems(selectedItem);
                 }
-                else if (Input.GetKeyDown(ConfigMenu.transferSameItemsButton.Value) || GameInput.GetButtonDown(transferSameItemsButton))
+                else if (Input.GetKeyDown(ConfigMenu.transferSameItemsKey.Value) || GameInput.GetButtonDown(transferSameItemsButton))
                 {
                     MoveSameItems(selectedItem);
                 }

@@ -580,6 +580,14 @@ namespace Tweaks_Fixes
             return stateInfo.length > 0 && stateInfo.normalizedTime < 1.0f;
         }
 
+        public static Transform GetExosuitLightsTransform(Exosuit __instance)
+        {
+            Transform t = __instance.leftArmAttach.transform.Find("lights_parent");
+            if (t == null)
+                return __instance.transform.Find("lights_parent");
+
+            return t;
+        }
 
     }
 }

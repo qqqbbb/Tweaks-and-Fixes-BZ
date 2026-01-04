@@ -82,7 +82,7 @@ namespace Tweaks_Fixes
                 if (dropPod.GetComponent<LifepodDrop>())
                 {
                     podGhostCrafter = __instance;
-                    podLight = dropPod.GetComponentInChildren<Light>();
+                    //podLight = dropPod.GetComponentInChildren<Light>();
                     __instance.needsPower = true;
                     //AddDebug("Fabricator Start needsPower " + __instance.needsPower);
                     podPowerSource = __instance.gameObject.EnsureComponent<PowerSource>();

@@ -58,10 +58,12 @@
     <Reference Include="0Harmony">
       <HintPath>..\..\..\DLL\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp-firstpass_publicized">
+    <Reference Include="Assembly-CSharp-firstpass_publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\DLL\Assembly-CSharp-firstpass_publicized.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp_publicized">
+    <Reference Include="Assembly-CSharp_publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\DLL\Assembly-CSharp_publicized.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
@@ -105,11 +107,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base_Light.cs" />
     <Compile Include="Base_Collision.cs" />
-    <Compile Include="Battery_Patch.cs" />
+    <Compile Include="Battery_.cs" />
     <Compile Include="Bed_.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="Charger_.cs" />
+    <Compile Include="Pings.cs" />
+    <Compile Include="PowerConsumption.cs" />
+    <Compile Include="FiltrationMachine_.cs" />
+    <Compile Include="InventoryItemIconColorChanger.cs" />
     <Compile Include="ConfigMain.cs" />
     <Compile Include="CreatureDeath_Patch.cs" />
     <Compile Include="Creature_aggression.cs" />
@@ -122,6 +129,7 @@
     <Compile Include="Knife_.cs" />
     <Compile Include="Locker_Door_Animation.cs" />
     <Compile Include="Main_Menu.cs" />
+    <Compile Include="MapRoomCamera_.cs" />
     <Compile Include="Menu_Buttons.cs" />
     <Compile Include="OptionsMenu.cs" />
     <Compile Include="ConfigMenu.cs" />
@@ -131,6 +139,7 @@
     <Compile Include="Constructor_Patch.cs" />
     <Compile Include="Inventory_Patch.cs" />
     <Compile Include="Screen_Resolution_Fix.cs" />
+    <Compile Include="Seaglide_.cs" />
     <Compile Include="Silent_Creatures.cs" />
     <Compile Include="SnowBall_.cs" />
     <Compile Include="Start_Warning_Patch.cs" />
@@ -143,6 +152,7 @@
     <Compile Include="UGUI_meters.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="SeaTruck_movement.cs" />
+    <Compile Include="VehicleLightFix.cs" />
     <Compile Include="Water_Freeze.cs" />
     <Compile Include="Weather_Patch.cs" />
     <Compile Include="PDA_Patch.cs" />

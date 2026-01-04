@@ -1,19 +1,17 @@
-﻿using BepInEx;
-using HarmonyLib;
+﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+using System.Text;
 using static ErrorMessage;
+
 
 namespace Tweaks_Fixes
 {
-    class Battery_Patch
+    internal class PowerConsumption
     {
         static EnergyMixin PlayerToolEM;
         static EnergyInterface propCannonEI;
         public static HashSet<PowerRelay> seatruckPRs = new HashSet<PowerRelay>();
-        static Dictionary<string, float> defaultBatteryCharge = new Dictionary<string, float>();
 
         [HarmonyPatch(typeof(EnergyMixin), "ConsumeEnergy")]
         class EnergyMixin_OnAfterDeserialize_Patch
@@ -97,57 +95,6 @@ namespace Tweaks_Fixes
                     //AddDebug(pr.name + " base PowerRelay ConsumeEnergy ");
                     amount *= ConfigMenu.baseEnergyConsMult.Value;
                 }
-            }
-        }
-
-        [HarmonyPatch(typeof(Battery), "OnAfterDeserialize")]
-        class Battery_OnAfterDeserialize_Patch
-        {
-            static void Postfix(Battery __instance)
-            {
-                if (ConfigMenu.batteryChargeMult.Value == 1f || __instance.name.IsNullOrWhiteSpace())
-                    return;
-
-                //AddDebug(__instance.name + " Battery OnAfterDeserialize " + __instance._capacity);
-                if (!defaultBatteryCharge.ContainsKey(__instance.name))
-                {
-                    defaultBatteryCharge[__instance.name] = __instance._capacity;
-                }
-                if (defaultBatteryCharge.ContainsKey(__instance.name))
-                {
-                    __instance._capacity = defaultBatteryCharge[__instance.name] * ConfigMenu.batteryChargeMult.Value;
-                    if (__instance.charge > __instance._capacity)
-                        __instance.charge = __instance._capacity;
-                }
-            }
-        }
-
-
-        //[HarmonyPatch(typeof(Charger), "IsAllowedToAdd")]
-        class Charger_IsAllowedToAdd_Patch
-        {
-            static bool Prefix(Charger __instance, Pickupable pickupable, ref bool __result)
-            {
-                if (pickupable == null)
-                {
-                    __result = false;
-                    return false;
-                }
-                TechType t = pickupable.GetTechType();
-                string name = t.AsString();
-                TechTypeExtensions.FromString(name, out TechType tt, true);
-                TechType techType = pickupable.GetTechType();
-
-                //if (tt != TechType.None && Main.config.nonRechargeable.Contains(name) && tt == t)
-                //{
-                //    AddDebug("nonRechargeable " + name);
-                //    __result = false;
-                //    return false;
-                //}
-                if (__instance.allowedTech != null && __instance.allowedTech.Contains(techType))
-                    __result = true;
-
-                return false;
             }
         }
 

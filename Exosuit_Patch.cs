@@ -1,13 +1,10 @@
-﻿
-using HarmonyLib;
+﻿using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-using UnityEngine.Assertions;
 using static ErrorMessage;
-using static VFXParticlesPool;
 
 namespace Tweaks_Fixes
 {
@@ -347,9 +344,6 @@ namespace Tweaks_Fixes
         {
             if (!IngameMenu.main.isActiveAndEnabled && !Player.main.pda.isInUse && Player.main.inExosuit && Player.main.currentMountedVehicle == exosuit)
             {
-                if (GameInput.GetButtonDown(GameInput.Button.MoveDown))
-                    ToggleLights(exosuit);
-
                 if (GameInput.lastDevice == GameInput.Device.Controller)
                 {
                     bool leftTorpedo = HasMoreThan1TorpedoType(exosuit, torpedoStorageLeft);
@@ -367,15 +361,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        static Transform GetLightsTransform(Exosuit __instance)
-        {
-            Transform t = __instance.leftArmAttach.transform.Find("lights_parent");
-            if (t == null)
-                return __instance.transform.Find("lights_parent");
-
-            return t;
-        }
-
         [HarmonyPostfix]
         [HarmonyPatch("Start")]
         static void StartPostfix(Exosuit __instance)
@@ -388,17 +373,11 @@ namespace Tweaks_Fixes
             //    AddDebug("Exosuit Start currentMountedVehicle == null");
             //else
             //    AddDebug("Exosuit Start currentMountedVehicle " + Player.main.currentMountedVehicle.ToString());
-            // lights will follow camera
-            GetLightsTransform(__instance).SetParent(__instance.leftArmAttach);
             if (Player.main.currentMountedVehicle && Player.main.currentMountedVehicle == __instance)
             {
                 GetArmNames(__instance);
                 armNamesChanged = true;
             }
-            //AddDebug("Exosuit Start GetExosuitLights");
-            if (Main.configMain.GetExosuitLights(__instance.gameObject))
-                SetLights(__instance, false);
-
             exosuitStarted = true;
         }
 
@@ -416,8 +395,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("Update")]
+        [HarmonyPostfix, HarmonyPatch("Update")]
         public static void UpdatePostfix(Exosuit __instance)
         {
             if (!Main.gameLoaded)
@@ -436,45 +414,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        private static void SetLights(Exosuit exosuit, bool on)
-        {
-            if (on && !exosuit.energyInterface.hasCharge)
-                return;
-
-            Transform lightsT = GetLightsTransform(exosuit);
-            if (lightsT)
-            {
-                lightsT.gameObject.SetActive(on);
-                //AddDebug("SetLights " + active);
-            }
-        }
-
-        private static void ToggleLights(Exosuit exosuit)
-        {
-            Transform lightsT = GetLightsTransform(exosuit);
-            if (lightsT)
-            {
-                //AddDebug("IngameMenu isActiveAndEnabled " + IngameMenu.main.isActiveAndEnabled);
-                if (!lightsT.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
-                {
-                    lightsT.gameObject.SetActive(true);
-                    Main.configMain.DeleteExosuitLights(exosuit.gameObject);
-                    if (Exosuit_Sounds.lightOnSound)
-                        Utils.PlayFMODAsset(Exosuit_Sounds.lightOnSound, exosuit.gameObject.transform.position);
-                }
-                else if (lightsT.gameObject.activeSelf)
-                {
-                    lightsT.gameObject.SetActive(false);
-                    Main.configMain.SaveExosuitLights(exosuit.gameObject);
-                    if (Exosuit_Sounds.lightOffSound)
-                        Utils.PlayFMODAsset(Exosuit_Sounds.lightOffSound, exosuit.gameObject.transform.position);
-                }
-                //AddDebug("lights " + lightsT.gameObject.activeSelf);
-            }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch("SlotKeyDown")]
+        [HarmonyPostfix, HarmonyPatch("SlotKeyDown")]
         public static void SlotKeyDownPostfix(Exosuit __instance, int slotID)
         {
             //AddDebug("SlotKeyDown " + slotID);
@@ -522,12 +462,10 @@ namespace Tweaks_Fixes
         //[HarmonyPatch("SlotNext")]
         public static void SlotNextPostfix(Exosuit __instance)
         {
-            AddDebug("SlotNext ");
+            //AddDebug("SlotNext ");
         }
 
-
-        [HarmonyPrefix]
-        [HarmonyPatch("UpdateUIText")]
+        [HarmonyPrefix, HarmonyPatch("UpdateUIText")]
         public static bool UpdateUITextPrefix(Exosuit __instance, bool hasPropCannon)
         {
             //AddDebug("Exosuit UpdateUIText  ");
@@ -618,8 +556,7 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("OnPilotModeBegin")]
+        [HarmonyPostfix, HarmonyPatch("OnPilotModeBegin")]
         public static void OnPilotModeBeginPostfix(Exosuit __instance)
         {
             if (ConfigToEdit.disableGravityForExosuit.Value)
@@ -628,8 +565,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("EnterVehicle")]
+        [HarmonyPostfix, HarmonyPatch("EnterVehicle")]
         public static void EnterVehiclePostfix(Exosuit __instance)
         { // runs before Exosuit.Start
           //AddDebug("EnterVehicle");
@@ -645,8 +581,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("OnPilotModeEnd")]
+        [HarmonyPostfix, HarmonyPatch("OnPilotModeEnd")]
         public static void OnPilotModeEndPostfix(Exosuit __instance)
         {
             //AddDebug("OnPilotModeEnd");
@@ -793,7 +728,7 @@ namespace Tweaks_Fixes
         //[HarmonyPatch("ToggleSlot", new Type[] { typeof(int), typeof(bool) })]
         public static bool ToggleSlotPrefix(int slotID, bool state, Vehicle __instance)
         {
-            AddDebug("  ToggleSlot  " + slotID + " " + state);
+            //AddDebug("  ToggleSlot  " + slotID + " " + state);
             return true;
         }
 

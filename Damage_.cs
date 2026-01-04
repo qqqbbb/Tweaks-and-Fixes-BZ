@@ -10,10 +10,14 @@ namespace Tweaks_Fixes
     {
         static public Color bloodColor;
         private static bool clawArmHit;
+        public static Dictionary<TechType, float> damageModifiers = new Dictionary<TechType, float>();
 
         static void SetBloodColor(GameObject go)
         {
             //0.784f, 1f, 0.157f
+            if (bloodColor == default)
+                return;
+
             ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
             //AddDebug("SetBloodColor " + go.name + " " + pss.Length);
             //Main.Log("SetBloodColor " + go.name );
@@ -259,6 +263,15 @@ namespace Tweaks_Fixes
             [HarmonyPatch("TakeDamage")]
             static bool TakeDamagePrefix(LiveMixin __instance, ref bool __result, float originalDamage, Vector3 position, DamageType type, GameObject dealer)
             {
+                if (damageModifiers?.Count > 0)
+                {
+                    TechType tt = CraftData.GetTechType(__instance.gameObject);
+                    //var d = originalDamage;
+                    if (damageModifiers.ContainsKey(tt))
+                        originalDamage *= damageModifiers[tt];
+
+                    //AddDebug($"TakeDamage or {d} mod {damageModifiers[tt]} d {originalDamage}");
+                }
                 if (originalDamage > 0 && type == DamageType.Normal || type == DamageType.Fire || type == DamageType.Collide || type == DamageType.Acid || type == DamageType.Heat || type == DamageType.Drill || type == DamageType.Explosive || type == DamageType.Puncture)
                 {
                     FrozenMixin frozenMixin = __instance.GetComponent<FrozenMixin>();

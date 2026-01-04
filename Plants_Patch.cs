@@ -38,7 +38,7 @@ namespace Tweaks_Fixes
 
         public static void AttachFruitPlantToKelpRoot(GameObject go)
         { // FruitPlant will be saved
-            PickPrefab[] pickPrefabs_ = go.GetComponentsInChildren<PickPrefab>();
+            PickPrefab[] pickPrefabs_ = go.GetComponentsInChildren<PickPrefab>(true);
             if (pickPrefabs_.Length == 0)
                 return;
 
@@ -82,8 +82,8 @@ namespace Tweaks_Fixes
             //if (!pp.enabled && !fp.inactiveFruits.Contains(pp))
             //    fp.inactiveFruits.Add(pp);
             //}
-            if (ConfigMenu.fruitGrowTime.Value > 0)
-                fp.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * DayNightCycle.main.dayLengthSeconds;
+            if (ConfigToEdit.fruitGrowTime.Value > 0)
+                fp.fruitSpawnInterval = ConfigToEdit.fruitGrowTime.Value * DayNightCycle.main.dayLengthSeconds;
         }
 
         [HarmonyPatch(typeof(PickPrefab))]
@@ -206,8 +206,8 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Awake")]
             public static void AwakePostfix(FruitPlant __instance)
             {
-                if (ConfigMenu.fruitGrowTime.Value > 0)
-                    __instance.fruitSpawnInterval = ConfigMenu.fruitGrowTime.Value * DayNightCycle.main.dayLengthSeconds;
+                if (ConfigToEdit.fruitGrowTime.Value > 0)
+                    __instance.fruitSpawnInterval = ConfigToEdit.fruitGrowTime.Value * DayNightCycle.main.dayLengthSeconds;
             }
             [HarmonyPrefix]
             [HarmonyPatch("Initialize")]
@@ -322,10 +322,10 @@ namespace Tweaks_Fixes
             [HarmonyPatch("OnProtoDeserialize")]
             static void OnProtoDeserializePostfix(Plantable __instance)
             {
-                TechType tt = __instance.plantTechType;
                 if (!ConfigToEdit.fixMelon.Value)
                     return;
 
+                TechType tt = __instance.plantTechType;
                 if (tt == TechType.SnowStalkerPlant || tt == TechType.MelonPlant)
                 {
                     //AddDebug("Plantable OnProtoDeserialize " + __instance.plantTechType);

@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -15,7 +14,25 @@ namespace Tweaks_Fixes
         static float defaultEnginePowerConsumption;
         static float forwardAccel;
         static bool boosting;
+        public static Color lightColor;
 
+        [HarmonyPrefix, HarmonyPatch("Start")]
+        static void StartPrefix(Hoverbike __instance)
+        {
+            Light light = null;
+            if (ConfigToEdit.hoverbikeLightIntensityMult.Value < 1)
+            {
+                light = __instance.toggleLights.lightsParent.GetComponentInChildren<Light>(true);
+                light.intensity *= ConfigToEdit.hoverbikeLightIntensityMult.Value;
+            }
+            if (lightColor != default)
+            {
+                if (light == null)
+                    light = __instance.toggleLights.lightsParent.GetComponentInChildren<Light>(true);
+
+                light.color = lightColor;
+            }
+        }
         [HarmonyPostfix, HarmonyPatch("Start")]
         static void StartPostfix(Hoverbike __instance)
         {
@@ -83,11 +100,11 @@ namespace Tweaks_Fixes
         {
             if (ConfigToEdit.hoverbikeBoostWithoutCooldown.Value)
             {
-                Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : Vector3.zero;
+                Vector3 moveDirection = AvatarInputHandler.main.IsEnabled() ? GameInput.GetMoveDirection() : default;
 
                 if (boosting)
                 {
-                    if (moveDirection == Vector3.zero)
+                    if (moveDirection == default)
                     {
                         boosting = false;
                         __instance.ResetBoostCD();

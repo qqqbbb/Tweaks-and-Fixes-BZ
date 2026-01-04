@@ -1,4 +1,5 @@
-﻿using Nautilus.Options;
+﻿using Nautilus.Handlers;
+using Nautilus.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +41,7 @@ namespace Tweaks_Fixes
             ModSliderOption maxWaterSlider = ConfigMenu.maxPlayerWater.ToModSliderOption(100, 300, 10);
             ModSliderOption fishFoodWaterRatioSlider = ConfigMenu.fishFoodWaterRatio.ToModSliderOption(0, 100, 1);
             ModSliderOption foodDecayRateSlider = ConfigMenu.foodDecayRateMult.ToModSliderOption(0f, 3f, .1f, "{0:0.#}");
-            ModSliderOption fruitGrowTimeSlider = ConfigMenu.fruitGrowTime.ToModSliderOption(0, 30, 1);
+            //ModSliderOption fruitGrowTimeSlider = ConfigToEdit.fruitGrowTime.ToModSliderOption(0, 30, 1);
             ModSliderOption fishSpeedSlider = ConfigMenu.fishSpeedMult.ToModSliderOption(0.1f, 5f, .1f, "{0:0.#}");
             ModSliderOption creatureSpeedSlider = ConfigMenu.creatureSpeedMult.ToModSliderOption(0.1f, 5f, .1f, "{0:0.#}");
             ModSliderOption CreatureFleeChanceSlider = ConfigMenu.CreatureFleeChance.ToModSliderOption(0, 100, 1);
@@ -77,17 +78,13 @@ namespace Tweaks_Fixes
             AddItem(craftTimeSlider);
             AddItem(buildTimeSlider);
             AddItem(coldSlider);
-            //AddItem(ConfigMenu.playerMoveTweaks.ToModToggleOption());
-            //AddItem(ConfigMenu.seatruckMoveTweaks.ToModToggleOption());
-            //AddItem(ConfigMenu.exosuitMoveTweaks.ToModToggleOption());
-            //AddItem(ConfigMenu.hoverbikeMoveTweaks.ToModToggleOption());
             AddItem(drillDamageMultSlider);
             AddItem(ConfigMenu.emptyVehiclesCanBeAttacked.ToModChoiceOption());
             AddItem(medKitHPslider);
             AddItem(ConfigMenu.cantUseMedkitUnderwater.ToModToggleOption());
             AddItem(ConfigMenu.useBestLOD.ToModToggleOption());
             AddItem(dropPodMaxPower);
-            AddItem(fruitGrowTimeSlider);
+            //AddItem(fruitGrowTimeSlider);
             AddItem(crushDepthSlider);
             AddItem(crushDamageSlider);
             AddItem(vehicleCrushDamageSlider);
@@ -122,11 +119,11 @@ namespace Tweaks_Fixes
             AddItem(invMultLandSlider);
             invMultLandSlider.OnChanged += InvMultSliderUpdated;
             invMultWaterSlider.OnChanged += InvMultSliderUpdated;
-            //AddItem(ConfigMenu.transferAllItemsButton.ToModKeybindOption());
-            //AddItem(ConfigMenu.transferSameItemsButton.ToModKeybindOption());
-            //AddItem(ConfigMenu.quickslotButton.ToModKeybindOption());
-            //AddItem(ConfigMenu.previousPDATabKey.ToModKeybindOption());
-            //AddItem(ConfigMenu.nextPDATabKey.ToModKeybindOption());
+            AddItem(ConfigMenu.transferAllItemsKey.ToModKeybindOption());
+            AddItem(ConfigMenu.transferSameItemsKey.ToModKeybindOption());
+            AddItem(ConfigMenu.quickslotKey.ToModKeybindOption());
+            AddItem(ConfigMenu.previousPDATabKey.ToModKeybindOption());
+            AddItem(ConfigMenu.nextPDATabKey.ToModKeybindOption());
 
         }
 

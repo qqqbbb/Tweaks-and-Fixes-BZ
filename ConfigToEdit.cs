@@ -3,9 +3,9 @@ using Nautilus.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using UnityEngine;
+using static GameInput;
 
 namespace Tweaks_Fixes
 {
@@ -16,9 +16,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> noKillParticles;
         public static ConfigEntry<bool> alwaysShowHealthFoodNunbers;
         public static ConfigEntry<bool> pdaClock;
-        public static ConfigEntry<Button> transferAllItemsButton;
-        public static ConfigEntry<Button> transferSameItemsButton;
-        public static ConfigEntry<Button> quickslotButton;
         public static ConfigEntry<string> gameStartWarningText;
         public static ConfigEntry<string> newGameLoot;
         public static ConfigEntry<string> crushDepthEquipment;
@@ -124,8 +121,36 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> spawnResourcesWhenDrilling;
         public static ConfigEntry<bool> canPickUpContainerWithItems;
 
+        private static ConfigEntry<string> cameraLightColor;
+        private static ConfigEntry<string> seaglideLightColor;
+        private static ConfigEntry<string> exosuitLightColor;
+        private static ConfigEntry<string> seatruckLightColor;
+        private static ConfigEntry<string> flashlightLightColor;
+        private static ConfigEntry<string> flareLightColor;
+        private static ConfigEntry<string> spotlightLightColor;
+        private static ConfigEntry<string> hoverbikeLightColor;
+        private static ConfigEntry<string> vehicleDockingBayLightColor;
 
+        public static ConfigEntry<float> flareLightIntensityMult;
+        public static ConfigEntry<float> flashlightLightIntensityMult;
+        public static ConfigEntry<float> cameraLightIntensityMult;
+        public static ConfigEntry<float> seaglideLightIntensityMult;
+        public static ConfigEntry<float> exosuitLightIntensityMult;
+        public static ConfigEntry<float> seatruckLightIntensityMult;
+        public static ConfigEntry<float> spotlightLightIntensityMult;
+        public static ConfigEntry<float> hoverbikeLightIntensityMult;
+        public static ConfigEntry<float> vehicleDockingBayLightIntensityMult;
+        public static ConfigEntry<float> filtrationMachineWaterTimeMult;
+        public static ConfigEntry<float> filtrationMachineSaltTimeMult;
+        public static ConfigEntry<float> batteryChargeSpeedMult;
+        public static ConfigEntry<float> fruitGrowTime;
+        public static ConfigEntry<string> damageModifiers;
 
+        public static ConfigEntry<Button> transferAllItemsButton;
+        public static ConfigEntry<Button> transferSameItemsButton;
+        public static ConfigEntry<Button> quickslotButton;
+
+        public static AcceptableValueRange<float> lightIntensityRange = new AcceptableValueRange<float>(0.1f, 1f);
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
         public static AcceptableValueRange<int> percentRange = new AcceptableValueRange<int>(0, 100);
 
@@ -220,7 +245,7 @@ namespace Tweaks_Fixes
             oneHandToolSwimSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "One handed tool swimming speed modifier", 0, "Your swimming speed will be reduced by this percent when holding tool or PDA with one hand.");
             twoHandToolSwimSpeedMod = Main.configToEdit.Bind("PLAYER MOVEMENT", "Two handed tool swimming speed modifier", 0, "Your swimming speed will be reduced by this percent when holding tool with both hands.");
             groundSpeedEquipment = Main.configToEdit.Bind("EQUIPMENT", "Ground speed equipment", "", "Equipment in this list affects your movement speed on ground. The format is: item ID, space, percent that will be added to your movement speed. Negative numbers will reduce your movement speed. Every entry is separated by comma.");
-            waterSpeedEquipment = Main.configToEdit.Bind("EQUIPMENT", "Water speed equipment", "", "Equipment in this list affects your movement speed in water. The format is: item ID, space, percent that will be added to your movement speed. Negative numbers will reduce your movement speed. Every entry is separated by comma. If this list is not empty, vanilla script that changes your movement speed will not run. ");
+            waterSpeedEquipment = Main.configToEdit.Bind("EQUIPMENT", "Water speed equipment", "", "Equipment in this list affects your movement speed in water. The format is: item ID, space, percent that will be added to your movement speed. Negative numbers will reduce your movement speed. Every entry is separated by comma.");
 
             disableExosuitSidestep = Main.configToEdit.Bind("VEHICLES", "Disable prawn suit sidestep", false, "");
             exosuitThrusterWithoutLimit = Main.configToEdit.Bind("VEHICLES", "Prawn suit thrusters never overheat", false, "No time limit when using thrusters, but they consume twice more power than walking");
@@ -228,7 +253,7 @@ namespace Tweaks_Fixes
             hoverbikeMoveOnWater = Main.configToEdit.Bind("VEHICLES", "Snowfox can move on water", false, "");
             hoverbikeBoostWithoutCooldown = Main.configToEdit.Bind("VEHICLES", "Snowfox boosts without cooldown", false, "After activating the boost will work until you stop driving but your snowfox will consume twice more power.");
             seaMonkeyBringGift = Main.configToEdit.Bind("CREATURES", "Seamonkeys bring gifts to player", true, "");
-            seaMonkeyGrabTool = Main.configToEdit.Bind("CREATURES", "Seamonkeys grab tools from player‛s hands", true, "");
+            seaMonkeyGrabTool = Main.configToEdit.Bind("CREATURES", "Seamonkeys grab player‛s tools", true, "");
             seatruckSidewardSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seatruck sideward speed modifier", 0, "Seatruck's speed will be reduced by this percent when moving sideward.");
             seatruckBackwardSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seatruck backward speed modifier", 0, "Seatruck's speed will be reduced by this percent when moving backward.");
             seatruckVertSpeedMod = Main.configToEdit.Bind("VEHICLES", "Seatruck vertical speed modifier", 0, "Seatruck's speed will be reduced by this percent when moving up or down.");
@@ -248,14 +273,39 @@ namespace Tweaks_Fixes
             beaconTweaks = Main.configToEdit.Bind("TOOLS", "Beacon tweaks", true, "You do not have to aim for certain part of a beacon to rename it. You can rename a beacon while holding it in your hands.");
             flareTweaks = Main.configToEdit.Bind("TOOLS", "Flare tweaks", true, "Tooltip for flare will tell you if it is burnt out. When you look at a dropped flare, you see if it is burnt out. You can light flare and not throw it.");
             spawnResourcesWhenDrilling = Main.configToEdit.Bind("TOOLS", "Spawn resources instead of adding them to prawn suit container when drilling", false, "");
+            canPickUpContainerWithItems = Main.configToEdit.Bind("MISC", "Can pick up containers with items", false, "");
+
+            cameraLightColor = Main.configToEdit.Bind("TOOLS", "Camera drone light color", "0.463 0.902 0.902", "Camera drone light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            seaglideLightColor = Main.configToEdit.Bind("TOOLS", "Seaglide light color", "0.016 1 1", "Seaglide light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            seatruckLightColor = Main.configToEdit.Bind("VEHICLES", "Seatruck light color", "0.463 0.902 0.902", "Seatruck light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            exosuitLightColor = Main.configToEdit.Bind("VEHICLES", "Prawn suit light color", "0.463 0.902 0.902", "Prawn suit light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            spotlightLightColor = Main.configToEdit.Bind("BASE", "Spotlight light color", "0.779 0.890 1", "Spotlight light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            vehicleDockingBayLightColor = Main.configToEdit.Bind("BASE", "Moonpool exterior light color", "0.361 1 1", "Moonpool's exterior light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            flashlightLightColor = Main.configToEdit.Bind("TOOLS", "Flashlight light color", "0.996 0.942 0.819", "Flashlight light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            flareLightColor = Main.configToEdit.Bind("TOOLS", "Flare light color", "1 0.434 0.338", "Flare light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
+            hoverbikeLightColor = Main.configToEdit.Bind("TOOLS", "Snowfox light color", "0.463 0.902 0.902", "Snowfox light color will be set to this. Each value is a decimal point number from 0 to 1. First number is red. Second number is green. Third number is blue.");
 
 
+            cameraLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Camera drone light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            flashlightLightIntensityMult = Main.configToEdit.Bind("TOOLS", "FlashLight light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            seaglideLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Seaglide light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            exosuitLightIntensityMult = Main.configToEdit.Bind("VEHICLES", "Prawn suit light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            seatruckLightIntensityMult = Main.configToEdit.Bind("VEHICLES", "Seatruck light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            flareLightIntensityMult = Main.configToEdit.Bind("TOOLS", "Flare light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            spotlightLightIntensityMult = Main.configToEdit.Bind("BASE", "Spotlight light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            hoverbikeLightIntensityMult = Main.configToEdit.Bind("VEHICLES", "Snowfox light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+            vehicleDockingBayLightIntensityMult = Main.configToEdit.Bind("BASE", "Moonpool exterior light intensity multiplier", 1f, new ConfigDescription("", lightIntensityRange));
+
+
+            filtrationMachineWaterTimeMult = Main.configToEdit.Bind("BASE", "Filtration machine water time multiplier", 1f, "Time it takes filtration machine to produce water will be multiplied by this");
+            filtrationMachineSaltTimeMult = Main.configToEdit.Bind("BASE", "Filtration machine salt time multiplier", 1f, "Time it takes filtration machine to produce salt will be multiplied by this");
+            batteryChargeSpeedMult = Main.configToEdit.Bind("BASE", "Battery charging rate multiplier", 1f, "Charging rate of battery charger and power cell charger will be multiplied by this. The faster they charge batteries the more power they drain.");
+            fruitGrowTime = Main.configToEdit.Bind("PLANTS", "Fruit growth time", 0f, "Time in days it takes a lantern tree fruit, a frost anemone heart, a creepvine seed cluster, a Preston's plant fruit to grow. Default values will be used if this is 0.");
+            damageModifiers = Main.configToEdit.Bind("CREATURES", "Damage modifiers", "", "Use this to modify damage taken by things. Negative numbers reduce damage. Positive numbers increase damage. The format is: ID, space, damage percent that will be added or subtracted. Every entry is separated by comma.");
 
             transferAllItemsButton = Main.configToEdit.Bind("BUTTOM BIND", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             transferSameItemsButton = Main.configToEdit.Bind("BUTTOM BIND", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             quickslotButton = Main.configToEdit.Bind("BUTTOM BIND", "Quickslot cycle button", Button.None, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
-            canPickUpContainerWithItems = Main.configToEdit.Bind("MISC", "Can pick up containers with items", true, "");
-
 
             //Main.logger.LogMessage("ConfigToEdit bind end ");
         }
@@ -386,6 +436,58 @@ namespace Tweaks_Fixes
             return dic;
         }
 
+        private static Dictionary<TechType, float> ParseFloatDicFromPercentString(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return null;
+
+            //Main.logger.LogMessage("ParseFloatDicFromPercentString " + input);
+            Dictionary<TechType, float> dic = new Dictionary<TechType, float>();
+            string[] entries = input.Split(',');
+            for (int i = 0; i < entries.Length; i++)
+            {
+                string s = entries[i].Trim();
+                string techType;
+                string amount;
+                int index = s.IndexOf(' ');
+                if (index == -1)
+                    continue;
+
+                techType = s.Substring(0, index);
+                amount = s.Substring(index);
+
+                if (!TechTypeExtensions.FromString(techType, out TechType tt, true))
+                    continue;
+
+                //Main.logger.LogMessage("ParseFloatDicFromPercentString TechType " + tt);
+                int a = 0;
+                try
+                {
+                    a = int.Parse(amount);
+                }
+                catch (Exception)
+                {
+                    Main.logger.LogWarning("Could not parse: " + input);
+                    continue;
+                }
+                //Main.logger.LogMessage("ParseFloatDicFromPercentString amount " + a);
+                if (a == 0)
+                    continue;
+                else if (a == -100)
+                {
+                    dic.Add(tt, 0);
+                    continue;
+                }
+                float f = a * .01f + 1f;
+                if (f < 0 || Mathf.Approximately(f, 0f))
+                    f = 0;
+
+                //Main.logger.LogMessage("ParseFloatDicFromPercentString amount ! " + f);
+                dic.Add(tt, f);
+            }
+            return dic;
+        }
+
         public static void ParseConfig()
         {
             Crush_Damage.crushDepthEquipment = ParseIntDicFromString(crushDepthEquipment.Value);
@@ -402,9 +504,6 @@ namespace Tweaks_Fixes
             Food.decayingFood = ParseSetFromString(decayingFood.Value);
             CreatureDeath_Patch.respawnTime = ParseIntDicFromString(respawnTime.Value);
 
-            Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
-            Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);
-            Enum.TryParse(quickslotButton.Value.ToString(), out QuickSlots_Patch.quickslotButton);
             Charger_.notRechargableBatteries = ParseSetFromString(notRechargableBatteries.Value);
             //Main.logger.LogInfo("decayingFood.Count  " + Food_Patch.decayingFood.Count);
             Player_Movement.CacheSettings();
@@ -413,10 +512,25 @@ namespace Tweaks_Fixes
             Player_Movement.groundSpeedEquipment = ParseSpeedEquipmentDic(groundSpeedEquipment.Value);
             //Main.logger.LogInfo("bloodColor  " + bloodColor.Value);
             if (bloodColor.Value != "0.784 1.0 0.157")
-                Damage_.bloodColor = ParseBloodColor(bloodColor.Value);
+                Damage_.bloodColor = ParseColor(bloodColor.Value);
+
+            MapRoomCamera_.lightColor = ParseColor(cameraLightColor.Value);
+            Seaglide_.lightColor = ParseColor(seaglideLightColor.Value);
+            VehicleLightFix.seatruckLightColor = ParseColor(seatruckLightColor.Value);
+            VehicleLightFix.exosuitLightColor = ParseColor(exosuitLightColor.Value);
+            Tools_Patch.flashlightLightColor = ParseColor(flashlightLightColor.Value);
+            Flare_.lightColor = ParseColor(flareLightColor.Value);
+            Base_Light.spotlightLightColor = ParseColor(spotlightLightColor.Value);
+            Base_Light.vehicleDockingBayLightColor = ParseColor(vehicleDockingBayLightColor.Value);
+            Hoverbike_.lightColor = ParseColor(hoverbikeLightColor.Value);
+            Damage_.damageModifiers = ParseFloatDicFromPercentString(damageModifiers.Value);
+
+            Enum.TryParse(transferAllItemsButton.Value.ToString(), out Inventory_Patch.transferAllItemsButton);
+            Enum.TryParse(transferSameItemsButton.Value.ToString(), out Inventory_Patch.transferSameItemsButton);
+            Enum.TryParse(quickslotButton.Value.ToString(), out QuickSlots_Patch.quickslotButton);
         }
 
-        private static Color ParseBloodColor(string input)
+        private static Color ParseColor(string input)
         {
             //Main.logger.LogMessage("ParseBloodColor " + input);
             float r = float.MaxValue;
@@ -441,31 +555,10 @@ namespace Tweaks_Fixes
             }
             if (r == float.MaxValue || g == float.MaxValue || b == float.MaxValue)
             {
-                Main.logger.LogWarning("Could not parse blood color: " + input);
-                return new Color(0.784f, 1f, 0.157f);
+                Main.logger.LogWarning("Could not parse color: " + input);
+                return default;
             }
             return new Color(Mathf.Clamp01(r), Mathf.Clamp01(g), Mathf.Clamp01(b));
-        }
-
-        public enum Button
-        {
-            Jump,
-            PDA,
-            Deconstruct,
-            Exit,
-            LeftHand,
-            RightHand,
-            CycleNext,
-            CyclePrev,
-            AltTool,
-            TakePicture,
-            Reload,
-            Sprint,
-            LookUp,
-            LookDown,
-            LookLeft,
-            LookRight,
-            None
         }
 
     }

@@ -63,7 +63,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("Pickupable OnHandHover " + __instance.name);
                 Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
-                if (ConfigToEdit.canPickUpContainerWithItems.Value == false && pickupableStorage_.ContainsKey(__instance) && exosuit)
+                if (ConfigToEdit.canPickUpContainerWithItems.Value == false && exosuit && pickupableStorage_.ContainsKey(__instance))
                 {
                     //AddDebug(__instance.name + " Pickupable OnHandHover AllowedToPickUp " + __instance.AllowedToPickUp());
                     if (__instance.AllowedToPickUp() == false)

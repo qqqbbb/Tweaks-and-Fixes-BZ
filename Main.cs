@@ -23,7 +23,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.2.3";
+            VERSION = "3.3.0";
         public static Survival survival;
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
@@ -74,14 +74,15 @@ namespace Tweaks_Fixes
             Gravsphere_Patch.gravSphereFish.Clear();
             Seatruck_Patch.installedUpgrades.Clear();
             fridges.Clear();
-            UI_Patches.recyclotrons.Clear();
             Base_Patch.baseHullStrengths.Clear();
             //Tools_Patch.fixedFish.Clear();
-            Battery_Patch.seatruckPRs.Clear();
+            PowerConsumption.seatruckPRs.Clear();
             CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
             Survival_.healTime = 0;
             Pickupable_.pickupableStorage.Clear();
             Pickupable_.pickupableStorage_.Clear();
+            InventoryItemIconColorChanger.CleanUp();
+            Base_Light.VehicleDockingBay_Patch.savedPowerStatus.Clear();
             configMain.Load();
         }
 
@@ -207,9 +208,7 @@ namespace Tweaks_Fixes
             // thermalzone_rock_01_single_a
             CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(21f, -39.5f, -364.3f), new Vector3(30f, 50f, 340f))); // 21 -39.5 -364.3
             CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("9c331be3-984a-4a6d-a040-5ffebb50f106", new Vector3(-133f, -374f, -1336f), new Vector3(0, 308.571f, 0))); //  -133 -373 -1342
-
             CoordinatedSpawnsHandler.RegisterCoordinatedSpawn(new SpawnInfo("a3f8c8e0-0a2c-4f9b-b585-8804d15bc04b", new Vector3(-412.3f, -100.79f, -388.2f), new Vector3(310f, 0f, 90f))); // -412.3 -100.79 -388.2   
-
         }
 
         public void Setup()

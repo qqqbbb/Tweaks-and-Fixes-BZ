@@ -197,6 +197,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(SeaMonkeyStealShiny __instance, ref float __result)
             {
+                //AddDebug("SeaMonkeyStealShiny Evaluate " + __result);
                 if (!ConfigToEdit.seaMonkeyGrabTool.Value)
                     __result = 0;
             }

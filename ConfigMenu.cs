@@ -12,9 +12,9 @@ namespace Tweaks_Fixes
     internal class ConfigMenu
     {
 
-        public static ConfigEntry<KeyCode> transferAllItemsButton;
-        public static ConfigEntry<KeyCode> transferSameItemsButton;
-        public static ConfigEntry<KeyCode> quickslotButton;
+        public static ConfigEntry<KeyCode> transferAllItemsKey;
+        public static ConfigEntry<KeyCode> transferSameItemsKey;
+        public static ConfigEntry<KeyCode> quickslotKey;
         public static ConfigEntry<KeyCode> nextPDATabKey;
         public static ConfigEntry<KeyCode> previousPDATabKey;
         public static ConfigEntry<float> timeFlowSpeed;
@@ -53,7 +53,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> cantEatUnderwater;
         public static ConfigEntry<bool> cantUseMedkitUnderwater;
         public static ConfigEntry<float> foodDecayRateMult;
-        public static ConfigEntry<int> fruitGrowTime;
+        //public static ConfigEntry<int> fruitGrowTime;
         public static ConfigEntry<float> fishSpeedMult;
         public static ConfigEntry<float> creatureSpeedMult;
         public static ConfigEntry<int> CreatureFleeChance;
@@ -127,7 +127,7 @@ namespace Tweaks_Fixes
             cantEatUnderwater = Main.configMenu.Bind("", "Can not eat underwater", false, "You will not be able to eat or drink when swimming underwater if this is on.");
             cantUseMedkitUnderwater = Main.configMenu.Bind("", "Can not use first aid kit underwater", false, "You will not be able to use first aid kit when swimming underwater if this is on.");
             foodDecayRateMult = Main.configMenu.Bind("", "Food decay rate multiplier", 1f, "Food decay rate will be multiplied by this. You have to reload the game after changing this.");
-            fruitGrowTime = Main.configMenu.Bind("", "Fruit grow time", 0, "Time in days it takes a lantern tree fruit, a frost anemone heart, a creepvine seed cluster, a Preston's plant fruit to grow. If this is 0 then vanilla code will run. You have to reload your game after changing this.");
+
             fishSpeedMult = Main.configMenu.Bind("", "Catchable fish speed multiplier", 1f, "Swimming speed of fish that you can catch will be multiplied by this.");
             creatureSpeedMult = Main.configMenu.Bind("", "Creature speed multiplier", 1f, "Swimming speed of creatures that you can not catch will be multiplied by this.");
             CreatureFleeChance = Main.configMenu.Bind("", "Creature flee chance percent", 100, "Creature's flee chance percent when it is under attack and its flee damage threshold is reached.");
@@ -140,7 +140,7 @@ namespace Tweaks_Fixes
             damageScreenFX = Main.configMenu.Bind("", "Player damage screen effects", true, "This toggles red screen effects when you take damage.");
             stalkerLoseToothChance = Main.configMenu.Bind("", "Chance percent for stalker to lose its tooth", 50, "Probability percent for stalker to lose its tooth when it bites something hard.");
 
-            realOxygenCons = Main.configMenu.Bind("", "Realistic oxygen consumption", false, "Vanilla oxygen consumption without rebreather has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth above 100 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be equal to vanilla max oxygen consumption and will increase as you dive deeper.");
+            realOxygenCons = Main.configMenu.Bind("", "Realistic oxygen consumption", false, "Default oxygen consumption without rebreather has 3 levels: depth below 200 meters, depth between 200 and 100 meters, depth above 100 meters. With this on your oxygen consumption will increase in linear progression using 'Crush depth' setting. When you are at crush depth it will be equal to default max oxygen consumption and will increase as you dive deeper.");
             dropPodMaxPower = Main.configMenu.Bind("", "Drop pod max power", 0, "If this is not 0, your drop pod's max power will be set to this. Drop pod's power will regenerate during the day. The game has to be reloaded after changing this.");
             batteryChargeMult = Main.configMenu.Bind("", "Battery charge multiplier", 1f, "Max charge of batteries and power cells will be multiplied by this. Game has to be reloaded after changing this.");
             craftedBatteryCharge = Main.configMenu.Bind("", "Crafted battery charge percent", 100, "Charge percent of batteries and power cells you craft will be set to this.");
@@ -155,11 +155,11 @@ namespace Tweaks_Fixes
             waterLossMult = Main.configMenu.Bind("", "Water loss multiplier", 1f, "Water value you lose when your hunger updates will be multiplied by this.");
             foodWaterHealThreshold = Main.configMenu.Bind("", "Food heal threshold", 150, "Your health regenerates when sum of your food and water values is greater than this");
 
-            //transferAllItemsButton = Main.configMenu.Bind("", "Move all items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items. If you are using a keyboard, you have to hold down this key and click an item.");
-            //transferSameItemsButton = Main.configMenu.Bind("", "Move same items button", KeyCode.None, "When you have a container open, press this button on a controller to move all items of the same type. If you are using a keyboard, you have to hold down this key and click an item.");
-            //quickslotButton = Main.configMenu.Bind("", "Quickslot cycle button", KeyCode.None, "Press ‛Cycle next‛ or ‛Cycle previous‛ button while holding down this button to cycle tools in your current quickslot.");
-            //previousPDATabKey = Main.configMenu.Bind("", "Previous PDA tab key", KeyCode.None, "Key to switch to left PDA Tab. This works only with keyboard.");
-            //nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab. This works only with keyboard.");
+            transferAllItemsKey = Main.configMenu.Bind("", "Move all items key", KeyCode.None, "Hold down this key and click an item to move all items from one container to another.");
+            transferSameItemsKey = Main.configMenu.Bind("", "Move same items key", KeyCode.None, "Hold down this key and click an item to move the same items from one container to another.");
+            quickslotKey = Main.configMenu.Bind("", "Quickslot cycle key", KeyCode.None, "Press ‛Cycle next‛ or ‛Cycle previous‛ key while holding down this key to cycle tools in your current quickslot.");
+            previousPDATabKey = Main.configMenu.Bind("", "Previous PDA tab key", KeyCode.None, "Key to switch to left PDA Tab.");
+            nextPDATabKey = Main.configMenu.Bind("", "Next PDA tab key", KeyCode.None, "Key to switch to right PDA Tab.");
 
 
         }

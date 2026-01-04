@@ -72,6 +72,8 @@ namespace Tweaks_Fixes
         public static void StartPostfix(Charger __instance)
         {
             //AddDebug(__instance.name + " Charger Start");
+            __instance.chargeSpeed *= ConfigToEdit.batteryChargeSpeedMult.Value;
+
             if (__instance.allowedTech == null)
                 return;
 

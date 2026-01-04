@@ -9,7 +9,6 @@ namespace Tweaks_Fixes
 {
     public static class Base_Patch
     {
-
         public static Dictionary<BaseHullStrength, SubRoot> baseHullStrengths = new Dictionary<BaseHullStrength, SubRoot>();
 
         //public static Dictionary<SubRoot, bool> baseBuilt = new Dictionary<SubRoot, bool>();
@@ -231,7 +230,7 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(BaseCellLighting), "ApplyCurrentIntensity")]
-        public class BaseCellLighting_ApplyCurrentIntensity_Patch : MonoBehaviour
+        public class BaseCellLighting_ApplyCurrentIntensity_Patch
         {
             static bool Prefix(BaseCellLighting __instance)
             {

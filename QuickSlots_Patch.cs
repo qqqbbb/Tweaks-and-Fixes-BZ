@@ -119,11 +119,11 @@ namespace Tweaks_Fixes
                 GetEquippedTools();
                 //AddDebug(" Bind ");
             }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("SlotNext")]
+            [HarmonyPrefix]
+            [HarmonyPatch("SlotNext")]
             public static bool SlotNextPrefix(QuickSlots __instance)
             {
-                if (Input.GetKey(ConfigMenu.quickslotButton.Value) || GameInput.GetButtonHeld(quickslotButton))
+                if (Input.GetKey(ConfigMenu.quickslotKey.Value) || GameInput.GetButtonHeld(quickslotButton))
                 {
                     if (Inventory.main.GetHeld() != null)
                     {
@@ -133,11 +133,11 @@ namespace Tweaks_Fixes
                 }
                 return true;
             }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("SlotPrevious")]
+            [HarmonyPrefix]
+            [HarmonyPatch("SlotPrevious")]
             public static bool SlotPreviousPrefix(QuickSlots __instance)
             {
-                if (Input.GetKey(ConfigMenu.quickslotButton.Value) || GameInput.GetButtonHeld(quickslotButton))
+                if (Input.GetKey(ConfigMenu.quickslotKey.Value) || GameInput.GetButtonHeld(quickslotButton))
                 {
                     if (Inventory.main.GetHeld() != null)
                     {

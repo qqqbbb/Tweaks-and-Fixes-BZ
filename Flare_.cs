@@ -10,6 +10,8 @@ namespace Tweaks_Fixes
     [HarmonyPatch(typeof(Flare))]
     class Flare_
     {
+        internal static Color lightColor;
+
         public static void LightFlare(Flare flare)
         {
             //AddDebug($"LightFlare flareActiveState {flare.flareActiveState}");
@@ -50,6 +52,11 @@ namespace Tweaks_Fixes
             {
                 __instance.throwDuration = .4f;
             }
+            if (lightColor != default)
+                __instance.light.color = lightColor;
+
+            if (ConfigToEdit.flareLightIntensityMult.Value < 1)
+                __instance.light.intensity *= ConfigToEdit.flareLightIntensityMult.Value;
         }
 
         [HarmonyPatch("UpdateLight")]

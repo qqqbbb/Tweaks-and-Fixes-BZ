@@ -13,13 +13,49 @@ namespace Tweaks_Fixes
 {
     class Tools_Patch
     {
-
         //public static List<GameObject> repCannonGOs = new List<GameObject>();
         public static PlayerTool equippedTool;
+        public static Color flashlightLightColor;
+
+        private static void FixFlashLight(GameObject go)
+        {
+            Transform lightParentTransform = go.transform.Find("lights_parent");
+            Transform cone = lightParentTransform.Find("x_flashlightCone");
+            VehicleLightFix.volLightBeam = cone.gameObject;
+            Light[] lights = lightParentTransform.GetComponentsInChildren<Light>(true);
+            foreach (var light in lights)
+            {
+                if (light.type == LightType.Point)
+                {
+                    light.enabled = false;
+                    return;
+                }
+                if (ConfigToEdit.flashlightLightIntensityMult.Value < 1)
+                    light.intensity *= ConfigToEdit.flashlightLightIntensityMult.Value;
+
+                if (flashlightLightColor != default)
+                {
+                    light.color = flashlightLightColor;
+                    MeshRenderer mr = cone.GetComponent<MeshRenderer>();
+                    //Main.logger.LogInfo("flashLight vol light color " + mr.material.color);
+                    mr.material.color = VehicleLightFix.GetVolLightColor(light);
+                    //Main.logger.LogInfo("flashLight vol light color ! " + mr.material.color);
+                }
+            }
+        }
 
         [HarmonyPatch(typeof(PlayerTool))]
-        class PlayerTool_OnDraw_Patch
+        class PlayerTool_Patch
         {
+            [HarmonyPostfix]
+            [HarmonyPatch("Awake")]
+            public static void AwakePostfix(PlayerTool __instance)
+            {
+                if (__instance is FlashLight)
+                {
+                    FixFlashLight(__instance.gameObject);
+                }
+            }
             [HarmonyPostfix]
             [HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(PlayerTool __instance)
@@ -34,25 +70,6 @@ namespace Tweaks_Fixes
                 //    return;
                 //}
                 equippedTool = __instance;
-            }
-        }
-
-        public static void SaveSeaglideState(Seaglide seaglide)
-        {
-            var seaglideMap = seaglide.GetComponent<VehicleInterface_MapController>();
-            if (seaglideMap && seaglideMap.miniWorld)
-            {
-                if (seaglideMap.miniWorld.active)
-                    Main.configMain.DeleteSeaglideMap(seaglide.gameObject);
-                else
-                    Main.configMain.SaveSeaglideMap(seaglide.gameObject);
-            }
-            if (seaglide.toggleLights)
-            {
-                if (seaglide.toggleLights.lightsActive)
-                    Main.configMain.SaveSeaglideLights(seaglide.gameObject);
-                else
-                    Main.configMain.DeleteSeaglideLights(seaglide.gameObject);
             }
         }
 
@@ -91,7 +108,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(PlayerTool __instance)
             {
-                AddDebug("OnHolster " + __instance.name);
+                //AddDebug("OnHolster " + __instance.name);
                 //equippedTool = null;
             }
         }
@@ -101,7 +118,7 @@ namespace Tweaks_Fixes
         {
             public static void Postfix(Pickupable __instance)
             {
-                AddDebug("Drop " + __instance.name);
+                //AddDebug("Drop " + __instance.name);
 
             }
         }
@@ -116,21 +133,15 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(FlashLight), "Start")]
+        //[HarmonyPatch(typeof(FlashLight), "Start")]
         public class FlashLight_Start_Patch
         {
             public static void Prefix(FlashLight __instance)
             {
-                Light[] lights = __instance.GetComponentsInChildren<Light>(true);
-                //AddDebug("FlashLight lights " + lights.Length);
-                for (int i = lights.Length - 1; i >= 0; i--)
-                {
-                    if (lights[i].type == LightType.Point)
-                        lights[i].enabled = false;
-                }
+                //AddDebug("FlashLight Start");
             }
-        }
 
+        }
 
         //[HarmonyPatch(typeof(VehicleInterface_MapController), "Start")]
         class VehicleInterface_MapController_Start_Patch
@@ -139,48 +150,6 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("VehicleInterface_MapController Start " + __instance.name);
                 //__instance.mapActive = Main.configMain.seaglideMap;
-            }
-        }
-
-        [HarmonyPatch(typeof(Seaglide))]
-        class Seaglide_Patch
-        {
-            public static IEnumerator LoadSeaglideState(Seaglide seaglide)
-            {
-                if (seaglide == null)
-                    yield break;
-
-                if (seaglide.toggleLights == null)
-                    yield return null;
-
-                bool lightOn = Main.configMain.GetSeaglideLights(seaglide.gameObject);
-                //AddDebug("Seaglide saved light " + lightOn);
-                seaglide.toggleLights.SetLightsActive(lightOn);
-                //AddDebug("Seaglide GetLightsActive " + seaglide.toggleLights.GetLightsActive());
-                var map = seaglide.GetComponent<VehicleInterface_MapController>();
-                if (map == null)
-                    yield break;
-
-                if (map.miniWorld == null)
-                    yield return null;
-
-                bool mapOn = Main.configMain.GetSeaglideMap(seaglide.gameObject);
-                //AddDebug("Seaglide map " + mapOn);
-                map.miniWorld.active = mapOn;
-                map.mapActive = mapOn;
-            }
-
-            [HarmonyPostfix, HarmonyPatch("Start")]
-            public static void StartPostfix(Seaglide __instance)
-            {
-                //__instance.toggleLights.SetLightsActive(Main.configMain.GetSeaglideLights(__instance.gameObject));
-                CoroutineHost.StartCoroutine(LoadSeaglideState(__instance));
-            }
-            [HarmonyPrefix, HarmonyPatch("OnHolster")]
-            public static void OnHolsterPrefix(Seaglide __instance)
-            { // fires when saving, after nautilus SaveEvent
-                //AddDebug("Seaglide OnHolster lightsActive " + __instance.toggleLights.lightsActive);
-                SaveSeaglideState(__instance);
             }
         }
 

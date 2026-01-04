@@ -13,16 +13,11 @@ namespace Tweaks_Fixes
 {
     class UI_Patches
     {
-        static bool chargerOpen = false;
 
-        public static Dictionary<ItemsContainer, Recyclotron> recyclotrons = new Dictionary<ItemsContainer, Recyclotron>();
-        static Recyclotron openRecyclotron = null;
-        static List<TechType> landPlantSeeds = new List<TechType> { TechType.HeatFruit, TechType.PurpleVegetable, TechType.FrozenRiverPlant2Seeds, TechType.LeafyFruit, TechType.HangingFruit, TechType.MelonSeed, TechType.SnowStalkerFruit, TechType.PinkFlowerSeed, TechType.PurpleRattleSpore, TechType.OrangePetalsPlantSeed }; // obsolete plants can be found
-        static List<TechType> waterPlantSeeds = new List<TechType> { TechType.CreepvineSeedCluster, TechType.SmallMaroonPlantSeed, TechType.TwistyBridgesMushroomChunk, TechType.JellyPlantSeed, TechType.PurpleBranchesSeed, TechType.RedBushSeed, TechType.GenericRibbonSeed, TechType.GenericSpiralChunk, TechType.SpottedLeavesPlantSeed, TechType.PurpleStalkSeed, TechType.DeepLilyShroomSeed };
+
         static List<TechType> fishTechTypes = new List<TechType> { TechType.Bladderfish, TechType.Boomerang, TechType.ArcticPeeper, TechType.DiscusFish, TechType.FeatherFish, TechType.Hoopfish, TechType.FeatherFishRed, TechType.SpinnerFish, TechType.NootFish, TechType.Symbiote, TechType.Spinefish, TechType.ArrowRay, TechType.Triops };
 
-        static HashSet<ItemsContainer> landPlanters = new HashSet<ItemsContainer>();
-        static HashSet<ItemsContainer> waterPlanters = new HashSet<ItemsContainer>();
+
         static public string rightHandButton = string.Empty;
         static public string leftHandButton = string.Empty;
         static public string altToolButton = string.Empty;
@@ -49,7 +44,6 @@ namespace Tweaks_Fixes
         static public string propCannonEatString = string.Empty;
         static public string pickupString = string.Empty;
         static public string constructorString = string.Empty;
-
         static public string bladderfishTooltip = Language.main.Get("Tooltip_Bladderfish") + Language.main.Get("TF_bladderfish_tooltip");
 
         private static void HandleBaseLights(SubRoot subRoot)
@@ -103,72 +97,6 @@ namespace Tweaks_Fixes
             constructorString = Language.main.Get("Climb") + "(" + leftHandButton + "), " + LanguageCache.GetPackUpText(TechType.Constructor) + " (" + rightHandButton + ")";
         }
 
-        [HarmonyPatch(typeof(Recyclotron), "Start")]
-        class Recyclotron_Start_Patch
-        {
-            static void Postfix(Recyclotron __instance)
-            {
-                recyclotrons[__instance.storageContainer.container] = __instance;
-            }
-        }
-
-        [HarmonyPatch(typeof(Aquarium), "Start")]
-        class Aquarium_Start_Patch
-        {
-            static void Postfix(Aquarium __instance)
-            {
-                //AddDebug("Trashcan " + __instance.biohazard + " " + __instance.storageContainer.hoverText);
-                //__instance.storageContainer.hoverText = Language.main.Get("LabTrashcan");
-                if (__instance.storageContainer.container.allowedTech == null)
-                {
-                    //AddDebug("Aquarium allowedTech == null ");
-                    __instance.storageContainer.container.allowedTech = new HashSet<TechType> { TechType.Bladderfish, TechType.Boomerang, TechType.ArcticPeeper, TechType.Hoopfish, TechType.ArrowRay, TechType.DiscusFish, TechType.FeatherFish, TechType.FeatherFishRed, TechType.Spinefish, TechType.SpinnerFish, TechType.Symbiote, TechType.Triops };
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(Trashcan), "OnEnable")]
-        class Trashcan_OnEnable_Patch
-        {
-            static void Postfix(Trashcan __instance)
-            {
-                //AddDebug("Trashcan " + __instance.biohazard + " " + __instance.storageContainer.hoverText);
-                if (__instance.biohazard)
-                {
-                    //__instance.storageContainer.hoverText = Language.main.Get("LabTrashcan");
-                    if (__instance.storageContainer.container.allowedTech == null)
-                    {
-                        //AddDebug("LabTrashcan allowedTech == null ");
-                        __instance.storageContainer.container.allowedTech = new HashSet<TechType> { TechType.ReactorRod, TechType.DepletedReactorRod };
-                    }
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(uGUI_ItemsContainer), "OnAddItem")]
-        class uGUI_ItemsContainer_OnAddItem_Patch
-        {
-            static void Postfix(uGUI_ItemsContainer __instance, InventoryItem item)
-            {
-                //AddDebug("uGUI_ItemsContainer OnAddItem " + item.item.GetTechName());
-                if (openRecyclotron)
-                {
-                    //AddDebug("uGUI_ItemsContainer OnAddItem " + item.item.GetTechName());
-                    if (!openRecyclotron.IsAllowedToAdd(item.item, false))
-                        __instance.items[item].SetChroma(0f);
-                }
-                else if (chargerOpen)
-                {
-                    Battery battery = item.item.GetComponent<Battery>();
-                    if (battery && battery.charge == battery.capacity)
-                    {
-                        //AddDebug(pair.Key.item.GetTechType() + " charge == capacity ");
-                        __instance.items[item].SetChroma(0f);
-                    }
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(Fridge), "OnEnable")]
         class Fridge_OnEnable_Patch
         {
@@ -177,141 +105,6 @@ namespace Tweaks_Fixes
                 Main.fridges.Add(__instance.storageContainer.container);
             }
         }
-
-        [HarmonyPatch(typeof(BaseBioReactor), "Start")]
-        class BaseBioReactor_Start_Patch
-        {
-            static void Postfix(BaseBioReactor __instance)
-            {
-                if (__instance.container.allowedTech == null)
-                {
-                    //AddDebug("BaseBioReactor container.allowedTech == null ");
-                    __instance.container.allowedTech = new HashSet<TechType>();
-                    foreach (var pair in BaseBioReactor.charge)
-                        __instance.container.allowedTech.Add(pair.Key);
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(Planter), "Start")]
-        class Planter_Start_Patch
-        {
-            static void Postfix(Planter __instance)
-            {
-                ItemsContainerType type = __instance.GetContainerType();
-                if (type == ItemsContainerType.LandPlants)
-                    landPlanters.Add(__instance.storageContainer.container);
-                else if (type == ItemsContainerType.WaterPlants)
-                    waterPlanters.Add(__instance.storageContainer.container);
-            }
-        }
-
-        [HarmonyPatch(typeof(uGUI_InventoryTab))]
-        class uGUI_InventoryTab_Patch
-        {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnOpenPDA")]
-            static void OnOpenPDAPostfix(uGUI_InventoryTab __instance)
-            {
-                IItemsContainer itemsContainer = Inventory.main.GetUsedStorage(0);
-                ItemsContainer container = itemsContainer as ItemsContainer;
-                //    AddDebug("GetUsedStorageCount " + Inventory.main.GetUsedStorageCount());
-                if (container != null)
-                {
-                    //AddDebug(" container ");
-                    //ItemsContainerType itemsContainerType = ItemsContainerType.
-                    if (landPlanters.Contains(container))
-                    {
-                        //AddDebug(" landPlanter ");
-                        foreach (var pair in __instance.inventory.items)
-                        {
-                            if (!landPlantSeeds.Contains(pair.Key.item.GetTechType()))
-                                pair.Value.SetChroma(0f);
-                        }
-                        return;
-                    }
-                    else if (waterPlanters.Contains(container))
-                    {
-                        //AddDebug(" waterPlanter ");
-                        foreach (var pair in __instance.inventory.items)
-                        {
-                            if (!waterPlantSeeds.Contains(pair.Key.item.GetTechType()))
-                                pair.Value.SetChroma(0f);
-                        }
-                        return;
-                    }
-                    else if (Main.fridges.Contains(container))
-                    {
-                        foreach (var pair in __instance.inventory.items)
-                        {
-                            Eatable eatable = pair.Key.item.GetComponent<Eatable>();
-                            if (!eatable)
-                                pair.Value.SetChroma(0f);
-                        }
-                        return;
-                    }
-                    else if (recyclotrons.ContainsKey(container))
-                    {
-                        openRecyclotron = recyclotrons[container];
-                        foreach (var pair in __instance.inventory.items)
-                        {
-                            if (!openRecyclotron.IsAllowedToAdd(pair.Key.item, false))
-                                pair.Value.SetChroma(0f);
-                        }
-                        return;
-                    }
-                    else
-                    {
-                        foreach (var pair in __instance.inventory.items)
-                        {
-                            if (!container.IsTechTypeAllowed(pair.Key.item.GetTechType()))
-                                pair.Value.SetChroma(0f);
-                        }
-                    }
-                    return;
-                }
-                Equipment equipment = itemsContainer as Equipment;
-                if (equipment != null)
-                {
-                    //AddDebug(" equipment  ");
-                    bool chargerOpen = equipment.GetCompatibleSlot(EquipmentType.BatteryCharger, out string s) || equipment.GetCompatibleSlot(EquipmentType.PowerCellCharger, out string ss);
-                    //AddDebug("charger " + charger);
-                    foreach (var pair in __instance.inventory.items)
-                    {
-                        TechType tt = pair.Key.item.GetTechType();
-                        EquipmentType itemType = TechData.GetEquipmentType(tt);
-                        //AddDebug(pair.Key.item.GetTechType() + " " + equipmentType);
-                        string slot = string.Empty;
-                        if (equipment.GetCompatibleSlot(itemType, out slot))
-                        {
-                            if (chargerOpen)
-                            {
-                                if (Charger_.notRechargableBatteries.Contains(tt))
-                                {
-                                    pair.Value.SetChroma(0f);
-                                    continue;
-                                }
-                                Battery battery = pair.Key.item.GetComponent<Battery>();
-                                if (battery && battery.charge == battery.capacity)
-                                    pair.Value.SetChroma(0f);
-                            }
-                        }
-                        else
-                            pair.Value.SetChroma(0f);
-                    }
-                }
-            }
-            [HarmonyPostfix]
-            [HarmonyPatch("OnClosePDA")]
-            static void OnClosePDAPostfix(uGUI_InventoryTab __instance)
-            {
-                chargerOpen = false;
-                openRecyclotron = null;
-                foreach (var pair in __instance.inventory.items)
-                    pair.Value.SetChroma(1f);
-            }
-        }
-
 
         [HarmonyPatch(typeof(GUIHand))]
         class GUIHand_Patch
@@ -529,7 +322,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(uGUI_PDA), "Update")]
+        [HarmonyPatch(typeof(uGUI_PDA), "Update")]
         class uGUI_PDA_Update_Patch
         {
             public static void Postfix(uGUI_PDA __instance)
