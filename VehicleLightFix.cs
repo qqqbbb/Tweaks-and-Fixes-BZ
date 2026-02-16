@@ -28,14 +28,13 @@ namespace Tweaks_Fixes
                 Main.logger.LogWarning("can not add vol Light to " + parent.name);
                 return;
             }
-            if (scale == default)
-                scale = Vector3.one;
-
             GameObject lightBeam = UnityEngine.Object.Instantiate(volLightBeam, Vector3.zero, Quaternion.identity);
             lightBeam.transform.parent = parent.transform;
             lightBeam.transform.localPosition = pos;
             lightBeam.transform.localRotation = Quaternion.Euler(volLightRot);
-            lightBeam.transform.localScale = scale;
+            if (scale != default)
+                lightBeam.transform.localScale = scale;
+
             Light light = parent.GetComponent<Light>();
             if (light)
             {

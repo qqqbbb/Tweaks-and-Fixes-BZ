@@ -122,7 +122,7 @@ namespace Tweaks_Fixes
             public static void Postfix(Pickupable __instance, ref bool __result)
             {
                 //__result = __instance.isPickupable && Time.time - __instance.timeDropped > 1.0 && Player.main.HasInventoryRoom(__instance);
-                if (ConfigMenu.noFishCatching.Value && Util.IsCreatureAlive(__instance.gameObject) && Util.IsEatableFish(__instance.gameObject))
+                if (ConfigMenu.noFishCatching.Value && Util.IsCreatureAlive(__instance.gameObject) && Util.IsRawFish(__instance.gameObject))
                 {
                     __result = false;
                     if (Player.main._currentWaterPark)
@@ -155,7 +155,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SwimToInternal")]
             public static void Prefix(SwimBehaviour __instance, ref float velocity)
             {
-                if (fishSBs.TryGetValue(__instance, out string s) || Util.IsEatableFish(__instance.gameObject))
+                if (fishSBs.TryGetValue(__instance, out string s) || Util.IsRawFish(__instance.gameObject))
                 {
                     velocity *= ConfigMenu.fishSpeedMult.Value;
                     if (s == null)

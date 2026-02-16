@@ -151,7 +151,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("LifepodDrop inside GetInsideTemperature " + __result);
                 __result = ConfigToEdit.insideBaseTemp.Value;
-                if (ConfigMenu.useRealTempForPlayerTemp.Value && ConfigMenu.dropPodMaxPower.Value > 0)
+                if (ConfigMenu.useRealTempForPlayer.Value && ConfigMenu.dropPodMaxPower.Value > 0)
                 {
                     //AddDebug("LifepodDrop GetPower " + podPowerSource.GetPower());
                     if (podPowerSource && podPowerSource.GetPower() <= 0)

@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static ErrorMessage;
 
 
 namespace Tweaks_Fixes
@@ -16,17 +17,31 @@ namespace Tweaks_Fixes
         {
             public float startRotation;
             public float endRotation;
-            public float t;
+            public float timeElapsed;
             public float duration = 1f;
             public float openAngle = 135f;
             public float doubleDoorOpenAngle = 90f;
 
-            public IEnumerator Rotate(Transform door, bool playCloseSound = false, bool fridge = false)
+            public IEnumerator Rotate(Transform door, bool playCloseSound = false, bool fridge = false, bool fixOpenedLockerDoor = false)
             {
-                while (t < duration)
+                if (fixOpenedLockerDoor && timeElapsed == 0)
                 {
-                    t += Time.deltaTime;
-                    float f = t / duration;
+                    float dist = Vector3.Distance(Player.main.transform.position, door.transform.position);
+                    if (dist < 1)
+                    {
+                        Vector3 directionToPlayer = Player.main.transform.position - transform.position;
+                        float angle = Vector3.Angle(transform.forward, directionToPlayer.normalized);
+                        //AddDebug($"angle {angle}");
+                        if (angle > 30 && angle < 50)
+                            endRotation = 190;
+                        else if (angle > 50 && angle < 70)
+                            endRotation = 90;
+                    }
+                }
+                while (timeElapsed < duration)
+                {
+                    timeElapsed += Time.deltaTime;
+                    float f = timeElapsed / duration;
                     float rotation = Mathf.Lerp(startRotation, endRotation, f);
                     //Main.Log("rotation " + rotation );
                     //AddDebug(" rotation " + rotation);
@@ -56,10 +71,10 @@ namespace Tweaks_Fixes
 
             public IEnumerator Rotate(Transform doorLeft, Transform doorRight, bool playCloseSound = false)
             {
-                while (t < duration)
+                while (timeElapsed < duration)
                 {
-                    t += Time.deltaTime;
-                    float f = t / duration;
+                    timeElapsed += Time.deltaTime;
+                    float f = timeElapsed / duration;
                     float rotation = Mathf.Lerp(startRotation, endRotation, f);
                     doorLeft.localEulerAngles = new Vector3(doorLeft.localEulerAngles.x, doorLeft.localEulerAngles.y, -rotation);
                     doorRight.localEulerAngles = new Vector3(doorRight.localEulerAngles.x, doorRight.localEulerAngles.y, rotation);
@@ -110,8 +125,8 @@ namespace Tweaks_Fixes
                             LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                             rotater.startRotation = door.transform.localEulerAngles.z;
                             rotater.endRotation = rotater.startRotation + rotater.openAngle;
-                            rotater.t = 0f;
-                            rotater.StartCoroutine(rotater.Rotate(door));
+                            rotater.timeElapsed = 0f;
+                            rotater.StartCoroutine(rotater.Rotate(door, false, false, true));
                             if (openSound != null)
                                 Utils.PlayFMODAsset(openSound, __instance.transform);
                         }
@@ -125,7 +140,7 @@ namespace Tweaks_Fixes
                             LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                             rotater.startRotation = doorLeft.transform.localEulerAngles.z;
                             rotater.endRotation = rotater.startRotation + rotater.doubleDoorOpenAngle;
-                            rotater.t = 0f;
+                            rotater.timeElapsed = 0f;
                             rotater.StartCoroutine(rotater.Rotate(doorLeft, doorRight));
                             if (openSound != null)
                                 Utils.PlayFMODAsset(openSound, __instance.transform);
@@ -140,7 +155,7 @@ namespace Tweaks_Fixes
                         LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                         rotater.startRotation = door.transform.localEulerAngles.y;
                         rotater.endRotation = rotater.startRotation + rotater.openAngle;
-                        rotater.t = 0f;
+                        rotater.timeElapsed = 0f;
                         rotater.StartCoroutine(rotater.Rotate(door, false, true));
                         if (openSound != null)
                             Utils.PlayFMODAsset(openSound, __instance.transform);
@@ -164,7 +179,7 @@ namespace Tweaks_Fixes
                             LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                             rotater.startRotation = door.transform.localEulerAngles.z;
                             rotater.endRotation = 0f;
-                            rotater.t = 0f;
+                            rotater.timeElapsed = 0f;
                             rotater.StartCoroutine(rotater.Rotate(door, true));
                         }
                     }
@@ -177,7 +192,7 @@ namespace Tweaks_Fixes
                             LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                             rotater.startRotation = doorRight.transform.localEulerAngles.z;
                             rotater.endRotation = 0f;
-                            rotater.t = 0f;
+                            rotater.timeElapsed = 0f;
                             rotater.StartCoroutine(rotater.Rotate(doorLeft, doorRight, true));
                         }
                     }
@@ -191,7 +206,7 @@ namespace Tweaks_Fixes
                         LockerDoorOpener rotater = __instance.gameObject.EnsureComponent<LockerDoorOpener>();
                         rotater.startRotation = door.transform.localEulerAngles.y;
                         rotater.endRotation = 0f;
-                        rotater.t = 0f;
+                        rotater.timeElapsed = 0f;
                         rotater.StartCoroutine(rotater.Rotate(door, true, true));
                     }
                 }

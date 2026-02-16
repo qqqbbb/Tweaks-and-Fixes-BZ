@@ -91,7 +91,8 @@ namespace Tweaks_Fixes
 
             private static void HandleBeaconText(Pickupable pickupable)
             {
-                if (pickupable.name != "Beacon(Clone)" || pickupable.AllowedToPickUp() == false)
+                //AddDebug($"{pickupable.name} AllowedToPickUp {pickupable.AllowedToPickUp()}");
+                if (ConfigToEdit.beaconTweaks.Value == false || pickupable.GetTechType() != TechType.Beacon || pickupable.AllowedToPickUp() == false)
                     return;
 
                 Exosuit exosuit = Player.main.GetVehicle() as Exosuit;

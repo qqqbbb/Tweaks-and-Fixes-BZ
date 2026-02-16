@@ -46,7 +46,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(VehicleDockingBay __instance)
             {
-                if (__instance.transform.parent.parent.name != "BaseMoonpool(Clone)")
+                if (__instance.expansionManager != null)
                     return;
 
                 CoroutineHost.StartCoroutine(FixVehicleDockingBayLights(__instance));
@@ -96,7 +96,7 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("LateUpdate")]
             public static void LateUpdatePostfix(VehicleDockingBay __instance)
             {
-                if (Main.gameLoaded == false || __instance.transform.parent.parent.name != "BaseMoonpool(Clone)")
+                if (Main.gameLoaded == false || __instance.expansionManager != null)
                     return;
 
                 //AddDebug("VehicleDockingBay LateUpdate  " + __instance.name);
@@ -105,16 +105,14 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("VehicleDockingBay Update lights ");
                     savedPowerStatus[__instance] = currentStatus;
-                    bool on = currentStatus != PowerSystem.Status.Offline;
                     List<Light> lights = GetPillarLights(__instance);
                     if (lights == null || lights.Count == 0)
                         return;
 
+                    bool on = currentStatus != PowerSystem.Status.Offline;
                     foreach (Light light in lights)
                     {
-                        if (on && light.gameObject.activeSelf)
-                            continue;
-                        else if (on == false && light.gameObject.activeSelf == false)
+                        if (on == light.gameObject.activeSelf)
                             continue;
 
                         light.gameObject.SetActive(on);

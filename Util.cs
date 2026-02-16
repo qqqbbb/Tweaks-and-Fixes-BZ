@@ -120,7 +120,7 @@ namespace Tweaks_Fixes
 
         public static bool IsWater(Eatable eatable)
         {
-            return eatable.waterValue > 0f && eatable.foodValue <= 0f && eatable.GetComponent<SnowBall>() == null;
+            return eatable.waterValue > 0f && eatable.foodValue <= 0f && eatable.TryGetComponent<SnowBall>(out _) == false;
         }
 
         public static bool IsFood(Eatable eatable)
@@ -198,26 +198,10 @@ namespace Tweaks_Fixes
             return tmpList.ToArray();
         }
 
-        public static GameObject GetParent(GameObject go)
+        public static GameObject GetEntityRoot(GameObject go)
         {
-            //if (go.name.Contains("(Clone)"))
-            if (go.GetComponent<PrefabIdentifier>())
-            {
-                //AddDebug("name " + go.name);
-                return go;
-            }
-            Transform t = go.transform;
-            while (t.parent != null)
-            {
-                //if (t.parent.name.Contains("(Clone)"))
-                if (t.parent.GetComponent<PrefabIdentifier>())
-                {
-                    //AddDebug("parent.name " + t.parent.name);
-                    return t.parent.gameObject;
-                }
-                t = t.parent.transform;
-            }
-            return null;
+            UniqueIdentifier ui = go.GetComponentInParent<UniqueIdentifier>();
+            return ui != null ? ui.gameObject : null;
         }
 
         public static float GetPlayerTemperature()
@@ -228,16 +212,16 @@ namespace Tweaks_Fixes
             //    return currentInterior.GetInsideTemperature();
             if (Player.main.currentMountedVehicle)
             {
-                if (ConfigMenu.useRealTempForPlayerTemp.Value && Player.main.currentMountedVehicle.IsPowered())
+                if (ConfigMenu.useRealTempForPlayer.Value && Player.main.currentMountedVehicle.IsPowered())
                     return ConfigToEdit.insideBaseTemp.Value;
-                else if (!ConfigMenu.useRealTempForPlayerTemp.Value)
+                else if (!ConfigMenu.useRealTempForPlayer.Value)
                     return ConfigToEdit.insideBaseTemp.Value;
             }
-            else if (Player.main.inHovercraft && !ConfigMenu.useRealTempForPlayerTemp.Value)
+            else if (Player.main.inHovercraft && !ConfigMenu.useRealTempForPlayer.Value)
             {
                 return ConfigToEdit.insideBaseTemp.Value;
             }
-            else if (Player.main._currentInterior != null && Player.main._currentInterior is SeaTruckSegment)
+            else if (Player.main._currentInterior is SeaTruckSegment)
             {
                 SeaTruckSegment sts = Player.main._currentInterior as SeaTruckSegment;
                 //AddDebug("SeaTruck IsPowered " + sts.relay.IsPowered());
@@ -271,7 +255,7 @@ namespace Tweaks_Fixes
 
         public static bool IsVehicle(GameObject go)
         {
-            return go.GetComponent<Vehicle>() || go.GetComponent<SeaTruckSegment>() || go.GetComponent<Hoverbike>();
+            return go.TryGetComponent<Vehicle>(out _) || go.TryGetComponent<SeaTruckSegment>(out _) || go.TryGetComponent<Hoverbike>(out _);
         }
 
         public static float GetTemperature(GameObject go)
@@ -301,25 +285,18 @@ namespace Tweaks_Fixes
 
         public static bool IsCreatureAlive(GameObject go)
         {
-            Creature creature = go.GetComponent<Creature>();
-            if (creature == null)
+            if (go.TryGetComponent<Creature>(out _) == false)
                 return false;
 
-            LiveMixin liveMixin = go.GetComponent<LiveMixin>();
-            return liveMixin && liveMixin.IsAlive();
+            if (go.TryGetComponent(out LiveMixin liveMixin) == false)
+                return false;
+
+            return liveMixin.IsAlive();
         }
 
-        public static bool IsEatableFish(GameObject go)
+        public static bool IsRawFish(GameObject go)
         {
-            Creature creature = go.GetComponent<Creature>();
-            if (!creature)
-                return false;
-
-            Eatable eatable = go.GetComponent<Eatable>();
-            if (eatable)
-                return true;
-            else
-                return false;
+            return go.TryGetComponent<Creature>(out _) && go.TryGetComponent<Eatable>(out _);
         }
 
         public static bool IsPlayerInVehicle()
@@ -466,13 +443,7 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        public static GameObject GetEntityRoot(GameObject go)
-        {
-            UniqueIdentifier prefabIdentifier = go.GetComponent<UniqueIdentifier>();
-            if (prefabIdentifier == null)
-                prefabIdentifier = go.GetComponentInParent<UniqueIdentifier>();
-            return prefabIdentifier != null ? prefabIdentifier.gameObject : null;
-        }
+
 
         public static void MakeEatable(GameObject go, float food)
         {
@@ -522,24 +493,18 @@ namespace Tweaks_Fixes
         {
             //TechType tt = CraftData.GetTechType(playerTool.gameObject);
             //AddDebug("IsOneHanded " + tt);
-            if (playerTool is DiveReel)
-                return true;
-
-            if (playerTool is SpyPenguinRemote)
-                return true;
-
-            if (playerTool is SnowBall)
-                return true;
-
-            if (playerTool is PlaceTool)
-                return true;
-
-            if (playerTool.GetComponent<PenguinBaby>())
+            if (playerTool.TryGetComponent<PenguinBaby>(out _))
                 return false;
 
-            if (playerTool is CreatureTool)
-                return true;
-
+            switch (playerTool)
+            {
+                case DiveReel _:
+                case SpyPenguinRemote _:
+                case SnowBall _:
+                case PlaceTool _:
+                case CreatureTool _:
+                    return true;
+            }
             return playerTool.hasBashAnimation;
         }
 

@@ -101,6 +101,7 @@ namespace Tweaks_Fixes
                 if (__instance.targetType != EcoTargetType.Shark || predatorExclusion.Contains(__instance.myTechType))
                     return;
 
+                //AddDebug($"{__instance.name} IsTargetValid {target.name} {__result}");
                 float aggrMult = GameModeManager.GetCreatureAggressionModifier();
                 if (target == Player.main.gameObject)
                 {
@@ -120,7 +121,7 @@ namespace Tweaks_Fixes
                     }
                     if (!Util.IsPlayerInVehicle())
                     {
-                        if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on && !IsLightOn(target))
+                        if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.TF_empty_vehicle_can_be_attacked_setting_light && !IsLightOn(target))
                         {
                             __result = false;
                             return;
@@ -229,7 +230,7 @@ namespace Tweaks_Fixes
                     }
                     if ((vehicle && !Player.main.inExosuit) || (sts && !Util.IsPlayerInTruck()))
                     {
-                        if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on)
+                        if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.TF_empty_vehicle_can_be_attacked_setting_light)
                         {
                             __result = IsLightOn(target);
                             return;
@@ -423,7 +424,7 @@ namespace Tweaks_Fixes
 
                 if (Util.IsPlayerInVehicle())
                     return true;
-                else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Only_if_lights_on && IsLightOn(target))
+                else if (ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.TF_empty_vehicle_can_be_attacked_setting_light && IsLightOn(target))
                     return true;
                 else
                     return ConfigMenu.emptyVehiclesCanBeAttacked.Value == ConfigMenu.EmptyVehiclesCanBeAttacked.Yes;

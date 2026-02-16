@@ -65,6 +65,9 @@ namespace Tweaks_Fixes
 
         public static void GetInvMod()
         {
+            if (Main.gameLoaded == false)
+                return;
+
             if (ConfigMenu.invMultWater.Value == 0 && ConfigMenu.invMultLand.Value == 0)
             {
                 invItemsMod = 1;

@@ -23,7 +23,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.3.0";
+            VERSION = "3.4.0";
         public static Survival survival;
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
@@ -123,7 +123,6 @@ namespace Tweaks_Fixes
             Player_Movement.UpdateModifiers();
             Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
             MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
-            //Exosuit_Patch.GetExosuitLights();
             gameLoaded = true;
 
         }
@@ -198,7 +197,7 @@ namespace Tweaks_Fixes
             //};
             //CraftDataHandler.SetTechData(TechType.CyclopsDecoy, recipeData);
             //CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, TechType.CyclopsDecoy, new string[1] { "Decoy" });
-            Logger.LogInfo($"Plugin {GUID} {VERSION} is loaded ");
+            Logger.LogInfo($"Plugin {MODNAME} {VERSION} is loaded ");
         }
 
         private static void RegisterSpawns()
@@ -250,7 +249,6 @@ namespace Tweaks_Fixes
             //CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
             CraftData.entClassTechTable["ef9ca323-9e02-4903-991c-eb3e597a279d"] = TechType.HoneyCombPlant;
         }
-
 
 
     }

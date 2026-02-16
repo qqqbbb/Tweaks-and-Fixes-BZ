@@ -150,6 +150,15 @@ namespace Tweaks_Fixes
         public static ConfigEntry<Button> transferSameItemsButton;
         public static ConfigEntry<Button> quickslotButton;
 
+        public static ConfigEntry<float> foodLossMultSprint;
+        public static ConfigEntry<int> starvationThreshold;
+        public static ConfigEntry<int> dehydrationThreshold;
+        public static ConfigEntry<int> starveDamage;
+        public static ConfigEntry<int> playerMaxFood;
+        public static ConfigEntry<int> PlayerMaxWater;
+        public static ConfigEntry<int> playerFullFood;
+        public static ConfigEntry<int> playerFullWater;
+
         public static AcceptableValueRange<float> lightIntensityRange = new AcceptableValueRange<float>(0.1f, 1f);
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
         public static AcceptableValueRange<int> percentRange = new AcceptableValueRange<int>(0, 100);
@@ -207,11 +216,11 @@ namespace Tweaks_Fixes
             warmKelpWater = Main.configToEdit.Bind("SURVIVAL", "Warm kelp water", true, "Water is always warm near kelps. Set this to false to disable it.");
             brinicleGrowTimeMult = Main.configToEdit.Bind("MISC", "Brinicle grow time multiplier", 1, "Time it takes a brinicle to grow will be multiplied by this");
             brinicleBreakForNoReason = Main.configToEdit.Bind("MISC", "Brinicles break for no reason", true);
-            replaceDealDamageOnImpactScript = Main.configToEdit.Bind("VEHICLES", "Replace DealDamageOnImpact script", false, "Replace script that handles vehicle collisions.");
-            vehiclesTakeDamageOnImpact = Main.configToEdit.Bind("VEHICLES", "Vehicles take damage from collisions", true, "Works only if 'Replace DealDamageOnImpact script' is true");
-            exosuitTakesDamageFromCollisions = Main.configToEdit.Bind("VEHICLES", "Prawn suit takes damage from collisions", true, "Works only if 'Replace DealDamageOnImpact script' is true");
-            vehiclesDealDamageOnImpact = Main.configToEdit.Bind("VEHICLES", "Vehicles deal damage when colliding", true, "Works only if 'Replace DealDamageOnImpact script' is true");
-            exosuitTakesDamageWhenCollidingWithTerrain = Main.configToEdit.Bind("VEHICLES", "Prawn suit takes damage when colliding with terrain", false, "Works only if 'Replace DealDamageOnImpact script' is true");
+            //replaceDealDamageOnImpactScript = Main.configToEdit.Bind("VEHICLES", "Replace DealDamageOnImpact script", false, "Replace script that handles vehicle collisions.");
+            //vehiclesTakeDamageOnImpact = Main.configToEdit.Bind("VEHICLES", "Vehicles take damage from collisions", true, "Works only if 'Replace DealDamageOnImpact script' is true");
+            //exosuitTakesDamageFromCollisions = Main.configToEdit.Bind("VEHICLES", "Prawn suit takes damage from collisions", true, "Works only if 'Replace DealDamageOnImpact script' is true");
+            //vehiclesDealDamageOnImpact = Main.configToEdit.Bind("VEHICLES", "Vehicles deal damage when colliding", true, "Works only if 'Replace DealDamageOnImpact script' is true");
+            //exosuitTakesDamageWhenCollidingWithTerrain = Main.configToEdit.Bind("VEHICLES", "Prawn suit takes damage when colliding with terrain", false, "Works only if 'Replace DealDamageOnImpact script' is true");
             decayingFood = Main.configToEdit.Bind("ITEMS", "Decaying food", "SpicyFruitSalad", "Comma separated list of food item IDs. Food from this list will decay.");
             craftVehicleUpgradesOnlyInMoonpool = Main.configToEdit.Bind("VEHICLES", "Only Vehicle upgrade console can craft vehicle upgrades", false, "Fabricator will not be able to craft vehicle upgrades if this is true.");
             warmTemp = Main.configToEdit.Bind("SURVIVAL", "Warm temperature", 15, "Player is warm when ambient temperature is above this celsius value.");
@@ -306,6 +315,15 @@ namespace Tweaks_Fixes
             transferAllItemsButton = Main.configToEdit.Bind("BUTTOM BIND", "Move all items button", Button.None, "Press this button to move all items from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             transferSameItemsButton = Main.configToEdit.Bind("BUTTOM BIND", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             quickslotButton = Main.configToEdit.Bind("BUTTOM BIND", "Quickslot cycle button", Button.None, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
+
+            starvationThreshold = Main.configToEdit.Bind("PLAYER", "Starvation threshold", 0, "You take damage when your food value is equal to or below this. Can be a negative value.");
+            dehydrationThreshold = Main.configToEdit.Bind("PLAYER", "Dehydration threshold", 0, "You take damage when your water value is equal to or below this. Can be a negative value.");
+            foodLossMultSprint = Main.configToEdit.Bind("PLAYER", "Food loss multiplier when sprinting", 1f, "Food and water values you lose when your hunger updates will be multiplied by this if you are sprinting.");
+            starveDamage = Main.configToEdit.Bind("PLAYER", "Starvation damage", (int)SurvivalConstants.kStarveDamage, "");
+            playerMaxFood = Main.configToEdit.Bind("PLAYER", "Player food meter", (int)SurvivalConstants.kMaxOverfillStat, "Your food meter will be capped at this value");
+            playerFullFood = Main.configToEdit.Bind("PLAYER", "Player food effectiveness threshold", (int)SurvivalConstants.kMaxStat, "Food you eat will be less effective if your food meter is above this value. The closer your food meter to 'Player food meter' setting the more food will be lost.");
+            PlayerMaxWater = Main.configToEdit.Bind("PLAYER", "Player water meter", (int)SurvivalConstants.kMaxStat, "Your water meter will be capped at this value");
+            playerFullWater = Main.configToEdit.Bind("PLAYER", "Player water effectiveness threshold", (int)SurvivalConstants.kMaxStat, "Water you drink will be less effective if your water meter is above this value. The closer your water meter to 'Player water meter' setting the more water will be lost.");
 
             //Main.logger.LogMessage("ConfigToEdit bind end ");
         }

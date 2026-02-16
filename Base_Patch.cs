@@ -213,7 +213,7 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded)
                     return;
 
-                if (__instance.LOD.IsMinimal() || !ConfigMenu.useRealTempForPlayerTemp.Value)
+                if (__instance.LOD.IsMinimal() || !ConfigMenu.useRealTempForPlayer.Value)
                     return;
 
                 if (Player.main.currentSub == null || Player.main.currentSub != __instance)
@@ -362,7 +362,7 @@ namespace Tweaks_Fixes
                     if (heldTool)
                     {
                         GameObject go = heldTool.gameObject;
-                        if (Util.IsCreatureAlive(go) && Util.IsEatableFish(go))
+                        if (Util.IsCreatureAlive(go) && Util.IsRawFish(go))
                             Util.CookFish(go);
                     }
                 }

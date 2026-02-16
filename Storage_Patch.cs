@@ -11,7 +11,6 @@ namespace Tweaks_Fixes
 {
     public class Storage_Patch
     {
-
         static string GetKey(Transform door)
         {
             PrefabIdentifier pi = door.GetComponentInParent<PrefabIdentifier>();
@@ -305,7 +304,7 @@ namespace Tweaks_Fixes
                 if (c && !c.constructed)
                     return false;
 
-                GameObject parent = Util.GetParent(__instance.gameObject);
+                GameObject parent = Util.GetEntityRoot(__instance.gameObject);
                 //AddDebug("StorageContainer OnHandHover parent " + parent.name);
                 //AddDebug("StorageContainer OnHandHover transform.parent.name " + __instance.transform.parent.name);
 
@@ -440,67 +439,27 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(ColoredLabel))]
-        class ColoredLabel_Patch
+        [HarmonyPatch(typeof(uGUI_InputField), "EndEdit")]
+        class uGUI_InputField_EndEdit_Patch
         {
-            //[HarmonyPrefix]
-            //[HarmonyPatch("OnProtoSerialize")]
-            static bool OnProtoSerializePrefix(ColoredLabel __instance)
+            static bool shift = false;
+            static void Prefix(uGUI_InputField __instance)
             {
-                //AddDebug("locker ColoredLabel OnProtoSerialize");
-                if (__instance.gameObject.name == "submarine_Storage_locker_big_01_hinges_R")
-                {
-                    return false;
-                }
-                return true;
+                if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                    shift = true;
             }
-            //[HarmonyPrefix]
-            //[HarmonyPatch("OnProtoDeserialize")]
-            static bool OnProtoDeserializePrefix(ColoredLabel __instance)
+            static void Postfix(uGUI_InputField __instance)
             {
-                //AddDebug("locker ColoredLabel OnProtoDeserialize");
-                if (__instance.gameObject.name == "submarine_Storage_locker_big_01_hinges_R")
+                //AddDebug("EndEdit " + __instance.text);
+                if (shift)
                 {
-
-                    return false;
-                }
-                return true;
-            }
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnProtoDeserialize")]
-            static void OnProtoDeserializePostfix(ColoredLabel __instance)
-            {
-                //AddDebug("locker ColoredLabel OnProtoDeserialize");
-                TechTag techTag = __instance.transform.parent.GetComponent<TechTag>();
-                if (techTag == null)
-                    return;
-                //AddDebug("ColoredLabel OnProtoDeserialize " + techTag.type);
-                if (techTag.type == TechType.SmallLocker)
-                {
-                    //Transform door = __instance.transform.Find("model/submarine_locker_02/submarine_locker_02_door");
-                    //if (door)
-                    //    __instance.transform.SetParent(door.transform);
-                }
-            }
-            //[HarmonyPostfix]
-            //[HarmonyPatch("OnEnable")]
-            static void OnEnablePostfix(ColoredLabel __instance)
-            {
-                //AddDebug("locker ColoredLabel OnProtoDeserialize");
-                Transform parent = __instance.transform.parent;
-                TechTag techTag = parent.GetComponent<TechTag>();
-                if (techTag == null)
-                    return;
-                //AddDebug("ColoredLabel OnEnable " + techTag.type);
-                if (techTag.type == TechType.SmallLocker)
-                {
-                    Transform door = parent.Find("model/submarine_locker_02/submarine_locker_02_door");
-                    if (door)
-                        __instance.transform.SetParent(door.transform);
+                    //AddDebug("Postfix Shift");
+                    __instance.text += '\n';
+                    __instance.group.Select();
+                    shift = false;
                 }
             }
         }
-
 
     }
 }

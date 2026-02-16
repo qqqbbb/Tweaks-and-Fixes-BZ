@@ -53,8 +53,8 @@ namespace Tweaks_Fixes
                 //    hoverBikes.Add(__instance);
                 //__instance.mirroredSelfDamageFraction = .25f;
             }
-            [HarmonyPrefix]
-            [HarmonyPatch("OnCollisionEnter")]
+            //[HarmonyPrefix]
+            //[HarmonyPatch("OnCollisionEnter")]
             public static bool OnCollisionEnterPrefix(DealDamageOnImpact __instance, Collision collision)
             {
                 if (!ConfigToEdit.replaceDealDamageOnImpactScript.Value)
@@ -398,7 +398,7 @@ namespace Tweaks_Fixes
                         if (damageTicks >= damageTicksToCook)
                         {
                             GameObject fish = Inventory.main.quickSlots.heldItem.item.gameObject;
-                            if (Util.IsEatableFish(fish))
+                            if (Util.IsRawFish(fish))
                             {
                                 Util.CookFish(fish);
                                 damageTicks = 0;

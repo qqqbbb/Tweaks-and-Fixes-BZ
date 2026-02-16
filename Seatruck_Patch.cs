@@ -130,7 +130,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("IInteriorSpace.GetInsideTemperature")]
             public static void GetInsideTemperaturePostfix(SeaTruckSegment __instance, ref float __result)
             {
-                if (ConfigMenu.useRealTempForPlayerTemp.Value && !__instance.relay.IsPowered())
+                if (ConfigMenu.useRealTempForPlayer.Value && !__instance.relay.IsPowered())
                     __result = WaterTemperatureSimulation.main.GetTemperature(__instance.transform.position);
                 else
                     __result = ConfigToEdit.insideBaseTemp.Value;

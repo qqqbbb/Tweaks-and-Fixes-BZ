@@ -32,13 +32,13 @@ namespace Tweaks_Fixes
                     return false;
                 }
                 bool underwater = __instance.player.transform.position.y < Ocean.GetOceanLevel() || __instance.player.IsUnderwaterForSwimming();
-                bool movingUnderwater = !ConfigMenu.useRealTempForPlayerTemp.Value && underwater && (__instance.player.movementSpeed > Mathf.Epsilon || __instance.player.IsRidingCreature());
+                bool movingUnderwater = !ConfigMenu.useRealTempForPlayer.Value && underwater && (__instance.player.movementSpeed > Mathf.Epsilon || __instance.player.IsRidingCreature());
                 //float temp = Main.bodyTemperature.CalculateEffectiveAmbientTemperature();
-                bool heat = !ConfigMenu.useRealTempForPlayerTemp.Value && (HeatSource.GetHeatImpactAtPosition(__instance.transform.position) > 0f || __instance.player.GetCurrentHeatVolume());
+                bool heat = !ConfigMenu.useRealTempForPlayer.Value && (HeatSource.GetHeatImpactAtPosition(__instance.transform.position) > 0f || __instance.player.GetCurrentHeatVolume());
                 bool immune = movingUnderwater || heat || __instance.player.cinematicModeActive || __instance.CalculateEffectiveAmbientTemperature() > ConfigToEdit.warmTemp.Value;
                 bool piloting = __instance.player.IsPiloting();
 
-                if (piloting && ConfigMenu.useRealTempForPlayerTemp.Value)
+                if (piloting && ConfigMenu.useRealTempForPlayer.Value)
                 {
                     if (__instance.player.inHovercraft)
                         piloting = false;
@@ -51,7 +51,7 @@ namespace Tweaks_Fixes
                         piloting = sts.relay.IsPowered();
                     }
                 }
-                bool interior = !ConfigMenu.useRealTempForPlayerTemp.Value && __instance.player.currentInterior != null;
+                bool interior = !ConfigMenu.useRealTempForPlayer.Value && __instance.player.currentInterior != null;
                 __result = !immune && !piloting && !interior;
                 //AddDebug("GetHeatImpactAtPosition " + HeatSource.GetHeatImpactAtPosition(__instance.transform.position));
                 //AddDebug("GetCurrentHeatVolume " + __instance.player.GetCurrentHeatVolume());
@@ -210,11 +210,11 @@ namespace Tweaks_Fixes
             {
                 //AddDebug("LoseItems");
                 __result = false;
-                if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Default)
+                if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.TF_default_setting)
                     return true;
-                else if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Do_not_drop_anything)
+                else if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.TF_drop_items_death_setting_nothing)
                     return false;
-                else if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.Drop_everything)
+                else if (ConfigMenu.dropItemsOnDeath.Value == ConfigMenu.DropItemsOnDeath.TF_drop_items_death_setting_everything)
                 {
                     List<InventoryItem> itemsToDrop = new List<InventoryItem>();
                     foreach (InventoryItem inventoryItem in Inventory.main.container)
