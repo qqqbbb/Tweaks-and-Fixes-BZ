@@ -175,6 +175,8 @@ namespace Tweaks_Fixes
         {
             //AddDebug("GetSeaTruckLabel");
             ColoredLabel[] labels = Util.GetComponentsInDirectChildren<ColoredLabel>(seatruck);
+            //AddDebug("GetSeaTruckLabel " + labels.Length);
+
             foreach (ColoredLabel l in labels)
             {
                 if (l.name == "Label" && container.name == "StorageContainer (2)")
@@ -293,10 +295,10 @@ namespace Tweaks_Fixes
             {
                 if (!ConfigToEdit.newStorageUI.Value)
                     return true;
-                //AddDebug("StorageContainer OnHandHover name " + __instance.name);
                 //HandReticle.main.SetTextRaw(HandReticle.TextType.UseSubscript, "Subscript");
                 // HandReticle.main.SetTextRaw(HandReticle.TextType.Use, "Use");
                 //str = LanguageCache.GetButtonFormat("AirBladderUseTool", GameInput.Button.RightHand);
+                //AddDebug($"StorageContainer OnHandHover " + __instance.name);
                 if (!__instance.enabled || __instance.disableUseability)
                     return false;
 
@@ -312,9 +314,9 @@ namespace Tweaks_Fixes
                 ColoredLabel label = null;
                 PickupableStorage ps = null;
                 Sign sign = null;
-                if (parent.name == "SeaTruckStorageModule(Clone)")
+                if (__instance.transform.parent.name == "SeaTruckStorageModule(Clone)")
                 {
-                    label = GetSeaTruckLabel(parent, __instance);
+                    label = GetSeaTruckLabel(__instance.transform.parent.gameObject, __instance);
                 }
                 else if (parent.name == "SeaTruckAquariumModule(Clone)")
                 {

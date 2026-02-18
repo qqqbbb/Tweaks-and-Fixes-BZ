@@ -130,12 +130,19 @@ namespace Tweaks_Fixes
                 return codeMatcher;
             }
 
+            [HarmonyPrefix, HarmonyPatch("UpdateHunger")]
+            static bool UpdateHungerPrefix(Survival __instance)
+            {
+                if (Main.gameLoaded == false || GameModeManager.GetOption<bool>(GameOption.Hunger) == false && GameModeManager.GetOption<bool>(GameOption.Thirst) == false)
+                    return false;
+
+                return true;
+            }
+
             [HarmonyPrefix, HarmonyPatch("UpdateStats")]
             static bool UpdateStatsPrefix(Survival __instance, ref float timePassed, ref float __result)
             {
-                if (Main.gameLoaded == false)
-                    return false;
-                //AddDebug("UpdateStats ");
+                //AddDebug("UpdateStats " + __instance.required);
                 __result = UpdateStats(__instance, timePassed);
                 return false;
             }
