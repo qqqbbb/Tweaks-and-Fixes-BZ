@@ -28,6 +28,7 @@ namespace Tweaks_Fixes
                 //Main.logger.LogDebug("Pickupable  Awake " + tt);
                 if (tt == TechType.SmallStorage || tt == TechType.QuantumLocker)
                 {
+                    //__instance.isPickupable = true;
                     PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>();
                     if (ps)
                         pickupableStorage_.Add(__instance, ps);
@@ -56,12 +57,13 @@ namespace Tweaks_Fixes
                     if (rb)
                         rb.mass = itemMass[tt];
                 }
+                //Main.logger.LogDebug("Pickupable  Awake " + tt + " isPickupable " + __instance.isPickupable);
             }
 
             [HarmonyPostfix, HarmonyPatch("OnHandHover")]
             static void OnHandHoverPostfix(Pickupable __instance, GUIHand hand)
             {
-                //AddDebug("Pickupable OnHandHover " + __instance.name);
+                //AddDebug("Pickupable AllowedToPickUp " + __instance.AllowedToPickUp());
                 Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
                 if (ConfigToEdit.canPickUpContainerWithItems.Value == false && exosuit && pickupableStorage_.ContainsKey(__instance))
                 {
@@ -80,7 +82,7 @@ namespace Tweaks_Fixes
             {
                 if (pickupableStorage.ContainsKey(__instance))
                 { // fix bug: exosuit can pick up containers with items
-                    if (ConfigToEdit.canPickUpContainerWithItems.Value)
+                    if (ConfigToEdit.canPickUpContainerWithItems.Value || __instance.name == "QuantumLocker(Clone)")
                         __result = true;
                     else
                         __result = pickupableStorage[__instance].container.IsEmpty();

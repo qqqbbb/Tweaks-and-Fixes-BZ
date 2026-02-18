@@ -106,7 +106,7 @@ namespace Tweaks_Fixes
             }
             if (ps)
             {
-                if (ConfigToEdit.canPickUpContainerWithItems.Value || ps.storageContainer.IsEmpty())
+                if (ps.allowPickupWhenNonEmpty || ConfigToEdit.canPickUpContainerWithItems.Value || ps.storageContainer.IsEmpty())
                     //ps.pickupable.OnHandHover(hand);
                     text += "\n" + OnPickupableHandHover(ps.pickupable, hand);
                 else if (!string.IsNullOrEmpty(ps.cantPickupHoverText))
@@ -128,8 +128,8 @@ namespace Tweaks_Fixes
             string text1 = string.Empty;
             string text2 = string.Empty;
             TechType techType = pickupable.GetTechType();
-
-            if (pickupable.AllowedToPickUp())
+            //AddDebug("OnPickupableHandHover AllowedToPickUp " + pickupable.AllowedToPickUp());
+            if (techType == TechType.QuantumLocker || pickupable.AllowedToPickUp())
             {
                 Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
                 bool canPickup = exosuit == null || exosuit.HasClaw();
@@ -168,6 +168,7 @@ namespace Tweaks_Fixes
                 handReticle.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
             }
             text1 = HandReticle.main.GetText(text1, true, GameInput.Button.AltTool);
+            //AddDebug("OnPickupableHandHover " + text1);
             return text1;
         }
 
@@ -195,25 +196,17 @@ namespace Tweaks_Fixes
 
         public static void ProcessInput(ColoredLabel label, PickupableStorage ps, StorageContainer sc, GUIHand hand, Sign sign)
         {
-            //if (GameInput.GetButtonDown(GameInput.Button.LeftHand))
-            //{
-            //if (sc)
-            //    sc.Open(sc.transform);
-            //AddDebug("LeftHand");
-            //}
             if (GameInput.GetButtonDown(GameInput.Button.RightHand))
             {
                 if (label && label.enabled)
                     label.signInput.Select(true);
                 else if (sign && sign.enabled)
                     sign.signInput.Select(true);
-                //AddDebug("RightHand");
             }
-            else if (GameInput.GetButtonDown(GameInput.Button.AltTool))
+            else if (ps && GameInput.GetButtonDown(GameInput.Button.AltTool))
             {
-                if (ps.storageContainer.IsEmpty() || ps.allowPickupWhenNonEmpty)
-                    ps.pickupable.OnHandClick(hand);
                 //AddDebug("AltTool");
+                ps.pickupable.OnHandClick(hand);
             }
         }
 
@@ -307,10 +300,10 @@ namespace Tweaks_Fixes
                     return false;
 
                 GameObject parent = Util.GetEntityRoot(__instance.gameObject);
-                //AddDebug("StorageContainer OnHandHover parent " + parent.name);
+                //GameObject parent = __instance.transform.parent.gameObject;
+                //AddDebug($"{__instance.name} parent {parent.name}");
                 //AddDebug("StorageContainer OnHandHover transform.parent.name " + __instance.transform.parent.name);
 
-                //GameObject parent = __instance.transform.parent.gameObject;
                 ColoredLabel label = null;
                 PickupableStorage ps = null;
                 Sign sign = null;
@@ -318,14 +311,15 @@ namespace Tweaks_Fixes
                 {
                     label = GetSeaTruckLabel(__instance.transform.parent.gameObject, __instance);
                 }
-                else if (parent.name == "SeaTruckAquariumModule(Clone)")
+                else if (__instance.transform.parent.TryGetComponent<DeployableStorage>(out _))
                 {
-                    //AddDebug("StorageContainer OnHandHover aquarium");
+                    label = __instance.transform.parent.GetComponentInChildren<ColoredLabel>();
+                    ps = __instance.transform.parent.GetComponentInChildren<PickupableStorage>();
+                    //AddDebug("DeployableStorage parent " + __instance.transform.parent);
                 }
                 else
                 {
                     label = parent.GetComponentInChildren<ColoredLabel>();
-                    ps = parent.GetComponentInChildren<PickupableStorage>();
                     sign = parent.GetComponentInChildren<Sign>();
                 }
                 //if (label)
@@ -333,6 +327,13 @@ namespace Tweaks_Fixes
                 string text = GetText(label, ps, __instance, hand, sign);
                 HandReticle.main.SetTextRaw(HandReticle.TextType.Hand, text);
                 HandReticle.main.SetIcon(HandReticle.IconType.Hand);
+                if (ps)
+                {
+                    bool canPickUp = ps.storageContainer.IsEmpty() || ps.allowPickupWhenNonEmpty || __instance.transform.parent.name == "QuantumLocker(Clone)";
+                    if (canPickUp == false)
+                        ps = null;
+                }
+                //AddDebug("DeployableStorage canPickUp " + canPickUp);
                 ProcessInput(label, ps, __instance, hand, sign);
                 return false;
             }
