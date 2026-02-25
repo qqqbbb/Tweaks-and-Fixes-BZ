@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using Nautilus.Utility;
+using Story;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,10 +10,23 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
+    [HarmonyPatch(typeof(StoryGoalScheduler), "Schedule")]
+    class StoryGoalScheduler_Schedule_patch
+    {
+        public static void Prefix(StoryGoalScheduler __instance, StoryGoal goal)
+        {
+            if (ConfigMenu.timeFlowSpeed.Value == 1)
+                return;
+
+            goal.delay *= ConfigMenu.timeFlowSpeed.Value;
+            //AddDebug("StoryGoalScheduler Schedule " + goal.key + " delay " + goal.delay);
+        }
+    }
+
     [HarmonyPatch(typeof(DayNightCycle))]
     class DayNightCycle_Patch
     {
-        static bool skipTimeModeStopped;
+        static bool skipTimeMode;
 
         [HarmonyPostfix, HarmonyPatch("Awake")]
         static void AwakePostfix(DayNightCycle __instance)
@@ -22,19 +36,14 @@ namespace Tweaks_Fixes
         [HarmonyPrefix, HarmonyPatch("Update")]
         static void UpdatePrefix(DayNightCycle __instance)
         {
-            if (!__instance.debugFreeze && __instance.skipTimeMode)
-            {
-                double timePassed = __instance.timePassedAsDouble + __instance.deltaTime;
-                if (timePassed >= __instance.skipModeEndTime)
-                    skipTimeModeStopped = true;
-            }
+            skipTimeMode = __instance.skipTimeMode;
         }
         [HarmonyPostfix, HarmonyPatch("Update")]
         static void UpdatePostfix(DayNightCycle __instance)
         {
-            if (skipTimeModeStopped)
+            if (skipTimeMode && __instance.skipTimeMode == false)
             {
-                skipTimeModeStopped = false;
+                skipTimeMode = false;
                 __instance._dayNightSpeed = ConfigMenu.timeFlowSpeed.Value;
             }
         }

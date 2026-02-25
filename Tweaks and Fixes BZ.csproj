@@ -158,7 +158,7 @@
     <Compile Include="PDA_Patch.cs" />
     <Compile Include="Storage_Patch.cs" />
     <Compile Include="Plants_Patch.cs" />
-    <Compile Include="DayNightCycle_Patch.cs" />
+    <Compile Include="Time_Flow_Speed.cs" />
     <Compile Include="Hoverbike_.cs" />
     <Compile Include="Exosuit_Patch.cs" />
     <Compile Include="Seatruck_Patch.cs" />

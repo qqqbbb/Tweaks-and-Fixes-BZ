@@ -97,7 +97,7 @@ namespace Tweaks_Fixes
 
             static public float GetFishFoodValue(float food)
             {
-                if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.TF_eat_raw_fish_setting_harmless || food <= 0)
+                if (ConfigMenu.eatRawFish.Value == ConfigMenu.EatingRawFish.TF_default_setting || food <= 0)
                     return food;
 
                 float min = 0, max = 0;
@@ -170,6 +170,8 @@ namespace Tweaks_Fixes
                 float playerFullWater = ConfigToEdit.playerFullWater.Value;
                 float playerMaxFood = ConfigToEdit.playerMaxFood.Value;
                 float playerFullFood = ConfigToEdit.playerFullFood.Value;
+                float playerThirst = ConfigToEdit.thirstThreshold.Value;
+                float playerHunger = ConfigToEdit.hungerThreshold.Value;
                 float healthValue = eatable.GetHealthValue();
                 float coldMeterValue = eatable.GetColdMeterValue();
                 //AddDebug($"playerMinFood {playerMinFood} playerMaxFood {playerMaxFood}");
@@ -185,15 +187,33 @@ namespace Tweaks_Fixes
                     food = GetFishFoodValue(food);
                     water = GetFishFoodValue(water);
                 }
-                if (food > 0 && __instance.food > playerFullFood && playerFullFood < playerMaxFood)
+                if (food > 0)
                 {
-                    float mult = (playerMaxFood - __instance.food) * .01f;
-                    food *= mult;
+                    if (__instance.food > playerFullFood && playerFullFood < playerMaxFood)
+                    {
+                        float mult = (playerMaxFood - __instance.food) * .01f;
+                        //AddDebug($"playerMinFood {playerMaxFood} mult {mult}");
+                        food *= mult;
+                    }
+                    if (__instance.food < playerHunger && playerMinFood < playerHunger)
+                    {
+                        float mult = Util.NormalizeToRange(__instance.food, playerMinFood, playerHunger, .5f, 1f);
+                        //AddDebug($"playerMinFood {playerMinFood} playerHunger {playerHunger} mult {mult}");
+                        food *= mult;
+                    }
                 }
-                if (water > 0 && __instance.water > playerFullWater && playerFullWater < playerMaxWater)
+                if (water > 0)
                 {
-                    float mult = (playerMaxWater - __instance.water) * .01f;
-                    water *= mult;
+                    if (__instance.water > playerFullWater && playerFullWater < playerMaxWater)
+                    {
+                        float mult = (playerMaxWater - __instance.water) * .01f;
+                        water *= mult;
+                    }
+                    if (__instance.water < playerThirst && playerMinWater < playerThirst)
+                    {
+                        float mult = Util.NormalizeToRange(__instance.water, playerMinWater, playerThirst, .5f, 1f);
+                        water *= mult;
+                    }
                 }
                 __instance.onEat.Trigger(food);
                 __instance.food += food;
@@ -318,7 +338,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
         [HarmonyPatch(typeof(WaterTemperatureSimulation), "GetTemperature", new Type[] { typeof(Vector3), typeof(float) }, new[] { ArgumentType.Normal, ArgumentType.Out })]
         class WaterTemperatureSimulation_GetTemperature_PrefixPatch
         {
@@ -370,62 +389,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(Inventory), "ConsumeResourcesForRecipe")]
-        class Inventory_ConsumeResourcesForRecipe_patch
-        {
-            public static void Postfix(Inventory __instance, TechType techType)
-            {
-                //ITechData techData = CraftData.Get(techType);
-                //if (techData == null)
-                //    return;
-                //int index = 0;
-                //Main.Log("ConsumeResourcesForRecipe " + techType);
-                //for (int ingredientCount = techData.ingredientCount; index < ingredientCount; ++index)
-                //{
-                //    IIngredient ingredient = techData.GetIngredient(index);
-                //    TechType ingredientTT = ingredient.techType;
-                //    Main.Log(" TechType " + ingredientTT);
-                //}
-            }
-        }
 
-        //[HarmonyPatch(typeof(CrafterLogic), "ConsumeResources")]
-        class CrafterLogic_ConsumeResources_patch
-        {
-            public static void Postfix(CrafterLogic __instance, TechType techType)
-            {
-                //Util.Log("CrafterLogic ConsumeResources " + techType);
-            }
-        }
 
-        //[HarmonyPatch(typeof(Crafter), "OnCraftingBegin")]
-        class Crafter_OnCraftingBegin_patch
-        {
-            public static void Prefix(Crafter __instance, TechType techType)
-            {
-                //Util.Log("Crafter OnCraftingBegin " + techType);
-            }
-        }
-
-        //[HarmonyPatch(typeof(Crafter), "Craft")]
-        class Crafter_Craft_patch
-        {
-            public static void Prefix(Crafter __instance, TechType techType)
-            {
-                //Util.Log("Crafter Craft " + techType);
-            }
-        }
-
-        //[HarmonyPatch(typeof(uGUI_CraftingMenu), "Action")]
-        class CraftingAnalytics_OnCraft_patch
-        {
-            //public static void Postfix(uGUI_CraftingMenu __instance, uGUI_CraftNode sender)
-            //{
-            //if (sender.action == TreeAction.Craft)
-            //    AddDebug(" uGUI_CraftingMenu Craft " + sender.techType0);
-            //    Main.Log(" uGUI_CraftingMenu  action " + sender.action);
-            //    Main.Log(" uGUI_CraftingMenu techType0 " + sender.techType0);
-            //}
-        }
     }
 }

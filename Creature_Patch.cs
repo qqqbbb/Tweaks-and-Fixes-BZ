@@ -155,6 +155,7 @@ namespace Tweaks_Fixes
             [HarmonyPatch("SwimToInternal")]
             public static void Prefix(SwimBehaviour __instance, ref float velocity)
             {
+                //AddDebug($"{__instance.name} SwimToInternal IsRawFish {Util.IsRawFish(__instance.gameObject)}");
                 if (fishSBs.TryGetValue(__instance, out string s) || Util.IsRawFish(__instance.gameObject))
                 {
                     velocity *= ConfigMenu.fishSpeedMult.Value;

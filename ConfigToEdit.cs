@@ -158,6 +158,8 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> PlayerMaxWater;
         public static ConfigEntry<int> playerFullFood;
         public static ConfigEntry<int> playerFullWater;
+        public static ConfigEntry<int> thirstThreshold;
+        public static ConfigEntry<int> hungerThreshold;
 
         public static AcceptableValueRange<float> lightIntensityRange = new AcceptableValueRange<float>(0.1f, 1f);
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
@@ -191,8 +193,8 @@ namespace Tweaks_Fixes
             silentReactor = Main.configToEdit.Bind("BASE", "Silent nuclear reactor", false, "");
             //newUIstrings = Main.configB.Bind("", "New UI text", true, "If false new UI elements added by the mod wil be disabled.");
             newStorageUI = Main.configToEdit.Bind("UI", "New storage UI", true);
-            disableUseText = Main.configToEdit.Bind("UI", "Disable quickslots text", false, "If true text above your quickslots will be disabled.");
-            craftWithoutBattery = Main.configToEdit.Bind("TOOLS", "Craft without battery", false, "If true your newly crafted tools and vehicles will not have batteries in them.");
+            disableUseText = Main.configToEdit.Bind("UI", "Disable quickslots text", false, "Text above your quickslots will be disabled if this is true.");
+            craftWithoutBattery = Main.configToEdit.Bind("TOOLS", "Craft without battery", false, "Your newly crafted tools and vehicles will not have batteries in them if this is true.");
             notRechargableBatteries = Main.configToEdit.Bind("ITEMS", "Not rechargable batteries", "", "Comma separated list of battery IDs. Batteries from this list can not be recharged");
             builderPlacingWhenFinishedBuilding = Main.configToEdit.Bind("TOOLS", "Builder tool placing mode when finished building", true, "If false your builder tool will exit placing mode when you finish building.");
             crushDamageScreenEffect = Main.configToEdit.Bind("PLAYER", "Crush damage screen effect", true, "If false there will be no screen effects when player takes crush damage.");
@@ -209,7 +211,7 @@ namespace Tweaks_Fixes
             canReplantMelon = Main.configToEdit.Bind("PLANTS", "Can replant melon", true, "If false gel sack and melon can't be replanted.");
             brinewingAttackColdDamage = Main.configToEdit.Bind("CREATURES", "Brinewing freeze damage", 0, "When this is not 0, brinewing attack will drain your cold meter by this amount instead of freezing you.");
 
-            fixCoral = Main.configToEdit.Bind("MISC", "Fix table coral", true, "If true then table coral will always be attached horizontally to rocks and its animation will be disabled.");
+            fixCoral = Main.configToEdit.Bind("MISC", "Fix table coral", true, "Table coral will always be attached horizontally to rocks and its animation will be disabled if this is true.");
             notRespawningCreatures = Main.configToEdit.Bind("CREATURES", "Not respawning creatures", "TrivalveBlue, TrivalveYellow", "Comma separated list of creature IDs that will not respawn.");
             notRespawningCreaturesIfKilledByPlayer = Main.configToEdit.Bind("CREATURES", "Not respawning creatures if killed by player", "TitanHolefish, BruteShark, Cryptosuchus, SnowStalker, SnowStalkerBaby, RockPuncher, SquidShark", "Comma separated list of creature IDs that will respawn only if killed by another creature.");
             respawnTime = Main.configToEdit.Bind("CREATURES", "Creature respawn time", "", "Number of days it takes a creature to respawn. The format is: creature ID, space, number of days it takes to respawn. By default fish and big creatures respawn in 12 hours, leviathans respawn after 1 day.");
@@ -321,9 +323,12 @@ namespace Tweaks_Fixes
             foodLossMultSprint = Main.configToEdit.Bind("PLAYER", "Food loss multiplier when sprinting", 1f, "Food and water values you lose when your hunger updates will be multiplied by this if you are sprinting.");
             starveDamage = Main.configToEdit.Bind("PLAYER", "Starvation damage", (int)SurvivalConstants.kStarveDamage, "");
             playerMaxFood = Main.configToEdit.Bind("PLAYER", "Player food meter", (int)SurvivalConstants.kMaxOverfillStat, "Your food meter will be capped at this value");
-            playerFullFood = Main.configToEdit.Bind("PLAYER", "Player food effectiveness threshold", (int)SurvivalConstants.kMaxStat, "Food you eat will be less effective if your food meter is above this value. The closer your food meter to 'Player food meter' setting the more food will be lost.");
+            playerFullFood = Main.configToEdit.Bind("PLAYER", "Fullness threshold", (int)SurvivalConstants.kMaxStat, "Food you eat will be less effective if your food meter is above this value. The closer your food meter to 'Player food meter' setting the more food will be lost.");
             PlayerMaxWater = Main.configToEdit.Bind("PLAYER", "Player water meter", (int)SurvivalConstants.kMaxStat, "Your water meter will be capped at this value");
-            playerFullWater = Main.configToEdit.Bind("PLAYER", "Player water effectiveness threshold", (int)SurvivalConstants.kMaxStat, "Water you drink will be less effective if your water meter is above this value. The closer your water meter to 'Player water meter' setting the more water will be lost.");
+            playerFullWater = Main.configToEdit.Bind("PLAYER", "Thirst quenching threshold", (int)SurvivalConstants.kMaxStat, "Water you drink will be less effective if your water meter is above this value. The closer your water meter to 'Player water meter' setting the more water will be lost.");
+            thirstThreshold = Main.configToEdit.Bind("PLAYER", "Thirst threshold", 0, "You have to drink more water if your water meter is below this value. The closer your water meter to 'Dehydration threshold' setting the more water you have to drink. When your water meter is at 'Dehydration threshold' only 1 point of water will be counted for every 2 points you drink.");
+            hungerThreshold = Main.configToEdit.Bind("PLAYER", "Hunger threshold", 0, "You have to eat more food if your food meter is below this value. The closer your food meter to 'Starvation threshold' setting the more food you have to eat. When your food meter is at 'Dehydration threshold' only 1 point of food will be counted for every 2 points you eat.");
+
 
             //Main.logger.LogMessage("ConfigToEdit bind end ");
         }
