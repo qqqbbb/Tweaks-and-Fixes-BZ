@@ -73,10 +73,13 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> waterLossMult;
         public static ConfigEntry<int> foodHealThreshold;
         public static ConfigEntry<float> invMultLand;
-
+        public static ConfigEntry<int> playerDamageRandomization;
+        public static ConfigEntry<int> vehicleDamageRandomization;
 
         public static void Bind()
         {  // “ ” ‛
+            playerDamageRandomization = Main.configMenu.Bind("", "TF_player_damage_rand", 0, "TF_player_damage_rand_desc");
+            vehicleDamageRandomization = Main.configMenu.Bind("", "TF_vehicle_damage_rand", 0, "TF_vehicle_damage_rand_desc");
             seatruckSpeedMult = Main.configMenu.Bind("", "TF_seatruck_speed_mult", 1f, "");
             hoverbikeSpeedMult = Main.configMenu.Bind("", "TF_hoverbike_speed_mult", 1f, "");
             coldMult = Main.configMenu.Bind("", "TF_cold_mult", 1f, "TF_cold_mult_desc");

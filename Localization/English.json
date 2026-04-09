@@ -130,11 +130,6 @@
 	"TF_snowball_water":"Snowball water value",
 	"TF_snowball_water_desc": "When you eat a snowball, you will get this amount of water and lose this amount of warmth. The game has to be reloaded after changing this.",
 
-
-
-
-
-
 	"TF_subtitles_delay": "Subtitles delay",
 	"TF_subtitles_delay_desc": "Delay for subtitles in seconds",
 	"TF_reload_game": "You have to reload the game after changing this setting",
@@ -147,5 +142,7 @@
 	"TF_drop_items_death_setting_everything": "Drop everything",
 	"TF_drop_items_death_setting_nothing": "Do not drop anything",
 
-
-}
+	"TF_player_damage_rand": "Player damage randomization",
+	"TF_vehicle_damage_rand": "Vehicle damage randomization",
+	"TF_player_damage_rand_desc": "This percent of damage taken by player will be randomized. Randomized damage will be a random number between 0 and damage*2.",
+	"TF_vehicle_damage_rand_desc": "This percent of damage taken by your vehicles will be randomized. Randomized damage will be a random number between 0 and damage*2.",

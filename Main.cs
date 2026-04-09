@@ -23,7 +23,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.5.0";
+            VERSION = "3.6.0";
         public static Survival survival;
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
@@ -123,8 +123,8 @@ namespace Tweaks_Fixes
             Player_Movement.UpdateModifiers();
             Player.main.isUnderwaterForSwimming.changedEvent.AddHandler(Player.main, new UWE.Event<Utils.MonitoredValue<bool>>.HandleFunction(Player_Movement.OnPlayerUnderwaterChanged));
             MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
+            Application.runInBackground = MiscSettings.runInBackground;
             gameLoaded = true;
-
         }
 
         //[HarmonyPatch(typeof(uGUI_MainMenu), "Start")]
@@ -217,7 +217,7 @@ namespace Tweaks_Fixes
             configMenu = new ConfigFile(configMenuPath, true);
             ConfigMenu.Bind();
             WaitScreenHandler.RegisterLateLoadTask(MODNAME, task => LoadedGameSetup());
-            WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => AddTechTypesToClassIDtable());
+            WaitScreenHandler.RegisterEarlyLoadTask(MODNAME, task => StartLoadingSetup());
             LanguageHandler.RegisterLocalizationFolder();
             SaveUtils.RegisterOnSaveEvent(SaveData);
             SaveUtils.RegisterOnQuitEvent(CleanUp);
@@ -228,6 +228,8 @@ namespace Tweaks_Fixes
             RegisterSpawns();
             Harmony harmony = new Harmony(GUID);
             harmony.PatchAll();
+            //logger.LogDebug("Setup done ");
+            Application.runInBackground = MiscSettings.runInBackground;
             //// vanilla desc just copies the name
             //LanguageHandler.SetTechTypeTooltip(TechType.SeaTruckUpgradeHorsePower, config.translatableStrings[21]);
             //// vanilla desc does not tell percent
@@ -242,6 +244,12 @@ namespace Tweaks_Fixes
             //    logger.LogInfo("loaded Mod " + plugin.Value);
         }
 
+        private static void StartLoadingSetup()
+        {
+            AddTechTypesToClassIDtable();
+            Application.runInBackground = true;
+        }
+
         private static void AddTechTypesToClassIDtable()
         {
             CraftData.PreparePrefabIDCache();
@@ -250,6 +258,15 @@ namespace Tweaks_Fixes
             CraftData.entClassTechTable["ef9ca323-9e02-4903-991c-eb3e597a279d"] = TechType.HoneyCombPlant;
         }
 
+        [HarmonyPatch(typeof(ApplicationFocus), "OnRunInBackgroundChanged")]
+        class ApplicationFocus_OnRunInBackgroundChanged_Patch
+        {
+            public static void Postfix(ApplicationFocus __instance)
+            {
+                //AddDebug("OnRunInBackgroundChanged " + MiscSettings.runInBackground);
+                Application.runInBackground = MiscSettings.runInBackground;
+            }
+        }
 
     }
 }

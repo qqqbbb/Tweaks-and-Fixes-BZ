@@ -36,7 +36,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(DealDamageOnImpact))]
+        //[HarmonyPatch(typeof(DealDamageOnImpact))]
         class DealDamageOnImpact_Patch
         { // seatruck mirroredSelfDamageFraction .12, hoverbike mirroredSelfDamageFraction 1, exosuit mirroredSelfDamage false
             //static Rigidbody prevColTarget;
@@ -238,7 +238,6 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(LiveMixin))]
         class LiveMixin_Start_Patch
         {
-
             [HarmonyPostfix]
             [HarmonyPatch("Start")]
             static void StartPostfix(LiveMixin __instance)
@@ -335,7 +334,12 @@ namespace Tweaks_Fixes
                     //AddDebug("Player takes damage " + __result);
                     //if (__result == 0f)
                     //    return;
-
+                    if (ConfigMenu.playerDamageRandomization.Value > 0)
+                    {
+                        float mult = ConfigMenu.playerDamageRandomization.Value * .01f;
+                        __result = UnityEngine.Random.Range(__result * (1 - mult), __result * (1 + mult));
+                        //AddDebug("player Damage Randomization " + __result.ToString("0.0"));
+                    }
                     if (ConfigToEdit.dropHeldTool.Value)
                     {
                         if (type != DamageType.Cold && type != DamageType.Poison && type != DamageType.Starve && type != DamageType.Radiation && type != DamageType.Pressure)
@@ -349,24 +353,32 @@ namespace Tweaks_Fixes
                         }
                     }
                 }
-                SeaTruckSegment sts = target.GetComponent<SeaTruckSegment>();
-                if (sts)
-                //if (sts || target.GetComponent<Vehicle>() || target.GetComponent<Hoverbike>())
+                if (Util.IsVehicle(target))
                 {
-                    //AddDebug("Vehicle takes damage"); 
-                    //__result *= Main.config.vehicleDamageMult;
-                    if (__result > 0 && type == DamageType.Normal)
-                    { // play sfx when predators attack truck
-                        SeaTruckSegment cabin = SeaTruckSegment.GetHead(sts);
-                        if (cabin && cabin.isMainCab)
-                        {
-                            DealDamageOnImpact ddoi = cabin.GetComponent<DealDamageOnImpact>();
-                            if (ddoi && ddoi.impactSound && ddoi.timeLastImpactSound + .5f < Time.time)
+                    if (ConfigMenu.vehicleDamageRandomization.Value > 0)
+                    {
+                        float mult = ConfigMenu.vehicleDamageRandomization.Value * .01f;
+                        __result = UnityEngine.Random.Range(__result * (1 - mult), __result * (1 + mult));
+                    }
+                    SeaTruckSegment sts = target.GetComponent<SeaTruckSegment>();
+                    if (sts)
+                    //if (sts || target.GetComponent<Vehicle>() || target.GetComponent<Hoverbike>())
+                    {
+                        //AddDebug("Vehicle takes damage"); 
+                        //__result *= Main.config.vehicleDamageMult;
+                        if (type == DamageType.Normal)
+                        { // play sfx when predators attack truck
+                            SeaTruckSegment cabin = SeaTruckSegment.GetHead(sts);
+                            if (cabin && cabin.isMainCab)
                             {
-                                //AddDebug("DealDamageOnImpact sound");
-                                //ddoi.impactSound.SetParameterValue(ddoi.velocityParamIndex, __result);
-                                ddoi.impactSound.Play();
-                                ddoi.timeLastImpactSound = Time.time;
+                                DealDamageOnImpact ddoi = cabin.GetComponent<DealDamageOnImpact>();
+                                if (ddoi && ddoi.impactSound && ddoi.timeLastImpactSound + .5f < Time.time)
+                                {
+                                    //AddDebug("DealDamageOnImpact sound");
+                                    //ddoi.impactSound.SetParameterValue(ddoi.velocityParamIndex, __result);
+                                    ddoi.impactSound.Play();
+                                    ddoi.timeLastImpactSound = Time.time;
+                                }
                             }
                         }
                     }

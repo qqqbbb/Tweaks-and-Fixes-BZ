@@ -49,6 +49,19 @@ namespace Tweaks_Fixes
             UnityEngine.Object.Destroy(t.gameObject);
         }
 
+        public static void AddRampToHatch(GameObject go)
+        {
+            //AddDebug("AddRampToHatch");
+            GameObject ramp = new GameObject("Ramp");
+            Transform t = go.transform.GetChild(0);
+            ramp.transform.SetParent(t);
+            ramp.transform.localPosition = new Vector3(0.325f, -4.025f, 0);
+            ramp.transform.localEulerAngles = new Vector3(0, 0, 325f);
+            BoxCollider collider = ramp.AddComponent<BoxCollider>();
+            collider.center = new Vector3(-6.38f, -1.1f, 0);
+            collider.size = new Vector3(0.6f, 0.08f, 2.5f);
+            //Testing.CreateDebugCollider(collider);
+        }
 
         [HarmonyPatch(typeof(BaseDeconstructable), "Init")]
         class BaseDeconstructable_Init_Patch
@@ -64,6 +77,32 @@ namespace Tweaks_Fixes
                 {
                     FixWaterParkHatch(__instance.gameObject);
                 }
+                else if (__instance.name == "BaseLargeRoomHatch(Clone)")
+                {
+                    AddRampToHatch(__instance.gameObject);
+                }
+            }
+
+            [HarmonyPatch(typeof(Constructable), "Start")]
+            class Constructable_Start_Patch
+            {
+                static void Postfix(Constructable __instance)
+                {
+                    //AddDebug("BaseDeconstructable Init " + __instance.name);
+                    if (__instance.name == "Shower(Clone)")
+                    {
+                        FixShower(__instance.gameObject);
+                    }
+                }
+            }
+
+            private static void FixShower(GameObject go)
+            {
+                //AddDebug("FixShower");
+                Transform t = go.transform.GetChild(1);
+                BoxCollider collider = t.GetComponent<BoxCollider>();
+                collider.center = Vector3.zero;
+                //Testing.CreateDebugCollider(collider);
             }
         }
 

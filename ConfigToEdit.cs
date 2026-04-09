@@ -160,6 +160,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> playerFullWater;
         public static ConfigEntry<int> thirstThreshold;
         public static ConfigEntry<int> hungerThreshold;
+        //public static ConfigEntry<bool> runInBackground;
 
         public static AcceptableValueRange<float> lightIntensityRange = new AcceptableValueRange<float>(0.1f, 1f);
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
@@ -168,6 +169,7 @@ namespace Tweaks_Fixes
         public static void Bind()
         { // “ ” ‛
             //Main.logger.LogMessage("ConfigToEdit bind start ");
+            //runInBackground = Main.configToEdit.Bind("MISC", "Run in background", true, "Set this to false to prevent the game from running in background. This setting is ignored when loading a saved game.");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
             dontSpawnKnownFragments = Main.configToEdit.Bind("MISC", "Do not spawn fragments for unlocked blueprints", false);
             noKillParticles = Main.configToEdit.Bind("CREATURES", "No particles when creature dies", false, "No yellow cloud particles will spawn when a creature dies. Game has to be reloaded after changing this. ");
@@ -318,8 +320,8 @@ namespace Tweaks_Fixes
             transferSameItemsButton = Main.configToEdit.Bind("BUTTOM BIND", "Move same items button", Button.None, "Press this button to move all items of the same type from one container to another. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
             quickslotButton = Main.configToEdit.Bind("BUTTOM BIND", "Quickslot cycle button", Button.None, "Press 'Cycle next' or 'Cycle previous' button while holding down this button to cycle tools in your current quickslot. This works only with controller. Use this if you can not bind a controller button in the mod menu.");
 
-            starvationThreshold = Main.configToEdit.Bind("PLAYER", "Starvation threshold", 0, "You take damage when your food value is equal to or below this. Can be a negative value.");
-            dehydrationThreshold = Main.configToEdit.Bind("PLAYER", "Dehydration threshold", 0, "You take damage when your water value is equal to or below this. Can be a negative value.");
+            starvationThreshold = Main.configToEdit.Bind("PLAYER", "Starvation threshold", 0, "You take damage when your food value is equal to or below this.");
+            dehydrationThreshold = Main.configToEdit.Bind("PLAYER", "Dehydration threshold", 0, "You take damage when your water value is equal to or below this.");
             foodLossMultSprint = Main.configToEdit.Bind("PLAYER", "Food loss multiplier when sprinting", 1f, "Food and water values you lose when your hunger updates will be multiplied by this if you are sprinting.");
             starveDamage = Main.configToEdit.Bind("PLAYER", "Starvation damage", (int)SurvivalConstants.kStarveDamage, "");
             playerMaxFood = Main.configToEdit.Bind("PLAYER", "Player food meter", (int)SurvivalConstants.kMaxOverfillStat, "Your food meter will be capped at this value");

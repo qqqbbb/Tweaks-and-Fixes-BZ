@@ -6,7 +6,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
-using UWEXR;
+using UnityEngine.InputSystem;
+
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -76,10 +77,9 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                //if (GameInput.GetButtonHeld(GameInput.Button.Reload))
-                //{
-                //    AddDebug($"test reload Button !!! ");
-                //}
+
+                //AddDebug("runInBackground " + Application.runInBackground);
+
                 //AddDebug("CurrentPreset " + GameModeManager.GetCurrentPresetId());
                 //if (Player.main.currentInterior != null)
                 //{
@@ -127,6 +127,7 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
+                    ShowColliderName();
                     //PlayerTool tool = Inventory.main.GetHeldTool();
                     //AddDebug("bloodColor " + Damage_.bloodColor);
                     //PrintTerrainSurfaceType();
@@ -550,6 +551,165 @@ namespace Tweaks_Fixes
             public static void Postfix(ref GameObject result)
             {
                 //AddDebug(" Targeting GetTarget  " + result.name);
+            }
+        }
+
+        public static void ShowColliderName(bool ignoreTriggers = true, bool show = true)
+        {
+            Transform scanTransform = MainCameraControl.main.transform;
+            if (Physics.Raycast(scanTransform.position + scanTransform.forward, scanTransform.forward, out RaycastHit hit, float.MaxValue, -1, ignoreTriggers ? QueryTriggerInteraction.Ignore : QueryTriggerInteraction.Collide))
+            {
+                var hitGameObject = hit.collider.gameObject;
+                var parent = hitGameObject.transform.parent;
+                var attachedRb = hit.collider.attachedRigidbody;
+                var root = UWE.Utils.GetEntityRoot(hitGameObject);
+                ErrorMessage.AddMessage($"Raycast hit collider of name '{hitGameObject.name}'");
+                if (show && hit.collider.isTrigger == false)
+                {
+                    bool found = false;
+                    foreach (Transform child in hit.collider.transform)
+                    {
+                        if (child.name == "Debug collider")
+                        {
+                            found = true;
+                            //child.gameObject.SetActive(!child.gameObject.activeSelf);
+                            UnityEngine.Object.Destroy(child.gameObject);
+                        }
+                    }
+                    if (found == false)
+                    {
+                        Collider[] colliders = hit.collider.GetComponents<Collider>();
+                        foreach (var collider in colliders)
+                            ShowDebugCollider(collider);
+                    }
+                }
+                if (parent != null)
+                {
+                    ErrorMessage.AddMessage($"Collider is direct child of '{parent.name}'");
+                }
+                if (attachedRb != null)
+                {
+                    ErrorMessage.AddMessage($"Collider is attached to the Rigidbody '{attachedRb.gameObject.name}'");
+                }
+                if (root != null)
+                {
+                    ErrorMessage.AddMessage($"Entity root of this collider is '{root.name}'");
+                }
+            }
+            else
+            {
+                ErrorMessage.AddMessage("Raycast failed.");
+            }
+        }
+
+        public static void ShowDebugCollider(Collider collider)
+        {
+            bool debugCol = false;
+            foreach (Transform child in collider.transform)
+            {
+                if (child.name == "Debug collider")
+                {
+                    //child.gameObject.SetActive(!child.gameObject.activeSelf);
+                    //UnityEngine.Object.Destroy(child.gameObject);
+                    //debugCol = true;
+                }
+            }
+            if (debugCol)
+                return;
+
+            CreateDebugCollider(collider);
+            AddDebug("ShowDebugCollider " + collider.name);
+        }
+
+        public static void CreateDebugCollider(Collider collider)
+        {
+            PrimitiveType pt = PrimitiveType.Cube;
+            if (collider is CapsuleCollider)
+                pt = PrimitiveType.Capsule;
+            else if (collider is SphereCollider)
+                pt = PrimitiveType.Sphere;
+
+            GameObject debugCollider = GameObject.CreatePrimitive(pt);
+            debugCollider.name = "Debug collider";
+            UnityEngine.Object.DestroyImmediate(debugCollider.GetComponent<Collider>());
+            //debugCollider.GetComponent<MeshRenderer>().material.color = Color.white;
+            //debugCollider.GetComponent<MeshRenderer>().material.color = new Color(1f, 0f, 0f);
+            Material unlitMaterial = new Material(Shader.Find("Unlit/Color"));
+            unlitMaterial.color = new Color(0f, 0f, 1f);
+            debugCollider.GetComponent<MeshRenderer>().material = unlitMaterial;
+            debugCollider.SetActive(true);
+            debugCollider.transform.SetParent(collider.transform, false);
+            debugCollider.transform.localEulerAngles = Vector3.zero;
+            MatchColliderSize(debugCollider, collider);
+            //AddDebug("ShowDebugCollider " + collider.name);
+        }
+
+        internal static void MatchColliderSize(GameObject debugObj, Collider collider)
+        {
+            Transform debugTransform = debugObj.transform;
+            debugTransform.localScale = Vector3.one;
+
+            if (collider is BoxCollider box)
+            {
+                debugTransform.localScale = box.size;
+                debugTransform.localPosition = box.center;
+            }
+            else if (collider is SphereCollider sphere)
+            {
+                float diameter = sphere.radius * 2;
+                debugTransform.localScale = Vector3.one * diameter;
+                debugTransform.localPosition = sphere.center;
+            }
+            else if (collider is CapsuleCollider capsule)
+            {
+                float height = capsule.height;
+                float radius = capsule.radius;
+                Vector3 scale = Vector3.one;
+
+                switch (capsule.direction)
+                {
+                    case 0: // X-axis
+                        scale = new Vector3(height, radius * 2, radius * 2);
+                        break;
+                    case 1: // Y-axis (most common)
+                        scale = new Vector3(radius * 2, height, radius * 2);
+                        break;
+                    case 2: // Z-axis
+                        scale = new Vector3(radius * 2, radius * 2, height);
+                        break;
+                }
+                debugTransform.localScale = scale;
+            }
+            else if (collider is MeshCollider meshCollider)
+            {
+                if (meshCollider.sharedMesh != null)
+                {
+                    Bounds bounds = meshCollider.sharedMesh.bounds;
+                    debugTransform.localScale = bounds.size;
+                }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(FreecamController), "Update")]
+        class FreecamController_Update_patch
+        {
+            public static void Prefix(FreecamController __instance)
+            {
+                if (__instance.GetActive() == false)
+                    return;
+
+                Vector2 scrollValue = Mouse.current.scroll.ReadValue();
+                if (scrollValue.y != 0)
+                {
+                    if (scrollValue.y > 0)
+                        __instance.speed *= 1.5f;
+                    else
+                        __instance.speed *= .375f;
+
+                    if (__instance.speed < 1)
+                        __instance.speed = 1;
+                }
             }
         }
 

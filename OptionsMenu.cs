@@ -58,6 +58,8 @@ namespace Tweaks_Fixes
             ModSliderOption foodLossSlider = ConfigMenu.foodLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
             ModSliderOption waterLossSlider = ConfigMenu.waterLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
             ModSliderOption foodWaterHealThresholdSlider = ConfigMenu.foodHealThreshold.ToModSliderOption(100, 400, 10);
+            ModSliderOption playerDamageRandSlider = ConfigMenu.playerDamageRandomization.ToModSliderOption(0, 100, 1);
+            ModSliderOption vehicleDamageRandSlider = ConfigMenu.vehicleDamageRandomization.ToModSliderOption(0, 100, 1);
 
 
             AddItem(timeFlowSpeedSlider);
@@ -67,12 +69,12 @@ namespace Tweaks_Fixes
             AddItem(exosuitSpeedSlider);
             AddItem(seatruckSpeedSlider);
             AddItem(hoverbikeSpeedSlider);
+            AddItem(playerDamageRandSlider);
+            AddItem(vehicleDamageRandSlider);
             AddItem(oxygenSlider);
             AddItem(foodLossSlider);
             AddItem(waterLossSlider);
             AddItem(foodWaterHealThresholdSlider);
-            //AddItem(maxFoodSlider);
-            //AddItem(maxWaterSlider);
             AddItem(coldSlider);
             AddItem(knifeRangeSlider);
             AddItem(knifeDamageSlider);
@@ -116,6 +118,7 @@ namespace Tweaks_Fixes
             AddItem(ConfigMenu.dropItemsOnDeath.ToModChoiceOption());
             AddItem(invMultWaterSlider);
             AddItem(invMultLandSlider);
+
 
             invMultLandSlider.OnChanged += InvMultSliderUpdated;
             invMultWaterSlider.OnChanged += InvMultSliderUpdated;

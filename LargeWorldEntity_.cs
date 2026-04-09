@@ -40,6 +40,7 @@ namespace Tweaks_Fixes
             {
                 Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
             }
+
             if (tt == TechType.GenericJeweledDisk)
             {
                 if (ConfigToEdit.fixCoral.Value)
