@@ -91,8 +91,12 @@ namespace Tweaks_Fixes
                         if (GameInput.GetButtonDown(GameInput.Button.Deconstruct))
                         {
                             __instance.propulsionCannon.ReleaseGrabbedObject();
-                            Main.survival.Eat(grabbedEatable.gameObject);
-                            UnityEngine.Object.Destroy(grabbedEatable.gameObject);
+                            Survival survival = Player.main.GetComponent<Survival>();
+                            if (survival != null)
+                            {
+                                survival.Eat(grabbedEatable.gameObject);
+                                UnityEngine.Object.Destroy(grabbedEatable.gameObject);
+                            }
                         }
                     }
                     sb.Append(grabbedObjectPickupText);

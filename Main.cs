@@ -23,8 +23,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.6.0";
-        public static Survival survival;
+            VERSION = "3.6.2";
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
         public static bool visibleLockerInteriorModLoaded = false;
@@ -86,15 +85,13 @@ namespace Tweaks_Fixes
             configMain.Load();
         }
 
-        [HarmonyPatch(typeof(Player), "Start")]
+        //[HarmonyPatch(typeof(Player), "Start")]
         class Player_Start_Patch
         {
             static void Finalizer(Player __instance)
             {
                 //AddDebug("Player Start Finalizer");
-                survival = __instance.GetComponent<Survival>();
-                //oceanLevel = Ocean.GetOceanLevel();
-                //equipment = Inventory.main.equipment;
+
             }
         }
 

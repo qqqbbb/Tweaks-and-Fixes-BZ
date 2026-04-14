@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 using static ErrorMessage;
 
@@ -691,25 +690,25 @@ namespace Tweaks_Fixes
         }
 
 
-        [HarmonyPatch(typeof(FreecamController), "Update")]
-        class FreecamController_Update_patch
+        [HarmonyPatch(typeof(FreecamController), "LateUpdate")]
+        class FreecamController_LateUpdate_patch
         {
             public static void Prefix(FreecamController __instance)
             {
                 if (__instance.GetActive() == false)
                     return;
 
-                Vector2 scrollValue = Mouse.current.scroll.ReadValue();
-                if (scrollValue.y != 0)
-                {
-                    if (scrollValue.y > 0)
-                        __instance.speed *= 1.5f;
-                    else
-                        __instance.speed *= .375f;
+                float scroll = Input.GetAxis("Mouse ScrollWheel");
+                if (scroll == 0)
+                    return;
 
-                    if (__instance.speed < 1)
-                        __instance.speed = 1;
-                }
+                if (scroll > 0)
+                    __instance.speed *= 1.5f;
+                else if (scroll < 0)
+                    __instance.speed *= .375f;
+
+                if (__instance.speed < 1)
+                    __instance.speed = 1;
             }
         }
 
