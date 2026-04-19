@@ -303,7 +303,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
         [HarmonyPatch(typeof(PlayerBreathBubbles), "MakeBubbles")]
         class PlayerBreathBubbles_MakeBubbles_Patch
         {

@@ -130,7 +130,7 @@ namespace Tweaks_Fixes
             }
 
             [HarmonyPostfix, HarmonyPatch("Start")]
-            public static void AwakePostfix(Exosuit __instance)
+            public static void Startostfix(Exosuit __instance)
             {
                 Util.GetExosuitLightsTransform(__instance).SetParent(__instance.leftArmAttach);
                 FixExosuitLight(__instance);

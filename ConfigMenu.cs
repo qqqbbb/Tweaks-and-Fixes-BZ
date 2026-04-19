@@ -75,9 +75,11 @@ namespace Tweaks_Fixes
         public static ConfigEntry<float> invMultLand;
         public static ConfigEntry<int> playerDamageRandomization;
         public static ConfigEntry<int> vehicleDamageRandomization;
+        public static ConfigEntry<int> recyclotronSuccessChance;
 
         public static void Bind()
         {  // “ ” ‛
+            recyclotronSuccessChance = Main.configMenu.Bind("", "TF_recyclotron_success_chance", 100, "");
             playerDamageRandomization = Main.configMenu.Bind("", "TF_player_damage_rand", 0, "TF_player_damage_rand_desc");
             vehicleDamageRandomization = Main.configMenu.Bind("", "TF_vehicle_damage_rand", 0, "TF_vehicle_damage_rand_desc");
             seatruckSpeedMult = Main.configMenu.Bind("", "TF_seatruck_speed_mult", 1f, "");
@@ -141,7 +143,6 @@ namespace Tweaks_Fixes
             quickslotKey = Main.configMenu.Bind("", "TF_quick_slot_cycle", KeyCode.None, "TF_quick_slot_cycle_desc");
             previousPDATabKey = Main.configMenu.Bind("", "TF_previous_PDA_tab", KeyCode.None, "TF_previous_PDA_tab_desc");
             nextPDATabKey = Main.configMenu.Bind("", "TF_next_PDA_tab", KeyCode.None, "TF_next_PDA_tab_desc");
-            //Main.logger.LogMessage("configMenu.Bind !!! ");
         }
 
         public enum DropItemsOnDeath { TF_default_setting, TF_drop_items_death_setting_everything, TF_drop_items_death_setting_nothing }

@@ -554,5 +554,17 @@ namespace Tweaks_Fixes
             return t;
         }
 
+        public static IItemsContainer GetOpenContainer()
+        {
+            IItemsContainer itemsContainer = null;
+            for (int i = 0; i < Inventory.main.usedStorage.Count; i++)
+            {
+                itemsContainer = Inventory.main.GetUsedStorage(i);
+                if (itemsContainer != null)
+                    break;
+            }
+            return itemsContainer;
+        }
+
     }
 }

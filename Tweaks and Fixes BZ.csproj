@@ -113,12 +113,14 @@
     <Compile Include="Bed_.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="Charger_.cs" />
+    <Compile Include="Databox.cs" />
+    <Compile Include="Recyclotron_.cs" />
+    <Compile Include="InventoryItemIconColorChanger.cs" />
     <Compile Include="Input_.cs" />
     <Compile Include="Telemetry_.cs" />
     <Compile Include="Pings.cs" />
     <Compile Include="PowerConsumption.cs" />
     <Compile Include="FiltrationMachine_.cs" />
-    <Compile Include="InventoryItemIconColorChanger.cs" />
     <Compile Include="ConfigMain.cs" />
     <Compile Include="CreatureDeath_Patch.cs" />
     <Compile Include="Creature_aggression.cs" />

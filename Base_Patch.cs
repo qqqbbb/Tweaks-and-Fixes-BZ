@@ -145,16 +145,17 @@ namespace Tweaks_Fixes
         internal class Subroot_Patch
         {
             [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
-            static void PostfixAwake(SubRoot __instance)
+            [HarmonyPatch("Start")]
+            public static void StartPostfix(SubRoot __instance)
             {
-                //Light[] lights = __instance.GetComponentsInChildren<Light>();
+                Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.metal);
+
                 if (__instance.isCyclops)
                     return;
                 //if (!Main.loadingDone)
                 //    baseBuilt[__instance] = true;
                 //bool canToggle = __instance.powerRelay && __instance.powerRelay.GetPowerStatus() == PowerSystem.Status.Normal;
-                //AddDebug("SubRoot Awake canToggle " + canToggle);
+                //AddDebug("SubRoot Start canToggle " + canToggle);
                 //if (!canToggle)
                 //    return;
 
@@ -185,24 +186,6 @@ namespace Tweaks_Fixes
                     //__instance.subLightsOn = Main.config.baseLights[currentSlot][key];
                     //AddDebug(" BaseLight " + key + " " + __instance.subLightsOn);
                 }
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
-            public static void StartPostfix(SubRoot __instance)
-            {
-                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
-                surface.surfaceType = VFXSurfaceTypes.metal;
-                //if (uGUI.isLoading && __instance.powerRelay)
-                //{
-                //    AddDebug("SubRoot Start powerRelay " + __instance.powerRelay.isPowered);
-                //    AddDebug("SubRoot Start IsHeatOnline " + __instance.IsHeatOnline());
-                //}
-                //if (uGUI.isLoading && __instance.powerRelay && __instance.powerRelay.isPowered)
-                //{
-                //    __instance.internalTemperature = __instance.heatedIndoorTargetTemperature;
-                //    AddDebug("SubRoot Start " + __instance.internalTemperature);
-                //}
             }
 
 
@@ -279,11 +262,11 @@ namespace Tweaks_Fixes
 
         [HarmonyPatch(typeof(SolarPanel))]
         public static class SolarPanel_Patch
-        { // dont show hand icon
+        {
             [HarmonyPrefix]
             [HarmonyPatch("OnHandHover")]
             static bool OnHandHoverPrefix(SolarPanel __instance, GUIHand hand)
-            {
+            { // dont show hand icon
                 Constructable c = __instance.gameObject.GetComponent<Constructable>();
                 if (!c || !c.constructed)
                     return false;
@@ -299,7 +282,6 @@ namespace Tweaks_Fixes
                 __instance.maxDepth = ConfigToEdit.solarPanelMaxDepth.Value;
             }
         }
-
 
         [HarmonyPatch(typeof(FMOD_CustomEmitter), "Awake")]
         class FMOD_CustomEmitter_Awake_Patch
@@ -321,7 +303,7 @@ namespace Tweaks_Fixes
             {
                 //AddDebug(" Aquarium IsAllowedToAdd " + pickupable.GetTechType() + " " + __result);
                 LiveMixin liveMixin = pickupable.GetComponent<LiveMixin>();
-                if (liveMixin && !liveMixin.IsAlive())
+                if (liveMixin == null || liveMixin.IsAlive() == false)
                     __result = false;
             }
         }

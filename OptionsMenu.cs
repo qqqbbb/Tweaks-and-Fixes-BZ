@@ -13,7 +13,7 @@ namespace Tweaks_Fixes
     {
         public OptionsMenu() : base("Tweaks and Fixes")
         {
-
+            ModSliderOption recyclotronSuccessChanceSlider = ConfigMenu.recyclotronSuccessChance.ToModSliderOption(0, 100, 1);
             ModSliderOption timeFlowSpeedSlider = ConfigMenu.timeFlowSpeed.ToModSliderOption(.1f, 10f, .1f, "{0:0.#}");
             timeFlowSpeedSlider.OnChanged += TimeSpeedUpdated;
             ModSliderOption seaglideSpeedSlider = ConfigMenu.seaglideSpeedMult.ToModSliderOption(.5f, 2f, .1f, "{0:0.#}");
@@ -92,6 +92,7 @@ namespace Tweaks_Fixes
             AddItem(vehicleCrushDamageSlider);
             AddItem(crushDamageProgressionSlider);
             AddItem(baseHullStrengthSlider);
+            AddItem(recyclotronSuccessChanceSlider);
 
             AddItem(ConfigMenu.eatRawFish.ToModChoiceOption());
             AddItem(ConfigMenu.cantEatUnderwater.ToModToggleOption());

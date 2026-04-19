@@ -17,20 +17,15 @@ namespace Tweaks_Fixes
             if (!ConfigMenu.noBreakingWithHand.Value)
                 return true;
 
+            PlayerTool tool = Inventory.main.GetHeldTool();
+            if (tool is Knife)
+                return true;
+
             Exosuit exosuit = Player.main.GetVehicle() as Exosuit;
             if (exosuit && exosuit.HasClaw())
                 return true;
 
-            PlayerTool tool = Inventory.main.GetHeldTool();
-            if (tool is Knife)
-            {
-                return true;
-            }
-            else
-            {
-                //Main.Message("no knife !");
-                return false;
-            }
+            return false;
         }
 
         [HarmonyPrefix]

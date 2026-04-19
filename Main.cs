@@ -23,7 +23,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.6.2";
+            VERSION = "3.7.0";
         public static List<ItemsContainer> fridges = new List<ItemsContainer>();
         public static bool baseLightSwitchLoaded = false;
         public static bool visibleLockerInteriorModLoaded = false;
@@ -74,13 +74,11 @@ namespace Tweaks_Fixes
             Seatruck_Patch.installedUpgrades.Clear();
             fridges.Clear();
             Base_Patch.baseHullStrengths.Clear();
-            //Tools_Patch.fixedFish.Clear();
             PowerConsumption.seatruckPRs.Clear();
             CreatureDeath_Patch.creatureDeathsToDestroy.Clear();
             Survival_.healTime = 0;
             Pickupable_.pickupableStorage.Clear();
             Pickupable_.pickupableStorage_.Clear();
-            InventoryItemIconColorChanger.CleanUp();
             Base_Light.VehicleDockingBay_Patch.savedPowerStatus.Clear();
             configMain.Load();
         }

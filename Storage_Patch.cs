@@ -25,7 +25,7 @@ namespace Tweaks_Fixes
 
         static IEnumerator AddLabel(Transform door)
         {
-            if (door.parent == null)
+            while (door.parent == null)
                 yield return null;
 
             //AddDebug("AddLabel " + cyclops + " " + techType);
@@ -213,8 +213,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(DeployableStorage))]
         public class DeployableStorage_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             static void AwakePostfix(DeployableStorage __instance)
             {
                 if (!ConfigToEdit.newStorageUI.Value)
@@ -224,22 +223,41 @@ namespace Tweaks_Fixes
                 if (lm)
                     UnityEngine.Object.Destroy(lm);
 
-                PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>();
-                if (ps)
-                {
-                    Collider collider = ps.GetComponent<Collider>();
-                    if (collider)
-                        UnityEngine.Object.Destroy(collider);
-                }
-                ColoredLabel cl = __instance.GetComponentInChildren<ColoredLabel>();
-                if (cl)
-                {
-                    Collider collider = cl.GetComponent<Collider>();
-                    if (collider)
-                        UnityEngine.Object.Destroy(collider);
-                }
+                UWE.CoroutineHost.StartCoroutine(SetupSmallStorage(__instance));
             }
 
+            private static IEnumerator SetupSmallStorage(DeployableStorage ds)
+            {
+                Transform t = ds.transform.Find("collider_main");
+                while (t == null)
+                {
+                    yield return null;
+                    t = ds.transform.Find("collider_main");
+                }
+                Collider c = t.GetComponent<Collider>();
+                if (c)
+                    UnityEngine.Object.Destroy(c);
+
+                Transform label = ds.transform.Find("LidLabel");
+                while (label == null)
+                {
+                    yield return null;
+                    label = ds.transform.Find("LidLabel");
+                }
+                //AddDebug(ds.name + " LidLabel " + t.gameObject.activeSelf);
+                if (label.gameObject.activeSelf == false)
+                    yield break;
+
+                t = label.transform.Find("Label");
+                while (t == null)
+                {
+                    yield return null;
+                    t = label.transform.Find("Label");
+                }
+                Collider collider = t.GetComponent<Collider>();
+                if (collider)
+                    UnityEngine.Object.Destroy(collider);
+            }
         }
 
         [HarmonyPatch(typeof(StorageContainer))]
@@ -252,34 +270,61 @@ namespace Tweaks_Fixes
                 if (!ConfigToEdit.newStorageUI.Value)
                     return;
 
-                TechTag techTag = __instance.GetComponent<TechTag>();
-                if (techTag)
-                {
-                    //AddDebug("StorageContainer Awake " + techTag.type);
-                    if (techTag.type == TechType.SmallLocker)
-                    { // fix
-                        ColoredLabel cl = __instance.GetComponentInChildren<ColoredLabel>();
-                        if (cl)
-                        {
-                            Collider collider = cl.GetComponent<Collider>();
-                            if (collider)
-                                UnityEngine.Object.Destroy(collider);
-                        }
-                    }
-                    else if (techTag.type == TechType.Locker && !Main.visibleLockerInteriorModLoaded)
-                    {
-                        LiveMixin lm = __instance.GetComponent<LiveMixin>();
-                        if (lm)
-                            UnityEngine.Object.Destroy(lm);
+                UWE.CoroutineHost.StartCoroutine(SetupStorageContainer(__instance));
+            }
 
-                        Transform doorRight = __instance.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
-                        if (doorRight)
-                        { // parent is null
-                            UWE.CoroutineHost.StartCoroutine(AddLabel(doorRight));
-                        }
-                    }
+            private static IEnumerator SetupStorageContainer(StorageContainer container)
+            {
+                TechTag techTag = container.GetComponent<TechTag>();
+                if (techTag == null)
+                    yield break;
+                //AddDebug("StorageContainer Awake " + techTag.type);
+                if (techTag.type == TechType.SmallLocker)
+                {
+
                 }
-                //else if (__instance.GetComponent<Fridge>())
+                else if (techTag.type == TechType.SmallLocker)
+                {
+                    Transform label = container.transform.Find("Label");
+                    while (label == null)
+                    {
+                        yield return null;
+                        label = container.transform.Find("Label");
+                    }
+                    Collider collider = label.GetComponent<Collider>();
+                    if (collider)
+                        UnityEngine.Object.Destroy(collider);
+                }
+                else if (techTag.type == TechType.Locker)
+                {
+                    LiveMixin lm = container.GetComponent<LiveMixin>();
+                    if (lm)
+                        UnityEngine.Object.Destroy(lm);
+
+                    if (Main.visibleLockerInteriorModLoaded)
+                        yield break;
+                    //Transform doorRight = container.transform.Find("model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R");
+                    Transform t = container.transform.Find("model");
+                    while (t == null)
+                    {
+                        yield return null;
+                        t = container.transform.Find("model");
+                    }
+                    t = t.transform.Find("submarine_Storage_locker_big_01");
+                    while (t == null)
+                    {
+                        yield return null;
+                        t = t.transform.Find("submarine_Storage_locker_big_01");
+                    }
+                    t = t.transform.Find("submarine_Storage_locker_big_01_hinges_R");
+                    while (t == null)
+                    {
+                        yield return null;
+                        t = t.transform.Find("submarine_Storage_locker_big_01_hinges_R");
+                    }
+                    if (t)
+                        UWE.CoroutineHost.StartCoroutine(AddLabel(t));
+                }
             }
 
             [HarmonyPrefix]
@@ -414,7 +459,7 @@ namespace Tweaks_Fixes
 
                 if (__instance.name == "SeaTruckStorageModule(Clone)" || __instance.name == "SeaTruckFabricatorModule(Clone)")
                 {
-                    //AddDebug("StorageContainer Awake parent " + __instance.name);
+                    //AddDebug("StorageContainer Start parent " + __instance.name);
                     ColoredLabel[] cls = __instance.GetComponentsInChildren<ColoredLabel>();
                     foreach (ColoredLabel cl in cls)
                     {

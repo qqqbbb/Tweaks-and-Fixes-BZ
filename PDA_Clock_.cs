@@ -1,10 +1,11 @@
-﻿using HarmonyLib;
+﻿
+using HarmonyLib;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-
+using UnityEngine.UI;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
@@ -12,6 +13,7 @@ namespace Tweaks_Fixes
     {
         public static GameObject PDA_ClockGO { get; set; }
         public static PDA_Clock PDA_Clock__;
+        private static Coroutine clockCoroutine;
 
         public class PDA_Clock : MonoBehaviour
         {
@@ -39,31 +41,15 @@ namespace Tweaks_Fixes
             {
                 while (Player.main.pda.isInUse)
                 {
+                    //AddDebug("ApplyTimeToText " + Player.main.pda.isInUse);
+                    DateTime dateTime = DayNightCycle.ToGameDateTime(DayNightCycle.main.timePassedAsFloat);
+                    textComponent.text = dateTime.Hour.ToString("00") + " : " + dateTime.Minute.ToString("00");
+                    yield return new WaitForSeconds(1);
                     //AddDebug($"ApplyTimeToText isOpen {Player.main.pda.isOpen} isInUse {Player.main.pda.isInUse}");
                     //AddDebug("ApplyTimeToText " + gameObject.activeSelf + " " + gameObject.activeInHierarchy);
-                    DateTime dateTime = DayNightCycle.ToGameDateTime(DayNightCycle.main.timePassedAsFloat);
                     //float dayScalar = DayNightCycle.main.GetDayScalar();
                     //int minutes = Mathf.FloorToInt(dayScalar % oneHour / oneHour * 60f);
                     //int hours = Mathf.FloorToInt(dayScalar * 24f);
-                    var sb = new System.Text.StringBuilder();
-                    if (GameModeManager.GetOption<bool>(GameOption.BodyTemperatureDecreases))
-                    {
-                        int temp = (int)Util.GetPlayerTemperature();
-                        if (ConfigToEdit.showTempFahrenhiet.Value)
-                            temp = (int)Util.CelciusToFahrenhiet(temp);
-
-                        sb.Append(temp.ToString());
-                        if (ConfigToEdit.showTempFahrenhiet.Value)
-                            sb.AppendLine("°F");
-                        else
-                            sb.AppendLine("°C");
-                        //sb.AppendLine(Language.main.GetFormat("ThermometerFormat")); // yellow color
-                    }
-                    sb.Append(dateTime.Hour.ToString("00"));
-                    sb.Append(" : ");
-                    sb.AppendLine(dateTime.Minute.ToString("00"));
-                    textComponent.text = sb.ToString();
-                    yield return new WaitForSeconds(1);
                 }
             }
         }
@@ -75,8 +61,22 @@ namespace Tweaks_Fixes
             private static void OnOpenPDAPrefix()
             {
                 //AddDebug($"OnOpenPDA isOpen {Player.main.pda.isOpen} isInUse {Player.main.pda.isInUse}");
-                if (ConfigToEdit.pdaClock.Value)
-                    Player.main.StartCoroutine(PDA_Clock__.ApplyTimeToText());
+                if (ConfigToEdit.pdaClock.Value == false)
+                    return;
+
+                IItemsContainer openContainer = Util.GetOpenContainer();
+                if (openContainer == null)
+                    clockCoroutine = Player.main.StartCoroutine(PDA_Clock__.ApplyTimeToText());
+            }
+            [HarmonyPrefix, HarmonyPatch("OnClosePDA")]
+            private static void OnClosePDAPrefix()
+            {
+                //AddDebug($"OnClosePDA isOpen {Player.main.pda.isOpen} isInUse {Player.main.pda.isInUse}");
+                if (clockCoroutine != null)
+                {
+                    PDA_ClockGO.SetActive(false);
+                    Player.main.StopCoroutine(clockCoroutine);
+                }
             }
             [HarmonyPostfix, HarmonyPatch("Awake")]
             private static void AwakePostfix(uGUI_InventoryTab __instance)
@@ -111,6 +111,8 @@ namespace Tweaks_Fixes
                     PDA_ClockGO.SetActive(false);
             }
         }
-
     }
+
+
+
 }

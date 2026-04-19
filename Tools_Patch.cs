@@ -28,7 +28,7 @@ namespace Tweaks_Fixes
                 if (light.type == LightType.Point)
                 {
                     light.enabled = false;
-                    return;
+                    continue;
                 }
                 if (ConfigToEdit.flashlightLightIntensityMult.Value < 1)
                     light.intensity *= ConfigToEdit.flashlightLightIntensityMult.Value;
@@ -44,18 +44,18 @@ namespace Tweaks_Fixes
             }
         }
 
+        [HarmonyPatch(typeof(FlashLight), "Start")]
+        public class FlashLight_Start_Patch
+        {
+            public static void Prefix(FlashLight __instance)
+            {
+                //AddDebug("FlashLight Start");
+                FixFlashLight(__instance.gameObject);
+            }
+        }
         [HarmonyPatch(typeof(PlayerTool))]
         class PlayerTool_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
-            public static void AwakePostfix(PlayerTool __instance)
-            {
-                if (__instance is FlashLight)
-                {
-                    FixFlashLight(__instance.gameObject);
-                }
-            }
             [HarmonyPostfix]
             [HarmonyPatch("OnDraw")]
             public static void OnDrawPostfix(PlayerTool __instance)
@@ -131,16 +131,6 @@ namespace Tweaks_Fixes
                 //AddDebug("ScannerTool PlayScanFX ");
                 return ConfigToEdit.scannerFX.Value;
             }
-        }
-
-        //[HarmonyPatch(typeof(FlashLight), "Start")]
-        public class FlashLight_Start_Patch
-        {
-            public static void Prefix(FlashLight __instance)
-            {
-                //AddDebug("FlashLight Start");
-            }
-
         }
 
         //[HarmonyPatch(typeof(VehicleInterface_MapController), "Start")]

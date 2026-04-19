@@ -222,35 +222,39 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Pickupable))]
         class Pickupable_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             static void AwakePostfix(Pickupable __instance)
             {
                 if (!ConfigToEdit.dropItemsAnywhere.Value || Main.gameLoaded)
                     return;
 
-                if (__instance.inventoryItem != null)
-                    return;
+                UWE.CoroutineHost.StartCoroutine(Setup(__instance));
+            }
 
-                if (droppedInBase.ContainsKey(__instance.gameObject))
-                    return;
+            private static IEnumerator Setup(Pickupable pickupable)
+            {
+                if (pickupable.inventoryItem != null)
+                    yield break;
 
-                SubRoot subRoot = __instance.GetComponentInParent<SubRoot>();
-                PlaceTool placeTool = __instance.GetComponent<PlaceTool>();
+                if (droppedInBase.ContainsKey(pickupable.gameObject))
+                    yield break;
+
+                while (pickupable.transform.parent == null)
+                    yield return null;
+
+                SubRoot subRoot = pickupable.GetComponentInParent<SubRoot>();
+                PlaceTool placeTool = pickupable.GetComponent<PlaceTool>();
                 if (subRoot)
                 {
                     if (subRoot.isBase && placeTool == null)
                     {
                         //AddDebug(__instance.name + " Pickupable Awake in base ");
-                        droppedInBase.Add(__instance.gameObject, subRoot);
-                        DropInSub(__instance, subRoot);
+                        droppedInBase.Add(pickupable.gameObject, subRoot);
+                        DropInSub(pickupable, subRoot);
                     }
-                    return;
                 }
-                else if (placeTool && __instance.GetComponentInParent<SeaTruckSegment>())
-                {
-                    __instance.Place();
-                }
+                else if (placeTool && pickupable.GetComponentInParent<SeaTruckSegment>())
+                    pickupable.Place();
             }
 
             [HarmonyPrefix]

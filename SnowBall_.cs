@@ -108,7 +108,7 @@ namespace Tweaks_Fixes
             {
                 //TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //Main.logger.LogDebug("Eatable Awake " + tt);
-                if (__instance.GetComponent<SnowBall>())
+                if (__instance.TryGetComponent<SnowBall>(out _))
                     __instance.decomposes = true;
             }
 
@@ -118,7 +118,7 @@ namespace Tweaks_Fixes
                 if (!Main.gameLoaded)
                     return;
                 //AddDebug(" IterateDespawn " + __instance.name);
-                if (__instance.GetComponent<SnowBall>())
+                if (__instance.TryGetComponent<SnowBall>(out _))
                 {
                     CheckSnowball(__instance);
                 }

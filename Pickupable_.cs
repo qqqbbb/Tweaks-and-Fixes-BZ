@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Nautilus.Utility;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -28,14 +29,7 @@ namespace Tweaks_Fixes
                 //Main.logger.LogDebug("Pickupable  Awake " + tt);
                 if (tt == TechType.SmallStorage || tt == TechType.QuantumLocker)
                 {
-                    //__instance.isPickupable = true;
-                    PickupableStorage ps = __instance.GetComponentInChildren<PickupableStorage>();
-                    if (ps)
-                        pickupableStorage_.Add(__instance, ps);
-
-                    StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
-                    if (sc)
-                        pickupableStorage.Add(__instance, sc);
+                    UWE.CoroutineHost.StartCoroutine(SetupSmallStorage(__instance));
                 }
                 if (eatableFoodValue.ContainsKey(tt))
                 {
@@ -58,6 +52,30 @@ namespace Tweaks_Fixes
                         rb.mass = itemMass[tt];
                 }
                 //Main.logger.LogDebug("Pickupable  Awake " + tt + " isPickupable " + __instance.isPickupable);
+            }
+
+            private static IEnumerator SetupSmallStorage(Pickupable pickupable)
+            {
+                //__instance.isPickupable = true;
+                Transform t = pickupable.transform.Find("StorageContainer");
+                while (t == null)
+                {
+                    yield return null;
+                    t = pickupable.transform.Find("StorageContainer");
+                }
+                StorageContainer sc = t.GetComponent<StorageContainer>();
+                if (sc)
+                    pickupableStorage.Add(pickupable, sc);
+
+                t = pickupable.transform.Find("collider_main");
+                while (t == null)
+                {
+                    yield return null;
+                    t = pickupable.transform.Find("collider_main");
+                }
+                PickupableStorage ps = t.GetComponent<PickupableStorage>();
+                if (ps)
+                    pickupableStorage_.Add(pickupable, ps);
             }
 
             [HarmonyPostfix, HarmonyPatch("OnHandHover")]

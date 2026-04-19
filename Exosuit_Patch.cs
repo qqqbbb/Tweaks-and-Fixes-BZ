@@ -777,24 +777,13 @@ namespace Tweaks_Fixes
         }
     }
 
-    [HarmonyPatch(typeof(SupplyCrate), "Start")]
-    class SupplyCrate_Start_Patch
-    {
-        public static void Postfix(SupplyCrate __instance)
-        {
-            ExosuitClawArm_Patch.supplyCrates.Add(__instance.gameObject);
-        }
-    }
-
     [HarmonyPatch(typeof(ExosuitClawArm))]
     class ExosuitClawArm_Patch
     {
-        public static HashSet<GameObject> supplyCrates = new HashSet<GameObject>();
-
         [HarmonyPostfix, HarmonyPatch("IExosuitArm.GetInteractableRoot")]
         static void GetInteractableRootPostfix(ExosuitClawArm __instance, GameObject target, ref GameObject __result)
         {
-            if (target && supplyCrates.Contains(target))
+            if (target.TryGetComponent<SupplyCrate>(out _))
             {
                 //AddDebug("ExosuitClawArm GetInteractableRoot Postfix target " + target.name);
                 __result = target;
@@ -813,8 +802,8 @@ namespace Tweaks_Fixes
             //else
             //    AddDebug("TryUse no target ");
 
-            __instance.animator.ResetTrigger("bash");
-            __instance.animator.SetTrigger("use_tool");
+            //__instance.animator.ResetTrigger("bash");
+            //__instance.animator.SetTrigger("use_tool");
             __instance.timeUsed = Time.time;
             if (TryPickUpGrabbedObject(__instance))
                 return;
@@ -829,8 +818,8 @@ namespace Tweaks_Fixes
                 return false;
 
             SupplyCrate supplyCrate = null;
-            if (supplyCrates.Contains(target))
-                supplyCrate = target.GetComponent<SupplyCrate>();
+            if (target.TryGetComponent<SupplyCrate>(out supplyCrate) == false)
+                return false;
 
             if (supplyCrate == null)
                 return false;
@@ -841,6 +830,8 @@ namespace Tweaks_Fixes
             if (supplyCrate.open == false)
             {
                 supplyCrate.ToggleOpenState();
+                clawArm.animator.ResetTrigger("bash");
+                clawArm.animator.SetTrigger("use_tool");
                 return true;
             }
             if (supplyCrate.itemInside == null)
@@ -849,6 +840,8 @@ namespace Tweaks_Fixes
             if (AddToExosuitContainer(clawArm.exosuit, supplyCrate.itemInside, clawArm.pickupSounds, clawArm.front, 5f))
             {
                 supplyCrate.itemInside = null;
+                clawArm.animator.ResetTrigger("bash");
+                clawArm.animator.SetTrigger("use_tool");
                 return true;
             }
             return false;

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
-
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -126,7 +125,8 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    ShowColliderName();
+
+                    //ShowColliderName();
                     //PlayerTool tool = Inventory.main.GetHeldTool();
                     //AddDebug("bloodColor " + Damage_.bloodColor);
                     //PrintTerrainSurfaceType();
