@@ -10,10 +10,11 @@ namespace Tweaks_Fixes
 {
     public class Drop_Pod_Patch
     {
-        static Light podLight;
+
         public static PowerSource podPowerSource;
         static GhostCrafter podGhostCrafter;
         public static Dictionary<TechType, int> newGameLoot = new Dictionary<TechType, int>();
+        static readonly int zOffset = Shader.PropertyToID("_ZOffset");
 
 
         public static IEnumerator SpawnStartLoot(ItemsContainer container)
@@ -52,11 +53,14 @@ namespace Tweaks_Fixes
             float regenerationInterval = 10f;
             float regenerationAmount = 1f;
             float lightPowerCost = .025f;
+            Light podLight;
 
             void Start()
             {
                 //AddDebug("RegenerateSunPowerSource Start");
                 //regenerationThreshhold = Main.config.dropPodMaxPower;
+                Transform t = this.transform.parent.GetChild(2);
+                podLight = t.GetComponent<Light>();
                 this.InvokeRepeating("Regenerate", 0f, regenerationInterval);
             }
 
@@ -65,8 +69,8 @@ namespace Tweaks_Fixes
                 float amount = podPowerSource.power - lightPowerCost + regenerationAmount * DayNightCycle.main.GetLocalLightScalar();
                 podPowerSource.SetPower(amount);
                 //AddDebug("RegenerateSunPowerSource Regenerate " + amount);
-                if (podLight)
-                    podLight.enabled = podPowerSource.power > 0f;
+                //AddDebug("RegenerateSunPowerSource Power " + podPowerSource.GetPower());
+                podLight.enabled = podPowerSource.GetPower() > 0;
             }
         }
 
@@ -78,8 +82,7 @@ namespace Tweaks_Fixes
                 if (ConfigMenu.dropPodMaxPower.Value == 0)
                     return;
 
-                GameObject dropPod = __instance.transform.parent.gameObject;
-                if (dropPod.GetComponent<LifepodDrop>())
+                if (__instance.transform.parent.TryGetComponent<LifepodDrop>(out _))
                 {
                     podGhostCrafter = __instance;
                     //podLight = dropPod.GetComponentInChildren<Light>();
@@ -137,16 +140,14 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(LifepodDrop))]
         class LifepodDrop_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnWaterCollision")]
+            [HarmonyPostfix, HarmonyPatch("OnWaterCollision")]
             public static void OnWaterCollisionPostfix(LifepodDrop __instance)
             {
                 StorageContainer sc = __instance.GetComponentInChildren<StorageContainer>();
                 if (sc)
                     UWE.CoroutineHost.StartCoroutine(SpawnStartLoot(sc.container));
             }
-            [HarmonyPostfix]
-            [HarmonyPatch("IInteriorSpace.GetInsideTemperature")]
+            [HarmonyPostfix, HarmonyPatch("IInteriorSpace.GetInsideTemperature")]
             public static void GetInsideTemperaturePostfix(LifepodDrop __instance, ref float __result)
             {
                 //AddDebug("LifepodDrop inside GetInsideTemperature " + __result);
@@ -159,15 +160,16 @@ namespace Tweaks_Fixes
                         __result = WaterTemperatureSimulation.main.GetTemperature(__instance.transform.position);
                 }
             }
-        }
-
-        //[HarmonyPatch(typeof(LifepodDrop), "Start")]
-        class LifepodDrop_Start_Patch
-        {
-            static void Postfix(LifepodDrop __instance)
+            [HarmonyPostfix, HarmonyPatch("Start")]
+            public static void SetPlayerInsideStatePostfix(LifepodDrop __instance)
             {
-                VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
-                surface.surfaceType = VFXSurfaceTypes.metal;
+                Transform exterior = __instance.transform.Find("Mesh/Drop_Pod_anim/DropPod_Exterior_geo");
+                Transform t = exterior.Find("DropPod_Interior_geo");
+                Renderer renderer = t.GetComponent<Renderer>();
+                Material material = renderer.materials[0];
+                material.SetFloat(zOffset, 20000);
+                t = exterior.Find("DropPod_Door_geo");
+                t.DisableShadowCasting();
             }
         }
 

@@ -52,7 +52,7 @@ namespace Tweaks_Fixes
             ModSliderOption invMultWaterSlider = ConfigMenu.invMultWater.ToModSliderOption(0f, 5f, .01f, "{0:0.##}");
             ModSliderOption invMultLandSlider = ConfigMenu.invMultLand.ToModSliderOption(0f, 5f, .01f, "{0:0.##}");
             ModSliderOption waterFreezeSlider = ConfigMenu.waterFreezeRate.ToModSliderOption(0f, 5f, .1f, "{0:0.#}");
-            ModSliderOption snowballWaterSlider = ConfigMenu.snowballWater.ToModSliderOption(0, 30, 1);
+            //ModSliderOption snowballWaterSlider = ConfigMenu.snowballWater.ToModSliderOption(0, 30, 1);
             ModSliderOption baseHullStrengthSlider = ConfigMenu.baseHullStrengthMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
             ModSliderOption drillDamageMultSlider = ConfigMenu.drillDamageMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
             ModSliderOption foodLossSlider = ConfigMenu.foodLossMult.ToModSliderOption(0, 3f, .1f, "{0:0.#}");
@@ -99,7 +99,7 @@ namespace Tweaks_Fixes
             AddItem(fishFoodWaterRatioSlider);
             AddItem(foodDecayRateSlider);
             AddItem(waterFreezeSlider);
-            AddItem(snowballWaterSlider);
+            //AddItem(snowballWaterSlider);
             AddItem(fishSpeedSlider);
             AddItem(creatureSpeedSlider);
             AddItem(CreatureFleeChanceSlider);

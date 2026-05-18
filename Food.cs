@@ -1,17 +1,16 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
-using static VFXPool;
+using static ErrorMessage;
+
 
 namespace Tweaks_Fixes
 {
     internal class Food
     {
         public static HashSet<TechType> decayingFood = new HashSet<TechType>();
-        public static void CheckFood(Eatable eatable)
+        public static void PauseDecayIfOutside(Eatable eatable)
         {
             //AddDebug(" CheckFood " + eatable.name);
             float temp = Util.GetTemperature(eatable.gameObject);
@@ -25,20 +24,20 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(Eatable))]
         class Eatable_patch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPrefix, HarmonyPatch("Awake")]
             static void AwakePrefix(Eatable __instance)
             {
-                //TechType tt = CraftData.GetTechType(__instance.gameObject);
-                //Main.logger.LogDebug("Eatable Awake " + tt);
-                if (decayingFood.Contains(CraftData.GetTechType(__instance.gameObject)))
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (decayingFood.Contains(tt))
                 {
+                    //AddDebug("decayingFood " + tt);
                     __instance.decomposes = true;
+                    __instance.despawns = true;
+                    __instance.kDecayRate = 0.005f;
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("Awake")]
+            [HarmonyPostfix, HarmonyPatch("Awake")]
             public static void AwakePostfix(Eatable __instance)
             {
                 //AddDebug("Eatable awake " + __instance.gameObject.name);
@@ -76,10 +75,10 @@ namespace Tweaks_Fixes
             {
                 if (!Main.gameLoaded)
                     return false;
-                //AddDebug(" IterateDespawn " + __instance.name);
+                //AddDebug($" IterateDespawn {__instance.name} {__instance.GetDecayValue()}");
                 if (__instance.decomposes && __instance.foodValue > 0f)
                 {
-                    CheckFood(__instance);
+                    PauseDecayIfOutside(__instance);
                 }
                 if (__instance.gameObject.activeSelf && __instance.IsRotten() && DayNightCycle.main.timePassedAsFloat - __instance.timeDespawnStart > __instance.despawnDelay)
                 { // fix bug: fish in player hand despawns
@@ -92,6 +91,43 @@ namespace Tweaks_Fixes
                     }
                 }
                 return true;
+            }
+
+            [HarmonyPostfix, HarmonyPatch("GetHealthValue")]
+            static void GetHealthValuePostfix(Eatable __instance, ref float __result)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (Pickupable_.eatableHealth.ContainsKey(tt))
+                {
+                    int healthValue = Pickupable_.eatableHealth[tt];
+                    //AddDebug($"{__instance.name} HealthValue {healthValue} old {__result}");
+                    if (healthValue < 0 && healthValue < __result)
+                        __result = healthValue;
+                }
+            }
+
+            [HarmonyPostfix, HarmonyPatch("GetWaterValue")]
+            static void GetWaterValuePostfix(Eatable __instance, ref float __result)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (Pickupable_.eatableWater.ContainsKey(tt))
+                {
+                    int value = Pickupable_.eatableWater[tt];
+                    if (value < 0 && value < __result)
+                        __result = value;
+                }
+            }
+
+            [HarmonyPostfix, HarmonyPatch("GetFoodValue")]
+            static void GetFoodValuePostfix(Eatable __instance, ref float __result)
+            {
+                TechType tt = CraftData.GetTechType(__instance.gameObject);
+                if (Pickupable_.eatableFood.ContainsKey(tt))
+                {
+                    int value = Pickupable_.eatableFood[tt];
+                    if (value < 0 && value < __result)
+                        __result = value;
+                }
             }
 
         }

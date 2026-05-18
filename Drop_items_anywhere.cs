@@ -233,14 +233,13 @@ namespace Tweaks_Fixes
 
             private static IEnumerator Setup(Pickupable pickupable)
             {
+                yield return new WaitUntil(() => Main.gameLoaded);
+
                 if (pickupable.inventoryItem != null)
                     yield break;
 
                 if (droppedInBase.ContainsKey(pickupable.gameObject))
                     yield break;
-
-                while (pickupable.transform.parent == null)
-                    yield return null;
 
                 SubRoot subRoot = pickupable.GetComponentInParent<SubRoot>();
                 PlaceTool placeTool = pickupable.GetComponent<PlaceTool>();

@@ -4,25 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     internal class SnowBall_
     {
         static float snowBallMeltRate = 0.05f;
+
         public static void CheckSnowball(Eatable eatable)
         {
             InventoryItem inventoryItem = eatable.GetComponent<Pickupable>().inventoryItem;
             ItemsContainer container = null;
             if (inventoryItem != null)
             {
-                container = inventoryItem.container as ItemsContainer;
-                if (Main.fridges.Contains(container))
-                //if (container != null && container.tr.parent && container.tr.parent.GetComponent<Fridge>())
-                {
-                    //AddDebug("snowball in fridge " );
+                if (Util.IsInPoweredFridge(eatable.gameObject))
                     return;
-                }
             }
             else
             {
@@ -68,16 +65,6 @@ namespace Tweaks_Fixes
             static void AwakePostfix(SnowBall __instance)
             {
                 //AddDebug("SnowBall Awake");
-                if (ConfigMenu.snowballWater.Value > 0)
-                {
-                    Eatable eatable = __instance.gameObject.EnsureComponent<Eatable>();
-                    eatable.kDecayRate = snowBallMeltRate;
-                    eatable.decomposes = true;
-                    eatable.waterValue = ConfigMenu.snowballWater.Value;
-                    eatable.coldMeterValue = ConfigMenu.snowballWater.Value;
-                    //AddDebug("SnowBall Awake waterValue " + eatable.waterValue);
-                    __instance.GetComponent<WorldForces>().underwaterGravity = .5f;
-                }
                 LiveMixin lm = __instance.gameObject.AddComponent<LiveMixin>();
                 lm.data = ScriptableObject.CreateInstance<LiveMixinData>();
                 lm.data.maxHealth = 1;

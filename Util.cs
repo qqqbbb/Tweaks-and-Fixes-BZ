@@ -112,9 +112,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static void AddVFXsurfaceComponent(GameObject go, VFXSurfaceTypes type)
+        public static void AddVFXsurfaceComponent(this GameObject go, VFXSurfaceTypes type)
         {
-            VFXSurface vFXSurface = go.EnsureComponent<VFXSurface>();
+            foreach (VFXSurface surface in go.GetComponentsInChildren<VFXSurface>())
+                UnityEngine.Object.Destroy(surface);
+
+            VFXSurface vFXSurface = go.AddComponent<VFXSurface>();
             vFXSurface.surfaceType = type;
         }
 
@@ -258,20 +261,27 @@ namespace Tweaks_Fixes
             return go.TryGetComponent<Vehicle>(out _) || go.TryGetComponent<SeaTruckSegment>(out _) || go.TryGetComponent<Hoverbike>(out _);
         }
 
+        public static bool IsInPoweredFridge(GameObject go)
+        {
+            if (go.transform.parent == null || go.transform.parent.parent == null)
+                return false;
+
+            Fridge fridge = go.transform.parent.parent.GetComponent<Fridge>();
+            if (fridge && fridge.powerConsumer.IsPowered())
+                return true;
+
+            return false;
+        }
+
         public static float GetTemperature(GameObject go)
         {
             //AddDebug("GetTemperature " + go.name);
             if (go.GetComponentInParent<Player>()) // in inventory
                 return GetPlayerTemperature();
 
-            if (go.transform.parent && go.transform.parent.parent)
+            if (IsInPoweredFridge(go))
             {
-                Fridge fridge = go.transform.parent.parent.GetComponent<Fridge>();
-                if (fridge && fridge.powerConsumer.IsPowered())
-                {
-                    //AddDebug("GetTemperature " + go.name + " in fridge");
-                    return -1f;
-                }
+                return -1f;
             }
             IInteriorSpace currentInterior = go.GetComponentInParent<IInteriorSpace>();
             if (currentInterior != null)
@@ -443,22 +453,26 @@ namespace Tweaks_Fixes
             return false;
         }
 
-
-
-        public static void MakeEatable(GameObject go, float food)
+        public static void MakeEatable(GameObject go, float food, float water = float.NaN, float health = float.NaN, float cold = float.NaN)
         {
-            Eatable eatable = go.EnsureComponent<Eatable>();
-            eatable.foodValue = food;
-            if (Food.decayingFood.Contains(CraftData.GetTechType(go)))
-                eatable.despawns = true;
-        }
+            //AddDebug($"MakeEatable {go.name} food {food} water {water} health {health} cold {cold}");
+            //Main.logger.LogDebug($"MakeEatable {go.name} food {food} water {water} health {health} cold {cold}");
 
-        public static void MakeDrinkable(GameObject go, float water)
-        {
+            if (float.IsNaN(food) && float.IsNaN(water) && float.IsNaN(health) && float.IsNaN(cold))
+                return;
+
             Eatable eatable = go.EnsureComponent<Eatable>();
-            eatable.waterValue = water;
-            if (Food.decayingFood.Contains(CraftData.GetTechType(go)))
-                eatable.despawns = true;
+            if (float.IsNaN(food) == false)
+                eatable.foodValue = food;
+
+            if (float.IsNaN(water) == false)
+                eatable.waterValue = water;
+
+            if (float.IsNaN(health) == false)
+                eatable.healthValue = health;
+
+            if (float.IsNaN(cold) == false)
+                eatable.coldMeterValue = cold;
         }
 
         public static float CelciusToFahrenhiet(float celcius)
@@ -565,6 +579,139 @@ namespace Tweaks_Fixes
             }
             return itemsContainer;
         }
+
+
+        public static void DisableShadowCasting(this Transform renderer)
+        {
+            //Main.logger.LogDebug("DisableShadowCasting " + t.name);
+            Renderer r = renderer.GetComponent<Renderer>();
+            if (r == null)
+            {
+                //Main.logger.LogError($"DisableShadowCasting {renderer.name} has no renderer");
+                return;
+            }
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+
+        public static void DisableShadowCastingInChildren(this Transform transform)
+        {
+            //Main.logger.LogDebug("DisableShadowCastingInChildren " + t.name);
+            Renderer[] rs = transform.GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in rs)
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+
+        public static void DisableShadowCasting(this Transform parent, string path)
+        {
+            //Main.logger.LogDebug($"DisableShadowCasting {parent.name}  {path}");
+            Transform t = parent.Find(path);
+            if (t == null)
+            {
+                //Main.logger.LogError($"DisableShadowCasting {parent.name} has no child {path}");
+                return;
+            }
+            Renderer r = t.GetComponent<Renderer>();
+            if (r == null)
+            {
+                //Main.logger.LogError($"DisableShadowCasting {parent.name} has no renderer on go {path}");
+                return;
+            }
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+
+        public static void DisableShadowCasting(this Transform parent, List<string> paths)
+        {
+            //Main.logger.LogDebug("DisableShadowCasting " + parent.name);
+            if (paths == null)
+            {
+                DisableShadowCastingInChildren(parent);
+                return;
+            }
+            foreach (string path in paths)
+            {
+                Transform t = parent.Find(path);
+                if (t == null)
+                {
+                    //Main.logger.LogError($"DisableShadowCasting {parent.name} has no child {path}");
+                    continue;
+                }
+                Renderer r = t.GetComponent<Renderer>();
+                if (r == null)
+                {
+                    //Main.logger.LogError($"DisableShadowCasting {parent.name} has no renderer on go {path}");
+                    continue;
+                }
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+        }
+
+        public static List<Transform> FindAllChildren(this Transform parent, string name, bool recursive = false)
+        {
+            List<Transform> results = new List<Transform>();
+            //Main.logger.LogDebug($"{parent.name} FindAllChildren childCount {parent.childCount}");
+            foreach (Transform child in parent)
+            {
+                //Main.logger.LogDebug($"{parent.name} child {child.name}");
+                if (child.name == name)
+                    results.Add(child);
+
+                if (recursive && child.childCount > 0)
+                    results.AddRange(child.FindAllChildren(name, true));
+            }
+            return results;
+        }
+
+        public static void ForceLODs(this GameObject go, int index = 0)
+        {
+            //AddDebug("ForceLODs " + go.name);
+            //Main.logger.LogDebug("ForceLODs " + go.name);
+            LODGroup[] lods = go.GetComponentsInChildren<LODGroup>();
+
+            foreach (LODGroup lod in lods)
+                lod.ForceLOD(index);
+        }
+
+        public static void DisableGlowShader(this GameObject gameObject)
+        {
+            foreach (MeshRenderer mr in gameObject.GetComponentsInChildren<MeshRenderer>())
+            {
+                foreach (Material m in mr.materials)
+                    m.DisableKeyword("MARMO_EMISSION");
+            }
+        }
+
+        public static List<GameObject> FindObjectsInRadius(Vector3 center, float radius, GameObject[] exclusions = null)
+        {
+            GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+            List<GameObject> objectsInRange = new List<GameObject>();
+            //HashSet<GameObject> exclusions_ = new HashSet<GameObject>(exclusions);
+            foreach (GameObject obj in allObjects)
+            {
+                //if (exclusions != null && exclusions_.Contains(obj))
+                //    continue;
+
+                //if (targetTags != null && targetTags.Length > 0)
+                //{
+                //    bool hasValidTag = false;
+                //    foreach (string tag in targetTags)
+                //    {
+                //        if (obj.CompareTag(tag))
+                //        {
+                //            hasValidTag = true;
+                //            break;
+                //        }
+                //    }
+                //    if (!hasValidTag) continue;
+                //}
+                float distance = Vector3.Distance(center, obj.transform.position);
+                if (distance <= radius)
+                    objectsInRange.Add(obj);
+            }
+            return objectsInRange;
+        }
+
+
+
 
     }
 }

@@ -26,8 +26,10 @@ namespace Tweaks_Fixes
         public static ConfigEntry<string> gravTrappable;
         public static ConfigEntry<float> medKitHPperSecond;
         //public static ConfigEntry<string> silentCreatures;
-        public static ConfigEntry<string> eatableFoodValue;
-        public static ConfigEntry<string> eatableWaterValue;
+        public static ConfigEntry<string> eatableFood;
+        public static ConfigEntry<string> eatableWater;
+        public static ConfigEntry<string> eatableHealth;
+        public static ConfigEntry<string> eatableCold;
         public static ConfigEntry<bool> fixMelon;
         public static ConfigEntry<bool> randomPlantRotation;
         public static ConfigEntry<bool> silentReactor;
@@ -185,10 +187,12 @@ namespace Tweaks_Fixes
             gravTrappable = Main.configToEdit.Bind("ITEMS", "Gravtrappable items", "seaglide, airbladder, flare, flashlight, builder, lasercutter, ledlight, divereel, propulsioncannon, welder, repulsioncannon, scanner, stasisrifle, knife, heatblade, metaldetector, teleportationtool, precursorkey_blue, precursorkey_orange, precursorkey_purple, precursorkey_red, precursorkey_white, compass, fins, fireextinguisher, suitboostertank, firstaidkit, doubletank, plasteeltank, coldsuit, flashlighthelmet, rebreather, reinforceddivesuit, maproomhudchip, tank, stillsuit, swimchargefins, ultraglidefins, highcapacitytank,", "Comma separated list of items affected by grav trap.");
             medKitHPperSecond = Main.configToEdit.Bind("ITEMS", "Amount of HP restored by first aid kit every second", 100f, new ConfigDescription("Set this to a low number to slowly restore HP after using first aid kit.", medKitHPperSecondRange));
             //silentCreatures = Main.configB.Bind("", "Silent creatures", "", "List of creature IDs separated by comma. Creatures in this list will be silent.");
-            eatableFoodValue = Main.configToEdit.Bind("ITEMS", "Eatable component food value", "CreepvineSeedCluster 5", "Items from this list will be made eatable. The format is: item ID, space, food value. Every entry is separated by comma.");
-            eatableWaterValue = Main.configToEdit.Bind("ITEMS", "Eatable component water value", "HangingFruit 5", "Items from this list will be made eatable. The format is: item ID, space, water value. Every entry is separated by comma.");
+            eatableFood = Main.configToEdit.Bind("ITEMS", "Eatable food value", "CreepvineSeedCluster 5", "Items from this list will be made eatable. The format is: item ID, space, food value. Every entry is separated by comma.");
+            eatableWater = Main.configToEdit.Bind("ITEMS", "Eatable water value", "HangingFruit 5, SnowBall 5", "Items from this list will be made eatable. The format is: item ID, space, water value. Every entry is separated by comma.");
+            eatableHealth = Main.configToEdit.Bind("ITEMS", "Eatable health value", "", "Items from this list will be made eatable and will restore health. Negative values will damage health. The format is: item ID, space, health value. Every entry is separated by comma.");
+            eatableCold = Main.configToEdit.Bind("ITEMS", "Eatable cold value", "SnowBall 5", "Items from this list will be made eatable and will decrease body warmth. Negative values will increase body warmth. The format is: item ID, space, cold value. Every entry is separated by comma.");
 
-            eatingOutsideCold = Main.configToEdit.Bind("SURVIVAL", "Warmth lost when eating ouside", 0, "You will lose this amount of warmth when eating ouside.");
+            eatingOutsideCold = Main.configToEdit.Bind("SURVIVAL", "Amount of body warmth lost when eating ouside", 0, "");
 
             fixMelon = Main.configToEdit.Bind("PLANTS", "Fix melon and Preston plant", false, "You will be able to plant only 1 Preston plant or melon in a pot and only 4 in a planter if this is true.");
             randomPlantRotation = Main.configToEdit.Bind("PLANTS", "Random plant rotation", true, "Plants in planters will have random rotation if this is true.");
@@ -234,7 +238,7 @@ namespace Tweaks_Fixes
             rockPuncherChanceToFindRock = Main.configToEdit.Bind("CREATURES", "Rock puncher chance percent to find rock", 20, new ConfigDescription("", percentRange));
             lowOxygenWarning = Main.configToEdit.Bind("MISC", "Low oxygen onscreen warning", true);
             lowOxygenAudioWarning = Main.configToEdit.Bind("MISC", "Low oxygen audio warning", true);
-            disableHints = Main.configToEdit.Bind("MISC", "Disable tutorial messages", true, "This disables messages that tell you to 'eat something', 'break limestone', etc. Game has to be reloaded after changing this.");
+            disableHints = Main.configToEdit.Bind("MISC", "Disable tutorial messages", true, "This disables messages that tell you to 'eat something', 'break limestone', etc. ");
             dropHeldTool = Main.configToEdit.Bind("PLAYER", "Drop held tool when taking damage", false, "Chance percent to drop your tool is equal to amount of damage taken.");
             freeTorpedos = Main.configToEdit.Bind("VEHICLES", "Free torpedos", 2, "Number of torpedos you get when installing new Prawn Suit Torpedo Arm. After changing this you have to craft a new Torpedo Arm.");
             builderToolBuildsInsideWithoutPower = Main.configToEdit.Bind("TOOLS", "Builder tool does not need power when building inside", true);
@@ -335,7 +339,7 @@ namespace Tweaks_Fixes
             //Main.logger.LogMessage("ConfigToEdit bind end ");
         }
 
-        private static Dictionary<TechType, int> ParseIntDicFromString(string input)
+        private static Dictionary<TechType, int> ParseIntDicFromString(string input, bool allowNegative = false)
         {
             Dictionary<TechType, int> dic = new Dictionary<TechType, int>();
             string[] entries = input.Split(',');
@@ -363,7 +367,7 @@ namespace Tweaks_Fixes
                     Main.logger.LogWarning("Could not parse: " + input);
                     continue;
                 }
-                if (a < 1)
+                if (allowNegative == false && a < 1)
                     continue;
 
                 dic.Add(tt, a);
@@ -521,8 +525,10 @@ namespace Tweaks_Fixes
             Pickupable_.unmovableItems = ParseSetFromString(unmovableItems.Value);
             Gravsphere_Patch.gravTrappable = ParseSetFromString(gravTrappable.Value);
             //Creature_Tweaks.silentCreatures = ParseSetFromString<TechType>(silentCreatures.Value);
-            Pickupable_.eatableFoodValue = ParseIntDicFromString(eatableFoodValue.Value);
-            Pickupable_.eatableWaterValue = ParseIntDicFromString(eatableWaterValue.Value);
+            Pickupable_.eatableFood = ParseIntDicFromString(eatableFood.Value, true);
+            Pickupable_.eatableWater = ParseIntDicFromString(eatableWater.Value, true);
+            Pickupable_.eatableHealth = ParseIntDicFromString(eatableHealth.Value, true);
+            Pickupable_.eatableCold = ParseIntDicFromString(eatableCold.Value, true);
             Drop_Pod_Patch.newGameLoot = ParseIntDicFromString(newGameLoot.Value);
             CreatureDeath_Patch.notRespawningCreatures = ParseSetFromString(notRespawningCreatures.Value);
             CreatureDeath_Patch.notRespawningCreaturesIfKilledByPlayer = ParseSetFromString(notRespawningCreaturesIfKilledByPlayer.Value);

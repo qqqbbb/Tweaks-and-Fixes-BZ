@@ -14,6 +14,7 @@ namespace Tweaks_Fixes
     {// purpleVent -29 -79 -861
      // lava geyser -140 -500
      // crypto -90 -7 -340
+     // spikey trap -351 -351 -325
      //GameModeManager.GetOption<bool>(GameOption.Hunger)
 
         static GameObject previousTarget;
@@ -75,9 +76,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-
                 //AddDebug("runInBackground " + Application.runInBackground);
-
                 //AddDebug("CurrentPreset " + GameModeManager.GetCurrentPresetId());
                 //if (Player.main.currentInterior != null)
                 //{
@@ -125,7 +124,6 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-
                     //ShowColliderName();
                     //PlayerTool tool = Inventory.main.GetHeldTool();
                     //AddDebug("bloodColor " + Damage_.bloodColor);
@@ -150,7 +148,9 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    printTarget();
+                    showTargetInfo();
+
+
                     //Survival survival = Player.main.GetComponent<Survival>();
                     //if (Input.GetKey(KeyCode.LeftShift))
                     //    __instance.liveMixin.health--;
@@ -167,54 +167,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.Z))
                 {
-                    GameObject target = Player.main.guiHand.activeTarget;
-                    if (Input.GetKey(KeyCode.LeftShift))
-                    {
-                        if (previousTarget)
-                        {
-                            AddDebug("enable " + previousTarget.name);
-                            previousTarget.SetActive(true);
-                            previousTarget = null;
-                            return;
-                        }
-                    }
-                    //AddDebug(" Base_Light.bases " +);
-                    //Inventory.main.quickSlots.SelectImmediate(Main.config.activeSlot);
-                    //AddDebug("activeTarget parent " + target.transform.parent.name);
-                    //AddDebug("activeTarget " + target.name);
-                    if (!target)
-                    {
-                        Targeting.GetTarget(Player.main.gameObject, 5f, out target, out float targetDist);
-                    }
-                    if (target)
-                    {
-
-                        PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
-                        if (pi)
-                            target = pi.gameObject;
-
-                        if (Input.GetKey(KeyCode.LeftShift))
-                        {
-                            AddDebug("disable target");
-                            target.SetActive(false);
-                            previousTarget = target;
-                        }
-                        //AddDebug("IsVehicle " + Predators_Patch.IsVehicle(target));
-                        AddDebug("target " + target.name);
-                        AddDebug("target TechType " + CraftData.GetTechType(target));
-                        VFXSurface surface = target.GetComponent<VFXSurface>();
-                        if (surface)
-                            AddDebug("target surface " + surface.surfaceType);
-
-                        VFXSurface surface1 = target.GetComponentInChildren<VFXSurface>();
-                        if (surface1)
-                            AddDebug("target child surface " + surface1.surfaceType);
-
-                        int x = (int)pi.transform.position.x;
-                        int y = (int)pi.transform.position.y;
-                        int z = (int)pi.transform.position.z;
-                        //AddDebug(x + " " + y + " " + z);
-                    }
+                    PrintClosestObjects(__instance.transform.position, 2);
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {
                     }
@@ -229,23 +182,41 @@ namespace Tweaks_Fixes
                 }
             }
 
-            public static void printTarget()
+            private static void PrintClosestObjects(Vector3 pos, float radius)
+            {
+                AddDebug($" Objects in radius of {radius}");
+                Main.logger.LogInfo($"Objects in radius of {radius}");
+                foreach (var go in Util.FindObjectsInRadius(pos, radius))
+                {
+                    if (go.GetComponentInParent<Player>())
+                        continue;
+
+                    AddDebug($"{go.name} ");
+                    Main.logger.LogInfo($"{go.name} ");
+                }
+            }
+
+            public static void showTargetInfo()
             {
                 GameObject target = Player.main.guiHand.activeTarget;
                 //if (Player.main.guiHand.activeTarget)
                 //    AddDebug("activeTarget " + Player.main.guiHand.activeTarget);
 
                 RaycastHit hitInfo = new RaycastHit();
+                //if (!target)
+                //    Util.GetPlayerTarget(111f, out hitInfo, true);
                 if (!target)
-                    Util.GetPlayerTarget(111f, out hitInfo, true);
-                //Targeting.GetTarget(Player.main.gameObject, 11f, out target, out float targetDist);
+                    //Util.GetTarget(Player.mainObject.transform.position, MainCamera.camera.transform.forward, 11f, out hitInfo);
+                    Targeting.GetTarget(Player.main.gameObject, 11f, out target, out float targetDist);
+
                 if (hitInfo.collider)
                     target = hitInfo.collider.gameObject;
 
                 if (!target)
                     return;
-                AddDebug("target " + target.name);
-                VFXSurfaceTypes vfxSurfaceType = VFXSurfaceTypes.none;
+
+                //AddDebug("target " + target.name);
+                VFXSurfaceTypes vfxSurfaceType = Util.GetObjectSurfaceType(target);
                 TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
                 if (tcpc)
                 {
@@ -253,9 +224,6 @@ namespace Tweaks_Fixes
                     AddDebug("Terrain surface type  " + vfxSurfaceType);
                     return;
                 }
-                if (target)
-                    vfxSurfaceType = Util.GetObjectSurfaceType(target);
-
                 //LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
                 Brinicle brinicle = target.GetComponentInParent<Brinicle>();
                 if (brinicle)
@@ -269,16 +237,33 @@ namespace Tweaks_Fixes
                     int posX = (int)pi.transform.position.x;
                     int posY = (int)pi.transform.position.y;
                     int posZ = (int)pi.transform.position.z;
-                    //AddDebug(" position " + posX + " " + posY + " " + posZ);
+                    AddDebug(" position " + posX + " " + posY + " " + posZ);
                     //AddDebug(" cellLevel " + lwe.cellLevel);
                     if (vfxSurfaceType != VFXSurfaceTypes.none)
                         AddDebug("vfxSurfaceType  " + vfxSurfaceType);
 
-                    LiveMixin lm = pi.GetComponent<LiveMixin>();
-                    if (lm)
-                        AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
+                    if (target.name.StartsWith("lilypad"))
+                    {
+                        Main.logger.LogDebug($"{target.name} {pi.classId}");
+                    }
+                    //LiveMixin lm = pi.GetComponent<LiveMixin>();
+                    //if (lm)
+                    //    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
                 }
                 AddDebug(target.gameObject.name);
+                LODGroup lODGroup = target.GetComponentInChildren<LODGroup>();
+                if (lODGroup)
+                {
+                    AddDebug($"LOD count {lODGroup.lodCount} ");
+                }
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    //foreach (Light l in target.GetAllComponentsInChildren<Light>())
+                    //{
+                    //    l.gameObject.SetActive(false);
+                    //}
+                    //target.DisableGlowShader();
+                }
                 //AddDebug("parent " + target.transform.parent.gameObject.name);
                 //if (target.transform.parent.parent)
                 //    AddDebug("parent parent " + target.transform.parent.parent.gameObject.name);

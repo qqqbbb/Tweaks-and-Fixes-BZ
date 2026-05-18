@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using UnityEngine;
@@ -48,10 +49,16 @@ namespace Tweaks_Fixes
         [HarmonyPatch("Awake"), HarmonyPostfix]
         static void AwakePostfix(Flare __instance)
         {
+            UWE.CoroutineHost.StartCoroutine(Setup(__instance));
+        }
+
+        private static IEnumerator Setup(Flare __instance)
+        {
+            yield return new WaitUntil(() => __instance.light != null);
+
             if (ConfigToEdit.flareTweaks.Value)
-            {
                 __instance.throwDuration = .4f;
-            }
+
             if (lightColor != default)
                 __instance.light.color = lightColor;
 

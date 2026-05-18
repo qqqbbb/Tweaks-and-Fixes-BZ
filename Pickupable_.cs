@@ -13,8 +13,10 @@ namespace Tweaks_Fixes
     {
         public static Dictionary<TechType, float> itemMass = new Dictionary<TechType, float>();
         public static HashSet<TechType> unmovableItems = new HashSet<TechType>();
-        public static Dictionary<TechType, int> eatableFoodValue = new Dictionary<TechType, int> { };
-        public static Dictionary<TechType, int> eatableWaterValue = new Dictionary<TechType, int> { };
+        public static Dictionary<TechType, int> eatableFood = new Dictionary<TechType, int> { };
+        public static Dictionary<TechType, int> eatableWater = new Dictionary<TechType, int> { };
+        public static Dictionary<TechType, int> eatableHealth = new Dictionary<TechType, int> { };
+        public static Dictionary<TechType, int> eatableCold = new Dictionary<TechType, int> { };
         public static Dictionary<Pickupable, StorageContainer> pickupableStorage = new Dictionary<Pickupable, StorageContainer>();
         public static Dictionary<Pickupable, PickupableStorage> pickupableStorage_ = new Dictionary<Pickupable, PickupableStorage>();
 
@@ -27,17 +29,27 @@ namespace Tweaks_Fixes
             {
                 TechType tt = __instance.GetTechType();
                 //Main.logger.LogDebug("Pickupable  Awake " + tt);
+                //AddDebug(" eatableFoodValue " + eatableFoodValue.Count);
+                //AddDebug(" eatableWaterValue " + eatableWaterValue.Count);
                 if (tt == TechType.SmallStorage || tt == TechType.QuantumLocker)
                 {
                     UWE.CoroutineHost.StartCoroutine(SetupSmallStorage(__instance));
                 }
-                if (eatableFoodValue.ContainsKey(tt))
+                if (eatableFood.ContainsKey(tt))
                 {
-                    Util.MakeEatable(__instance.gameObject, eatableFoodValue[tt]);
+                    Util.MakeEatable(__instance.gameObject, eatableFood[tt], float.NaN);
                 }
-                if (eatableWaterValue.ContainsKey(tt))
+                if (eatableWater.ContainsKey(tt))
                 {
-                    Util.MakeDrinkable(__instance.gameObject, eatableWaterValue[tt]);
+                    Util.MakeEatable(__instance.gameObject, float.NaN, eatableWater[tt]);
+                }
+                if (eatableHealth.ContainsKey(tt))
+                {
+                    Util.MakeEatable(__instance.gameObject, float.NaN, float.NaN, eatableHealth[tt]);
+                }
+                if (eatableCold.ContainsKey(tt))
+                {
+                    Util.MakeEatable(__instance.gameObject, float.NaN, float.NaN, float.NaN, eatableCold[tt]);
                 }
                 if (unmovableItems.Contains(tt))
                 { // isKinematic gets saved

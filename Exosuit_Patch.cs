@@ -2,8 +2,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -361,8 +361,37 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch("Start")]
+        private static string GetGrabbedObjectPickupText(Exosuit exosuit)
+        {
+            GameObject grabbedObject = GetGrabbedObject(exosuit);
+            if (grabbedObject == null)
+                return null;
+
+            Pickupable pickupable = grabbedObject.GetComponent<Pickupable>();
+            TechType grabbedObjectTT = pickupable.GetTechType();
+            //AddDebug("grabbedObjectTT " + grabbedObjectTT);
+            //AddDebug("GetPickupText " + LanguageCache.GetPickupText(grabbedObjectTT));
+            return LanguageCache.GetPickupText(grabbedObjectTT);
+        }
+
+        public static GameObject GetGrabbedObject(Exosuit exosuit)
+        {
+            if (exosuit.currentLeftArmType == TechType.ExosuitPropulsionArmModule)
+            {
+                ExosuitPropulsionArm propArm = exosuit.leftArm as ExosuitPropulsionArm;
+                if (propArm && propArm.propulsionCannon.grabbedObject)
+                    return propArm.propulsionCannon.grabbedObject;
+            }
+            if (exosuit.currentRightArmType == TechType.ExosuitPropulsionArmModule)
+            {
+                ExosuitPropulsionArm propArm = exosuit.rightArm as ExosuitPropulsionArm;
+                if (propArm && propArm.propulsionCannon.grabbedObject)
+                    return propArm.propulsionCannon.grabbedObject;
+            }
+            return null;
+        }
+
+        [HarmonyPostfix, HarmonyPatch("Start")]
         static void StartPostfix(Exosuit __instance)
         {
             //AddDebug("Exosuit Start " + __instance.onGroundForceMultiplier);
@@ -381,15 +410,16 @@ namespace Tweaks_Fixes
             exosuitStarted = true;
         }
 
-
+        static bool unpowered = false;
         [HarmonyPrefix, HarmonyPatch("Update")]
         public static void UpdatePrefix(Exosuit __instance)
         {
             if (!Main.gameLoaded)
                 return;
 
-            if (__instance.IsPowered() == false)
+            if (Player.main.currentMountedVehicle == __instance && GameModeManager.GetOption<bool>(GameOption.TechnologyRequiresPower) && __instance.IsPowered() == false)
             {
+                unpowered = true;
                 aimTargetLeftPos = __instance.aimTargetLeft.position;
                 aimTargetRightPos = __instance.aimTargetRight.position;
             }
@@ -407,10 +437,11 @@ namespace Tweaks_Fixes
             //if (__instance.thrustPower < 1F)
             //    AddDebug("thrustPower " + __instance.thrustPower.ToString("0.0"));
             CheckExosuitButtons(__instance);
-            if (__instance.IsPowered() == false)
+            if (unpowered)
             { // fix bug: exosuit can move arms when unpowered
                 __instance.aimTargetLeft.position = aimTargetLeftPos;
                 __instance.aimTargetRight.position = aimTargetRightPos;
+                unpowered = false;
             }
         }
 
@@ -495,6 +526,13 @@ namespace Tweaks_Fixes
 
                 if (!string.IsNullOrEmpty(leftArm))
                 {
+                    if (__instance.currentLeftArmType == TechType.ExosuitClawArmModule)
+                    {
+                        string grabbedObjectPickupText = GetGrabbedObjectPickupText(__instance);
+                        //AddDebug("UpdateUIText grabbedObjectPickupText " + grabbedObjectPickupText);
+                        if (grabbedObjectPickupText != null)
+                            leftArm = grabbedObjectPickupText;
+                    }
                     __instance.sb.Append(leftArm);
                     __instance.sb.Append(" ");
                     __instance.sb.Append(UI_Patches.leftHandButton);
@@ -504,6 +542,13 @@ namespace Tweaks_Fixes
                     if (!string.IsNullOrEmpty(leftArm))
                         __instance.sb.Append(", ");
 
+                    if (__instance.currentRightArmType == TechType.ExosuitClawArmModule)
+                    {
+                        string grabbedObjectPickupText = GetGrabbedObjectPickupText(__instance);
+                        //AddDebug("UpdateUIText grabbedObjectPickupText " + grabbedObjectPickupText);
+                        if (grabbedObjectPickupText != null)
+                            rightArm = grabbedObjectPickupText;
+                    }
                     __instance.sb.Append(rightArm);
                     __instance.sb.Append(" ");
                     __instance.sb.Append(UI_Patches.rightHandButton);
@@ -603,6 +648,25 @@ namespace Tweaks_Fixes
         static void Postfix(ExosuitTorpedoArm __instance, TorpedoType torpedoType, bool __result)
         {
             //AddDebug("ExosuitTorpedoArm Shoot " + torpedoType.techType + " " + __result);
+            Exosuit_Patch.GetArmNames(__instance.exosuit);
+            Exosuit_Patch.armNamesChanged = true;
+        }
+    }
+
+    [HarmonyPatch(typeof(ExosuitPropulsionArm))]
+    class ExosuitPropulsionArm_Patch
+    {
+        [HarmonyPostfix, HarmonyPatch("IExosuitArm.OnUseDown")]
+        static void OnUseDownPostfix(ExosuitPropulsionArm __instance)
+        {
+            //AddDebug("ExosuitPropulsionArm OnUseDown IsGrabbingObject " + __instance.propulsionCannon.IsGrabbingObject());
+            Exosuit_Patch.GetArmNames(__instance.exosuit);
+            Exosuit_Patch.armNamesChanged = true;
+        }
+        [HarmonyPostfix, HarmonyPatch("IExosuitArm.OnAltDown")]
+        static void OnAltDownPostfix(ExosuitPropulsionArm __instance)
+        {
+            //AddDebug("ExosuitPropulsionArm OnAltDown IsGrabbingObject " + __instance.propulsionCannon.IsGrabbingObject());
             Exosuit_Patch.GetArmNames(__instance.exosuit);
             Exosuit_Patch.armNamesChanged = true;
         }
@@ -837,7 +901,7 @@ namespace Tweaks_Fixes
             if (supplyCrate.itemInside == null)
                 return false;
 
-            if (AddToExosuitContainer(clawArm.exosuit, supplyCrate.itemInside, clawArm.pickupSounds, clawArm.front, 5f))
+            if (AddToExosuitContainer(clawArm, supplyCrate.itemInside, clawArm.pickupSounds, clawArm.front, 5f))
             {
                 supplyCrate.itemInside = null;
                 clawArm.animator.ResetTrigger("bash");
@@ -849,7 +913,7 @@ namespace Tweaks_Fixes
 
         private static bool TryPickUpGrabbedObject(ExosuitClawArm clawArm)
         {
-            GameObject grabbedObject = GetGrabbedObject(clawArm.exosuit);
+            GameObject grabbedObject = Exosuit_Patch.GetGrabbedObject(clawArm.exosuit);
             if (grabbedObject == null)
                 return false;
 
@@ -857,10 +921,10 @@ namespace Tweaks_Fixes
             if (pickupable == null)
                 return false;
             //AddDebug("Pick Up Grabbed Object " + pickupable.name);
-            return AddToExosuitContainer(clawArm.exosuit, pickupable, clawArm.pickupSounds, clawArm.front, 5f);
+            return AddToExosuitContainer(clawArm, pickupable, clawArm.pickupSounds, clawArm.front, 5f);
         }
 
-        private static bool AddToExosuitContainer(Exosuit exosuit, Pickupable pickupable, TechSoundData pickupSounds = null, Transform soundPos = default, float soundRadius = default)
+        private static bool AddToExosuitContainer(ExosuitClawArm clawArm, Pickupable pickupable, TechSoundData pickupSounds = null, Transform soundPos = default, float soundRadius = default)
         {
             if (ConfigToEdit.canPickUpContainerWithItems.Value == false && Pickupable_.pickupableStorage_.ContainsKey(pickupable))
             {
@@ -868,15 +932,22 @@ namespace Tweaks_Fixes
                 ErrorMessage.AddDebug(Language.main.Get(ps.cantPickupClickText));
                 return false;
             }
-            ItemsContainer exosuitContainer = exosuit.storageContainer.container;
+            ItemsContainer exosuitContainer = clawArm.exosuit.storageContainer.container;
             if (exosuitContainer.HasRoomFor(pickupable))
             {
                 pickupable.Initialize();
                 InventoryItem inventoryItem = new InventoryItem(pickupable);
                 exosuitContainer.UnsafeAdd(inventoryItem);
+                TechType tt = pickupable.GetTechType();
                 if (pickupSounds)
-                    Utils.PlayFMODAsset(pickupSounds.GetPickupSound(TechData.GetSoundType(pickupable.GetTechType())), soundPos, soundRadius);
+                    Utils.PlayFMODAsset(pickupSounds.GetPickupSound(TechData.GetSoundType(tt)), soundPos, soundRadius);
 
+                clawArm.animator.ResetTrigger("bash");
+                clawArm.animator.SetTrigger("use_tool");
+                Exosuit_Patch.GetArmNames(clawArm.exosuit);
+                Exosuit_Patch.armNamesChanged = true;
+                ErrorMessage.AddMessage(Language.main.GetFormat("VehicleAddedToStorage", tt));
+                //uGUI_IconNotifier.main.Play(tt, uGUI_IconNotifier.AnimationType.From);
                 return true;
             }
             else
@@ -884,23 +955,6 @@ namespace Tweaks_Fixes
                 ErrorMessage.AddMessage(Language.main.Get("ContainerCantFit"));
             }
             return false;
-        }
-
-        private static GameObject GetGrabbedObject(Exosuit exosuit)
-        {
-            if (exosuit.currentLeftArmType == TechType.ExosuitPropulsionArmModule)
-            {
-                ExosuitPropulsionArm propArm = exosuit.leftArm as ExosuitPropulsionArm;
-                if (propArm && propArm.propulsionCannon.grabbedObject)
-                    return propArm.propulsionCannon.grabbedObject;
-            }
-            if (exosuit.currentRightArmType == TechType.ExosuitPropulsionArmModule)
-            {
-                ExosuitPropulsionArm propArm = exosuit.rightArm as ExosuitPropulsionArm;
-                if (propArm && propArm.propulsionCannon.grabbedObject)
-                    return propArm.propulsionCannon.grabbedObject;
-            }
-            return null;
         }
     }
 

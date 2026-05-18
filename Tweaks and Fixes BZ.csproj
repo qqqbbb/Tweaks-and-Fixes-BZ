@@ -113,6 +113,9 @@
     <Compile Include="Bed_.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="Charger_.cs" />
+    <Compile Include="BaseGlassFix.cs" />
+    <Compile Include="PrefabFixer.cs" />
+    <Compile Include="WaitForFrames.cs" />
     <Compile Include="Databox.cs" />
     <Compile Include="Recyclotron_.cs" />
     <Compile Include="InventoryItemIconColorChanger.cs" />

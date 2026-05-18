@@ -10,7 +10,6 @@ namespace Tweaks_Fixes
 {
     internal class Base_Collision
     {
-
         public static void FixWaterParkHatch(GameObject go)
         {
             //AddDebug(" FixWaterParkHatch " + go.name);
@@ -66,20 +65,61 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(BaseDeconstructable), "Init")]
         class BaseDeconstructable_Init_Patch
         {
+            private static void FixLargeWaterParkHatch(GameObject go)
+            {
+                Transform t = go.transform.Find("collisions");
+                t.gameObject.SetActive(false);
+                Transform collisions = go.transform.Find("BaseCorridorHatch/models/collisions");
+                t = collisions.transform.Find("Sphere (1)");
+                t.gameObject.SetActive(false);
+                t = collisions.transform.Find("Sphere (2)");
+                t.gameObject.SetActive(false);
+                t = collisions.transform.Find("Cube (1)");
+                BoxCollider collider = t.GetComponent<BoxCollider>();
+                collider.size = new Vector3(collider.size.x, .5f, collider.size.z);
+            }
+
+            private static void FixTopLadderCollision(GameObject go)
+            {
+                Transform logic = go.transform.GetChild(0);
+                BoxCollider collider = logic.GetComponent<BoxCollider>();
+                if (collider)
+                {
+                    collider.center = new Vector3(collider.center.x, 0.36f, collider.center.z);
+                    collider.size = new Vector3(collider.size.x, 0.1f, collider.size.z);
+                }
+            }
+
             static void Postfix(BaseDeconstructable __instance)
             {
                 //AddDebug("BaseDeconstructable Init " + __instance.name);
-                if (__instance.name == "BaseRoomHatch(Clone)" || __instance.name == "BaseRoomCorridorConnector(Clone)")
+                if (__instance.recipe == TechType.BaseLadder && __instance.name.EndsWith("LadderTop(Clone)"))
                 {
-                    RemoveHatchRailingCollision(__instance.gameObject);
+                    FixTopLadderCollision(__instance.gameObject);
                 }
-                else if (__instance.name == "BaseWaterParkHatch(Clone)")
+                else if (__instance.recipe == TechType.BaseHatch)
                 {
-                    FixWaterParkHatch(__instance.gameObject);
+                    if (__instance.name == "BaseLargeRoomHatch(Clone)")
+                    {
+                        AddRampToHatch(__instance.gameObject);
+                    }
+                    else if (__instance.name == "BaseWaterParkHatch(Clone)")
+                    {
+                        FixWaterParkHatch(__instance.gameObject);
+                    }
+                    else if (__instance.name == "BaseRoomHatch(Clone)")
+                    {
+                        RemoveHatchRailingCollision(__instance.gameObject);
+                    }
+                    else if (__instance.name.StartsWith("BaseLargeRoomWaterParkHatch"))
+                    {
+                        FixLargeWaterParkHatch(__instance.gameObject);
+                    }
                 }
-                else if (__instance.name == "BaseLargeRoomHatch(Clone)")
+                else if (__instance.recipe == TechType.None)
                 {
-                    AddRampToHatch(__instance.gameObject);
+                    if (__instance.name == "BaseRoomCorridorConnector(Clone)")
+                        RemoveHatchRailingCollision(__instance.gameObject);
                 }
             }
 

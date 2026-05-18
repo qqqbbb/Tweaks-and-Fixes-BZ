@@ -13,8 +13,6 @@ namespace Tweaks_Fixes
 {
     class UI_Patches
     {
-
-
         static List<TechType> fishTechTypes = new List<TechType> { TechType.Bladderfish, TechType.Boomerang, TechType.ArcticPeeper, TechType.DiscusFish, TechType.FeatherFish, TechType.Hoopfish, TechType.FeatherFishRed, TechType.SpinnerFish, TechType.NootFish, TechType.Symbiote, TechType.Spinefish, TechType.ArrowRay, TechType.Triops };
 
 
@@ -95,15 +93,6 @@ namespace Tweaks_Fixes
             slot1Plus2Button = slot1Button + slot2Button;
             exosuitChangeTorpedoButton = Language.main.Get("TF_change_torpedo") + "(" + deconstructButton + ")";
             constructorString = Language.main.Get("Climb") + "(" + leftHandButton + "), " + LanguageCache.GetPackUpText(TechType.Constructor) + " (" + rightHandButton + ")";
-        }
-
-        [HarmonyPatch(typeof(Fridge), "OnEnable")]
-        class Fridge_OnEnable_Patch
-        {
-            static void Postfix(Fridge __instance)
-            {
-                Main.fridges.Add(__instance.storageContainer.container);
-            }
         }
 
         [HarmonyPatch(typeof(GUIHand))]
