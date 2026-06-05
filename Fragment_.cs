@@ -8,7 +8,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Fragment_Patch
+    class Fragment_
     {
         [HarmonyPatch(typeof(ResourceTracker), "Start")]
         class ResourceTracker_Start_Patch

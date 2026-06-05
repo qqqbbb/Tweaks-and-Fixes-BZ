@@ -17,12 +17,15 @@ namespace Tweaks_Fixes
         [HarmonyPostfix, HarmonyPatch("Start")]
         public static void StartPostfix(Bed __instance)
         {
-            Transform col = __instance.transform.Find("collisions");
-            if (col)
-            { // this collider makes player bounce
-                col = col.GetChild(0);
-                UnityEngine.Object.Destroy(col.gameObject);
-                //AddDebug("Destroy bed col");
+            if (__instance.transform.GetComponentInParent<SubRoot>())
+            {
+                Transform col = __instance.transform.Find("collisions");
+                if (col)
+                { // this collider makes player bounce
+                    col = col.GetChild(0);
+                    UnityEngine.Object.Destroy(col.gameObject);
+                    //AddDebug("Destroy bed col");
+                }
             }
         }
         //[HarmonyPostfix, HarmonyPatch("GetCanSleep")]

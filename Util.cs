@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using BepInEx;
+using HarmonyLib;
 using Nautilus.Handlers;
 using System;
 using System.Collections;
@@ -23,7 +24,7 @@ namespace Tweaks_Fixes
             yield return CraftData.GetPrefabForTechTypeAsync(techType, false, result);
             prefab = result.Get();
             if (!fadeIn)
-                LargeWorldEntity_.spawning = true;
+                LargeWorldEntity_.spawningNearPlayer = true;
 
             GameObject go = prefab == null ? Utils.CreateGenericLoot(techType) : Utils.SpawnFromPrefab(prefab, null);
             if (go != null)
@@ -39,7 +40,7 @@ namespace Tweaks_Fixes
                 //AttachPing(go);
                 CrafterLogic.NotifyCraftEnd(go, techType);
             }
-            LargeWorldEntity_.spawning = false;
+            LargeWorldEntity_.spawningNearPlayer = false;
         }
 
         public static IEnumerator AddToContainerAsync(TechType techType, ItemsContainer container, bool pickupSound)
@@ -114,10 +115,10 @@ namespace Tweaks_Fixes
 
         public static void AddVFXsurfaceComponent(this GameObject go, VFXSurfaceTypes type)
         {
-            foreach (VFXSurface surface in go.GetComponentsInChildren<VFXSurface>())
-                UnityEngine.Object.Destroy(surface);
+            VFXSurface vFXSurface = go.GetComponentInChildren<VFXSurface>();
+            if (vFXSurface == null)
+                vFXSurface = go.AddComponent<VFXSurface>();
 
-            VFXSurface vFXSurface = go.AddComponent<VFXSurface>();
             vFXSurface.surfaceType = type;
         }
 
@@ -395,28 +396,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        public static VFXSurfaceTypes GetObjectSurfaceType(GameObject obj)
-        {
-            VFXSurfaceTypes result = VFXSurfaceTypes.none;
-            if (obj)
-            {
-                VFXSurface vfxSurface = obj.GetComponent<VFXSurface>();
-                if (vfxSurface)
-                {
-                    result = vfxSurface.surfaceType;
-                    //AddDebug(" VFXSurface " + component.name);
-                    //AddDebug(" VFXSurface parent " + component.transform.parent.name);
-                    //AddDebug(" VFXSurface parent parent " + component.transform.parent.parent.name);
-                }
-                else
-                    vfxSurface = obj.FindAncestor<VFXSurface>();
-
-                if (vfxSurface)
-                    result = vfxSurface.surfaceType;
-            }
-            return result;
-        }
-
         public static Bounds GetAABB(GameObject go)
         {
             FixedBounds fb = go.GetComponent<FixedBounds>();
@@ -580,14 +559,48 @@ namespace Tweaks_Fixes
             return itemsContainer;
         }
 
+        public static void DisableShadowCasting(this Transform root, RendererData data)
+        {
+            //Main.logger.LogDebug($"DisableShadowCasting {root.name}");
+            if (data == null)
+            {
+                root.DisableShadowCastingInChildren();
+                return;
+            }
+            Transform parent = root;
+            if (data.parentPath.IsNullOrWhiteSpace() == false)
+            {
+                parent = root.Find(data.parentPath);
+                if (parent == null)
+                {
+                    Main.logger.LogError($"DisableShadowCasting {root.name} RendererData parent null " + data.parentPath);
+                    return;
+                }
+            }
+            if (data.renderers == null)
+            {
+                //Main.logger.LogDebug($"DisableShadowCasting {root.name} {parent.name} renderers null");
+                parent.DisableShadowCastingInChildren();
+                return;
+            }
+            foreach (string rendererName in data.renderers)
+            {
+                //Main.logger.LogDebug($"DisableShadowCasting parent {parent.name} rendererName {rendererName}");
+                Transform rendererT = parent.Find(rendererName);
+                if (rendererT == null)
+                    continue;
+
+                rendererT.DisableShadowCasting();
+            }
+        }
 
         public static void DisableShadowCasting(this Transform renderer)
         {
-            //Main.logger.LogDebug("DisableShadowCasting " + t.name);
+            //Main.logger.LogDebug("DisableShadowCasting Transform " + renderer.name);
             Renderer r = renderer.GetComponent<Renderer>();
             if (r == null)
             {
-                //Main.logger.LogError($"DisableShadowCasting {renderer.name} has no renderer");
+                Main.logger.LogError($"DisableShadowCasting {renderer.name} has no renderer");
                 return;
             }
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -711,6 +724,29 @@ namespace Tweaks_Fixes
         }
 
 
+        public static VFXSurfaceTypes GetObjectSurfaceType(GameObject obj)
+        {
+            //AddDebug("GetObjectSurfaceType " + obj.name);
+            VFXSurfaceTypes result = VFXSurfaceTypes.none;
+            if (obj)
+            {
+                VFXSurface vfxSurface = obj.GetComponent<VFXSurface>();
+                if (vfxSurface)
+                {
+                    result = vfxSurface.surfaceType;
+                }
+                else
+                {
+                    vfxSurface = obj.FindAncestor<VFXSurface>();
+                    if (vfxSurface == null)
+                        vfxSurface = obj.GetComponentInChildren<VFXSurface>();
+
+                    if (vfxSurface)
+                        result = vfxSurface.surfaceType;
+                }
+            }
+            return result;
+        }
 
 
     }

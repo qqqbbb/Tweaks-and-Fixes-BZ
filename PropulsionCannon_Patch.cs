@@ -230,9 +230,6 @@ namespace Tweaks_Fixes
                     //AddDebug("PropulsionCannon OnShoot grabbingResource");
                     return false;
                 }
-                if (__instance.grabbedObject != null)
-                    releasingGrabbedObject = true;
-
                 return true;
             }
 

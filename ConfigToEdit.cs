@@ -162,7 +162,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> playerFullWater;
         public static ConfigEntry<int> thirstThreshold;
         public static ConfigEntry<int> hungerThreshold;
-        //public static ConfigEntry<bool> runInBackground;
+        public static ConfigEntry<bool> grassCastShadow;
 
         public static AcceptableValueRange<float> lightIntensityRange = new AcceptableValueRange<float>(0.1f, 1f);
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
@@ -170,8 +170,8 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         { // “ ” ‛
-            //Main.logger.LogMessage("ConfigToEdit bind start ");
-            //runInBackground = Main.configToEdit.Bind("MISC", "Run in background", true, "Set this to false to prevent the game from running in background. This setting is ignored when loading a saved game.");
+          //Main.logger.LogMessage("ConfigToEdit bind start ");
+            grassCastShadow = Main.configToEdit.Bind("VISUAL", "Grass casts shadow", false, "This will affect performance");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
             dontSpawnKnownFragments = Main.configToEdit.Bind("MISC", "Do not spawn fragments for unlocked blueprints", false);
             noKillParticles = Main.configToEdit.Bind("CREATURES", "No particles when creature dies", false, "No yellow cloud particles will spawn when a creature dies. Game has to be reloaded after changing this. ");
@@ -543,7 +543,8 @@ namespace Tweaks_Fixes
             Player_Movement.groundSpeedEquipment = ParseSpeedEquipmentDic(groundSpeedEquipment.Value);
             //Main.logger.LogInfo("bloodColor  " + bloodColor.Value);
             if (bloodColor.Value != "0.784 1.0 0.157")
-                Damage_.bloodColor = ParseColor(bloodColor.Value);
+                PrefabFixer.bloodColor = ParseColor(bloodColor.Value);
+            //Damage_.bloodColor = ParseColor(bloodColor.Value);
 
             MapRoomCamera_.lightColor = ParseColor(cameraLightColor.Value);
             Seaglide_.lightColor = ParseColor(seaglideLightColor.Value);

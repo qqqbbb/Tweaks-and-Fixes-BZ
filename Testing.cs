@@ -15,6 +15,7 @@ namespace Tweaks_Fixes
      // lava geyser -140 -500
      // crypto -90 -7 -340
      // spikey trap -351 -351 -325
+     // ladder -1274 22 -558   -207 47 -726   -1271 3 -1009   -1086 20 -850
      //GameModeManager.GetOption<bool>(GameOption.Hunger)
 
         static GameObject previousTarget;
@@ -124,9 +125,8 @@ namespace Tweaks_Fixes
 
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
-                    //ShowColliderName();
+                    ShowColliderName();
                     //PlayerTool tool = Inventory.main.GetHeldTool();
-                    //AddDebug("bloodColor " + Damage_.bloodColor);
                     //PrintTerrainSurfaceType();
                     //TechType tt = TechType.IceBubble;
                     //string classid = CraftData.GetClassIdForTechType(tt);
@@ -148,7 +148,7 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.V))
                 {
-                    showTargetInfo();
+                    ShowTargetInfo(true);
 
 
                     //Survival survival = Player.main.GetComponent<Survival>();
@@ -159,15 +159,11 @@ namespace Tweaks_Fixes
                 }
                 else if (Input.GetKeyDown(KeyCode.X))
                 {
-                    //Survival survival = Player.main.GetComponent<Survival>();
-                    //if (Input.GetKey(KeyCode.LeftShift))
-                    //    __instance.liveMixin.health--;
-                    //else
-                    //    __instance.liveMixin.health++;
+                    PrintClosestObjects(__instance.transform.position, 2);
                 }
                 else if (Input.GetKeyDown(KeyCode.Z))
                 {
-                    PrintClosestObjects(__instance.transform.position, 2);
+                    //PrintClosestObjects(__instance.transform.position, 2);
                     if (Input.GetAxis("Mouse ScrollWheel") > 0f)
                     {
                     }
@@ -196,84 +192,126 @@ namespace Tweaks_Fixes
                 }
             }
 
-            public static void showTargetInfo()
+            public static void ShowTargetInfo(bool position = false, bool showCollider = false, bool health = false)
             {
                 GameObject target = Player.main.guiHand.activeTarget;
-                //if (Player.main.guiHand.activeTarget)
-                //    AddDebug("activeTarget " + Player.main.guiHand.activeTarget);
-
                 RaycastHit hitInfo = new RaycastHit();
-                //if (!target)
-                //    Util.GetPlayerTarget(111f, out hitInfo, true);
                 if (!target)
                     //Util.GetTarget(Player.mainObject.transform.position, MainCamera.camera.transform.forward, 11f, out hitInfo);
                     Targeting.GetTarget(Player.main.gameObject, 11f, out target, out float targetDist);
-
-                if (hitInfo.collider)
-                    target = hitInfo.collider.gameObject;
+                //if (hitInfo.collider)
+                //    target = hitInfo.collider.gameObject;
 
                 if (!target)
                     return;
 
-                //AddDebug("target " + target.name);
                 VFXSurfaceTypes vfxSurfaceType = Util.GetObjectSurfaceType(target);
+                if (vfxSurfaceType != VFXSurfaceTypes.none)
+                    AddDebug("vfxSurfaceType  " + vfxSurfaceType);
+
+                //AddDebug("collider  " + target.name);
+                PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
+                TechType techType = TechType.None;
+
+                if (pi == null)
+                {
+                    AddDebug("No PrefabIdentifier");
+                    Main.logger.LogMessage(target.name);
+                    target = GetRootGameobjectWithoutIdentifier(target);
+                }
+                else
+                {
+                    target = pi.gameObject;
+                    techType = CraftData.GetTechType(target);
+                    Main.logger.LogDebug($"{pi.name} {techType} {pi.classId}");
+                }
+                AddDebug(target.name);
+
+                if (position)
+                {
+                    int x = (int)target.transform.position.x;
+                    int y = (int)target.transform.position.y;
+                    int z = (int)target.transform.position.z;
+                    AddDebug($"position {x} {y} {z}");
+                    Main.logger.LogMessage($"{target.name} position {x} {y} {z}");
+                }
+                LODGroup lODGroup = target.GetComponentInChildren<LODGroup>();
+                if (lODGroup != null)
+                {
+                    AddDebug($"LOD count {lODGroup.lodCount} ");
+                }
+                EcoTarget ecoTarget = target.GetComponent<EcoTarget>();
+                if (ecoTarget != null)
+                {
+                    AddDebug("EcoTarget " + ecoTarget.type);
+                }
                 TerrainChunkPieceCollider tcpc = target.GetComponent<TerrainChunkPieceCollider>();
                 if (tcpc)
                 {
                     vfxSurfaceType = Utils.GetTerrainSurfaceType(hitInfo.point, hitInfo.normal);
-                    AddDebug("Terrain surface type  " + vfxSurfaceType);
+                    AddDebug("Terrain vfxSurfaceType  " + vfxSurfaceType);
                     return;
                 }
-                //LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
-                Brinicle brinicle = target.GetComponentInParent<Brinicle>();
-                if (brinicle)
+                if (health)
                 {
-                    AddDebug("brinicle " + brinicle.state);
+                    LiveMixin lm = target.GetComponent<LiveMixin>();
+                    if (lm)
+                        AddDebug("max HP " + lm.data.maxHealth + " HP " + (int)lm.health);
                 }
-                PrefabIdentifier pi = target.GetComponentInParent<PrefabIdentifier>();
-                if (pi)
+                if (showCollider)
                 {
-                    target = pi.gameObject;
-                    int posX = (int)pi.transform.position.x;
-                    int posY = (int)pi.transform.position.y;
-                    int posZ = (int)pi.transform.position.z;
-                    AddDebug(" position " + posX + " " + posY + " " + posZ);
-                    //AddDebug(" cellLevel " + lwe.cellLevel);
-                    if (vfxSurfaceType != VFXSurfaceTypes.none)
-                        AddDebug("vfxSurfaceType  " + vfxSurfaceType);
-
-                    if (target.name.StartsWith("lilypad"))
+                    var colliders = target.GetComponentsInChildren<Collider>();
+                    foreach (Collider collider in colliders)
                     {
-                        Main.logger.LogDebug($"{target.name} {pi.classId}");
+                        if (collider.isTrigger == false)
+                            ShowDebugCollider(collider);
                     }
-                    //LiveMixin lm = pi.GetComponent<LiveMixin>();
-                    //if (lm)
-                    //    AddDebug("max HP " + lm.data.maxHealth + " HP " + lm.health);
+                    //Debug(target);
                 }
-                AddDebug(target.gameObject.name);
-                LODGroup lODGroup = target.GetComponentInChildren<LODGroup>();
-                if (lODGroup)
-                {
-                    AddDebug($"LOD count {lODGroup.lodCount} ");
-                }
-                if (Input.GetKey(KeyCode.LeftShift))
-                {
-                    //foreach (Light l in target.GetAllComponentsInChildren<Light>())
-                    //{
-                    //    l.gameObject.SetActive(false);
-                    //}
-                    //target.DisableGlowShader();
-                }
-                //AddDebug("parent " + target.transform.parent.gameObject.name);
-                //if (target.transform.parent.parent)
-                //    AddDebug("parent parent " + target.transform.parent.parent.gameObject.name);
-                TechType techType = CraftData.GetTechType(target);
-                if (techType != TechType.None)
-                    AddDebug("TechType  " + techType);
+                LargeWorldEntity lwe = target.GetComponentInParent<LargeWorldEntity>();
+                if (lwe)
+                    AddDebug(" cellLevel " + lwe.cellLevel);
 
-                HarvestType harvestType = TechData.GetHarvestType(techType);
-                if (harvestType != HarvestType.None)
-                    AddDebug("harvestType  " + harvestType);
+                //AddDebug(target.name + " IsDecoPlant " + Util.IsDecoPlant(target));
+                //if (target.transform.parent)
+                //    AddDebug(target.transform.parent.name);
+                FruitPlant fruitPlant = target.GetComponent<FruitPlant>();
+                if (fruitPlant != null)
+                {
+                    if (!fruitPlant.fruitSpawnEnabled)
+                        AddDebug("fruitPlant fruit Spawn disabled ");
+
+                    PickPrefab[] pickPrefabs = target.GetComponentsInChildren<PickPrefab>(true);
+                    AddDebug($"fruitPlant SpawnInterval {fruitPlant.fruitSpawnInterval} pickPrefabs {pickPrefabs.Length}");
+                }
+                if (techType != TechType.None)
+                {
+                    AddDebug("TechType  " + techType);
+                    TechType harvestOutput = TechData.GetHarvestOutput(techType);
+                    //if (harvestOutput != TechType.None)
+                    //{
+                    //    AddDebug("harvest_Output " + harvestOutput);
+                    //    HarvestType harvestType = TechData.GetHarvestType(techType);
+                    //    if (harvestType != HarvestType.None)
+                    //        AddDebug("harvest_Type " + harvestType);
+                    //}
+                }
+            }
+
+            private static GameObject GetRootGameobjectWithoutIdentifier(GameObject go)
+            {
+                PrefabSpawn prefabSpawn = go.GetComponentInParent<PrefabSpawn>();
+                if (prefabSpawn != null)
+                    return prefabSpawn.gameObject;
+
+                Transform parent = go.transform.parent;
+                if (parent == null)
+                    return go.gameObject;
+
+                while (parent.parent != null)
+                    parent = parent.parent;
+
+                return parent.gameObject;
             }
 
             static void PrintTerrainSurfaceType()
@@ -573,7 +611,7 @@ namespace Tweaks_Fixes
                 }
                 if (attachedRb != null)
                 {
-                    ErrorMessage.AddMessage($"Collider is attached to the Rigidbody '{attachedRb.gameObject.name}'");
+                    ErrorMessage.AddMessage($"Collider is attached to the Rigidbody '{attachedRb.gameObject.name} tag {attachedRb.gameObject.tag}'");
                 }
                 if (root != null)
                 {
@@ -694,6 +732,32 @@ namespace Tweaks_Fixes
 
                 if (__instance.speed < 1)
                     __instance.speed = 1;
+            }
+        }
+
+        //[HarmonyPatch(typeof(GotoConsoleCommand))]
+        class GotoConsoleCommand_Patch
+        {
+            //[HarmonyPostfix, HarmonyPatch("Awake")]
+            public static void AwakePostfix(GotoConsoleCommand __instance)
+            {
+                List<TeleportPosition> tps = new List<TeleportPosition>();
+                foreach (TeleportPosition tp in __instance.data.locations)
+                {
+                    //if (tp.name.StartsWith("escapepod"))
+                    if (tp.name.StartsWith("wreck"))
+                    {
+                        //Main.logger.LogMessage("scatter TeleportPosition: " + tp.name);
+                        //AddDebug("GotoConsoleCommand TeleportPosition: " + tp.name);
+                        tps.Add(tp);
+                    }
+                }
+                __instance.data.locations = tps.ToArray();
+            }
+            //[HarmonyPostfix, HarmonyPatch("GotoLocation")]
+            public static void GotoLocationPostfix(GotoConsoleCommand __instance)
+            {
+
             }
         }
 

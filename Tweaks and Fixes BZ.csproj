@@ -78,6 +78,9 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="Unity.Addressables">
+      <HintPath>..\..\..\DLL\Unity.Addressables.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>..\..\..\DLL\Unity.TextMeshPro.dll</HintPath>
     </Reference>
@@ -113,7 +116,7 @@
     <Compile Include="Bed_.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="Charger_.cs" />
-    <Compile Include="BaseGlassFix.cs" />
+    <Compile Include="BasePrefabFixer.cs" />
     <Compile Include="PrefabFixer.cs" />
     <Compile Include="WaitForFrames.cs" />
     <Compile Include="Databox.cs" />
@@ -153,7 +156,7 @@
     <Compile Include="ConfigToEdit.cs" />
     <Compile Include="Drop_Pod_Patch.cs" />
     <Compile Include="Flare_.cs" />
-    <Compile Include="Fragment_Patch.cs" />
+    <Compile Include="Fragment_.cs" />
     <Compile Include="Brinicle_.cs" />
     <Compile Include="LargeWorldEntity_.cs" />
     <Compile Include="UGUI_meters.cs" />

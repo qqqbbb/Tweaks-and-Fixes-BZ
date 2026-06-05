@@ -14,7 +14,6 @@ namespace Tweaks_Fixes
     {
         public static Dictionary<GameObject, SubRoot> droppedInBase = new Dictionary<GameObject, SubRoot>();
         public static HashSet<GameObject> droppedInPod = new HashSet<GameObject>();
-        internal static GameObject droppedObject;
 
         private static void DropInSub(Pickupable pickupable)
         {
@@ -305,7 +304,12 @@ namespace Tweaks_Fixes
             [HarmonyPatch("Drop", new Type[] { typeof(Vector3), typeof(Vector3), typeof(bool) })]
             static bool DropPrefix(Pickupable __instance, Vector3 dropPosition, Vector3 pushVelocity = default, bool checkPosition = true)
             {
-                droppedObject = __instance.gameObject;
+                LargeWorldEntity_.spawningNearPlayer = true;
+                //AddDebug(__instance.name + " Drop ");
+                if (Tools_Patch.equippedTool.gameObject == __instance.gameObject)
+                {
+                    Tools_Patch.equippedTool = null;
+                }
                 if (!ConfigToEdit.dropItemsAnywhere.Value)
                     return true;
 

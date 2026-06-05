@@ -23,7 +23,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.8.0";
+            VERSION = "3.9.0";
 
         public static bool baseLightSwitchLoaded = false;
         public static bool visibleLockerInteriorModLoaded = false;
@@ -93,21 +93,11 @@ namespace Tweaks_Fixes
             }
         }
 
-
-        //[HarmonyPatch(typeof(Player), "TrackTravelStats")]
-        class Player_TrackTravelStats_Patch
-        {
-            static void Postfix(Player __instance)
-            {
-
-                AddDebug("TrackTravelStats");
-
-            }
-        }
-
         public static void LoadedGameSetup()
         {
             //AddDebug(" LoadedGameSetup ");
+            PrefabFixer prefabFixer = new PrefabFixer();
+            prefabFixer.IterateRootGameObjects();
             UWE.CoroutineHost.StartCoroutine(Util.SelectEquippedItem());
             KnownTech.Add(TechType.SnowBall, false, false);
             CreatureDeath_Patch.TryRemoveCorpses();
@@ -243,15 +233,16 @@ namespace Tweaks_Fixes
         private static void StartLoadingSetup()
         {
             AddTechTypesToClassIDtable();
-            PrefabFixer.FixGlassPrefabs();
+            PrefabFixer prefabFixer = new PrefabFixer();
+            prefabFixer.FixGlassPrefabs();
+            BasePrefabFixer basePrefabFixer = new BasePrefabFixer();
+            UWE.CoroutineHost.StartCoroutine(basePrefabFixer.FixBasePrefabs());
             Application.runInBackground = true;
         }
 
         private static void AddTechTypesToClassIDtable()
         {
             CraftData.PreparePrefabIDCache();
-            //CraftData.entClassTechTable["769f9f44-30f6-46ed-aaf6-fbba358e1676"] = TechType.BaseBioReactor;
-            //CraftData.entClassTechTable["864f7780-a4c3-4bf2-b9c7-f4296388b70f"] = TechType.BaseNuclearReactor;
             CraftData.entClassTechTable["ef9ca323-9e02-4903-991c-eb3e597a279d"] = TechType.HoneyCombPlant;
             CraftData.entClassTechTable["cb000fd6-a31c-4a3a-97cd-d60a37eb8237"] = TechType.BarTable;
             //CraftData.entClassTechTable["2168257e-2533-403f-8b3a-a3bef63adaf9"] = TechType.HoverpadFragment;

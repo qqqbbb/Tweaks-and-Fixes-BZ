@@ -38,8 +38,14 @@ namespace Tweaks_Fixes
 
         public static bool MoveAllItems(InventoryItem item)
         {
+            if (item == null)
+                return false;
+
             ItemsContainer container = (ItemsContainer)item.container;
             IItemsContainer oppositeContainer = Inventory.main.GetOppositeContainer(item);
+            if (container == null || oppositeContainer == null || item.container is Equipment || oppositeContainer is Equipment)
+                return false;
+
             List<InventoryItem> itemsToTransfer = new List<InventoryItem>();
             foreach (TechType itemType in container.GetItemTypes())
                 container.GetItems(itemType, itemsToTransfer);
@@ -57,9 +63,14 @@ namespace Tweaks_Fixes
 
         public static bool MoveSameItems(InventoryItem item)
         {
-            //AddDebug("MoveSameItems " );
+            if (item == null)
+                return false;
+
             ItemsContainer container = (ItemsContainer)item.container;
             IItemsContainer oppositeContainer = Inventory.main.GetOppositeContainer(item);
+            if (container == null || oppositeContainer == null || item.container is Equipment || oppositeContainer is Equipment)
+                return false;
+
             List<InventoryItem> itemsToTransfer = new List<InventoryItem>();
             container.GetItems(item.item.GetTechType(), itemsToTransfer);
 

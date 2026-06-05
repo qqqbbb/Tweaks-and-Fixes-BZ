@@ -8,33 +8,8 @@ namespace Tweaks_Fixes
 {
     class Damage_
     {
-        static public Color bloodColor;
         private static bool clawArmHit;
         public static Dictionary<TechType, float> damageModifiers = new Dictionary<TechType, float>();
-
-        static void SetBloodColor(GameObject go)
-        {
-            //0.784f, 1f, 0.157f
-            if (bloodColor == default)
-                return;
-
-            ParticleSystem[] pss = go.GetAllComponentsInChildren<ParticleSystem>();
-            //AddDebug("SetBloodColor " + go.name + " " + pss.Length);
-            //Main.Log("SetBloodColor " + go.name );
-            foreach (ParticleSystem ps in pss)
-            {
-                //ps.startColor = new Color(1f, 0f, 0f);
-                ParticleSystem.MainModule psMain = ps.main;
-                //Main.Log("startColor " + psMain.startColor.color);
-                //AddDebug("startColor " + psMain.startColor.color);
-                //Color newColor = new Color(ConfigToEdit.bloodColor.Value.x, ConfigToEdit.bloodColor.Value.y, ConfigToEdit.bloodColor.Value.z, psMain.startColor.color.a);
-                //newColor = Color.blue;
-                //Main.Log("blood Color " + newColor);
-                //AddDebug("blood Color " + newColor);
-                psMain.startColor = new ParticleSystem.MinMaxGradient(bloodColor);
-                //psMain.startSizeMultiplier *= .1f;
-            }
-        }
 
         //[HarmonyPatch(typeof(DealDamageOnImpact))]
         class DealDamageOnImpact_Patch
@@ -236,10 +211,10 @@ namespace Tweaks_Fixes
         }
 
         [HarmonyPatch(typeof(LiveMixin))]
-        class LiveMixin_Start_Patch
+        class LiveMixin_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            //[HarmonyPostfix]
+            //[HarmonyPatch("Start")]
             static void StartPostfix(LiveMixin __instance)
             {
                 //    Main.Log("deathEffect " + __instance.name);
@@ -247,15 +222,15 @@ namespace Tweaks_Fixes
                 if (ConfigToEdit.bloodColor.Value == "0.784 1.0 0.157")
                     return;
 
-                VFXSurface surface = __instance.GetComponent<VFXSurface>();
-                if (surface && surface.surfaceType == VFXSurfaceTypes.organic)
-                {
-                    if (__instance.data.damageEffect)
-                        SetBloodColor(__instance.data.damageEffect);
+                //VFXSurface surface = __instance.GetComponent<VFXSurface>();
+                //if (surface && surface.surfaceType == VFXSurfaceTypes.organic)
+                //{
+                //    if (__instance.data.damageEffect)
+                //        SetBloodColor(__instance.data.damageEffect);
 
-                    if (__instance.data.deathEffect)
-                        SetBloodColor(__instance.data.deathEffect);
-                }
+                //    if (__instance.data.deathEffect)
+                //        SetBloodColor(__instance.data.deathEffect);
+                //}
             }
 
             [HarmonyPrefix]
@@ -428,7 +403,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(VFXSurfaceTypeDatabase), "SetPrefab")]
+        //[HarmonyPatch(typeof(VFXSurfaceTypeDatabase), "SetPrefab")]
         class VFXSurfaceTypeDatabase_SetPrefab_Patch
         {
             static void Postfix(VFXSurfaceTypeDatabase __instance, VFXSurfaceTypes surfaceType, VFXEventTypes eventType, GameObject prefab)
@@ -436,7 +411,7 @@ namespace Tweaks_Fixes
                 if (surfaceType == VFXSurfaceTypes.organic && ConfigToEdit.bloodColor.Value != "0.784 1.0 0.157")
                 {
                     //Main.Log("VFXSurfaceTypeDatabase SetPrefab surfaceType " + surfaceType + " eventType " + eventType);
-                    SetBloodColor(prefab);
+                    //SetBloodColor(prefab);
                 }
             }
         }
