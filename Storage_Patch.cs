@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using UnityEngine;
 using static ErrorMessage;
@@ -280,10 +279,6 @@ namespace Tweaks_Fixes
                     yield break;
                 //AddDebug("StorageContainer Awake " + techTag.type);
                 if (techTag.type == TechType.SmallLocker)
-                {
-
-                }
-                else if (techTag.type == TechType.SmallLocker)
                 {
                     Transform label = container.transform.Find("Label");
                     while (label == null)

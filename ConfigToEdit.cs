@@ -50,7 +50,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> canReplantMelon;
         public static ConfigEntry<int> eatingOutsideCold;
         public static ConfigEntry<int> brinewingAttackColdDamage;
-        public static ConfigEntry<bool> fixCoral;
+        public static ConfigEntry<bool> fixTableCoral;
         public static ConfigEntry<string> notRespawningCreatures;
         public static ConfigEntry<string> notRespawningCreaturesIfKilledByPlayer;
         public static ConfigEntry<bool> warmKelpWater;
@@ -163,6 +163,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> thirstThreshold;
         public static ConfigEntry<int> hungerThreshold;
         public static ConfigEntry<bool> grassCastShadow;
+        //public static ConfigEntry<bool> baseSunlight;
 
         public static AcceptableValueRange<float> lightIntensityRange = new AcceptableValueRange<float>(0.1f, 1f);
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
@@ -171,6 +172,7 @@ namespace Tweaks_Fixes
         public static void Bind()
         { // “ ” ‛
           //Main.logger.LogMessage("ConfigToEdit bind start ");
+          //baseSunlight = Main.configToEdit.Bind("BASE", "Sunlight affects lighting in your base", false);
             grassCastShadow = Main.configToEdit.Bind("VISUAL", "Grass casts shadow", false, "This will affect performance");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
             dontSpawnKnownFragments = Main.configToEdit.Bind("MISC", "Do not spawn fragments for unlocked blueprints", false);
@@ -217,7 +219,7 @@ namespace Tweaks_Fixes
             canReplantMelon = Main.configToEdit.Bind("PLANTS", "Can replant melon", true, "If false gel sack and melon can't be replanted.");
             brinewingAttackColdDamage = Main.configToEdit.Bind("CREATURES", "Brinewing freeze damage", 0, "When this is not 0, brinewing attack will drain your cold meter by this amount instead of freezing you.");
 
-            fixCoral = Main.configToEdit.Bind("MISC", "Fix table coral", true, "Table coral will always be attached horizontally to rocks and its animation will be disabled if this is true.");
+            fixTableCoral = Main.configToEdit.Bind("MISC", "Fix table coral", false, "Table coral will always be attached horizontally to rocks and its animation will be disabled if this is true.");
             notRespawningCreatures = Main.configToEdit.Bind("CREATURES", "Not respawning creatures", "TrivalveBlue, TrivalveYellow", "Comma separated list of creature IDs that will not respawn.");
             notRespawningCreaturesIfKilledByPlayer = Main.configToEdit.Bind("CREATURES", "Not respawning creatures if killed by player", "TitanHolefish, BruteShark, Cryptosuchus, SnowStalker, SnowStalkerBaby, RockPuncher, SquidShark", "Comma separated list of creature IDs that will respawn only if killed by another creature.");
             respawnTime = Main.configToEdit.Bind("CREATURES", "Creature respawn time", "", "Number of days it takes a creature to respawn. The format is: creature ID, space, number of days it takes to respawn. By default fish and big creatures respawn in 12 hours, leviathans respawn after 1 day.");

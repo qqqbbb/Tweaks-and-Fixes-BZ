@@ -117,6 +117,9 @@
     <Compile Include="Camera.cs" />
     <Compile Include="Charger_.cs" />
     <Compile Include="BasePrefabFixer.cs" />
+    <Compile Include="Trashcan_.cs" />
+    <Compile Include="Fruits.cs" />
+    <Compile Include="Table_Coral.cs" />
     <Compile Include="PrefabFixer.cs" />
     <Compile Include="WaitForFrames.cs" />
     <Compile Include="Databox.cs" />
@@ -146,7 +149,7 @@
     <Compile Include="PDA_Clock_.cs" />
     <Compile Include="Player_Movement.cs" />
     <Compile Include="PropulsionCannon_Patch.cs" />
-    <Compile Include="Constructor_Patch.cs" />
+    <Compile Include="Constructor_.cs" />
     <Compile Include="Inventory_Patch.cs" />
     <Compile Include="Screen_Resolution_Fix.cs" />
     <Compile Include="Seaglide_.cs" />

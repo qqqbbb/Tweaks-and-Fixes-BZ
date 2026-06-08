@@ -16,6 +16,7 @@ namespace Tweaks_Fixes
      // crypto -90 -7 -340
      // spikey trap -351 -351 -325
      // ladder -1274 22 -558   -207 47 -726   -1271 3 -1009   -1086 20 -850
+     // IceFruitPlant 74 -4 -39    -639 -11 24
      //GameModeManager.GetOption<bool>(GameOption.Hunger)
 
         static GameObject previousTarget;
@@ -77,7 +78,7 @@ namespace Tweaks_Fixes
         {
             static void Postfix(Player __instance)
             {
-                //AddDebug("runInBackground " + Application.runInBackground);
+                //AddDebug("dayLengthSeconds " + DayNightCycle.main.dayLengthSeconds);
                 //AddDebug("CurrentPreset " + GameModeManager.GetCurrentPresetId());
                 //if (Player.main.currentInterior != null)
                 //{
@@ -758,6 +759,22 @@ namespace Tweaks_Fixes
             public static void GotoLocationPostfix(GotoConsoleCommand __instance)
             {
 
+            }
+        }
+
+        public static void FixTeleportPositions()
+        {
+            //List<TeleportPosition> tps = new List<TeleportPosition>();
+            Main.logger.LogMessage("Teleport Positions ");
+            foreach (TeleportPosition tp in GotoConsoleCommand.main.data.locations)
+            {
+                //Main.logger.LogMessage($"{tp.name} {tp.position}");
+                //if (tp.name.StartsWith("escapepod"))
+                //tps.Add(tp);
+                if (tp.name == "crashedship1")
+                    tp.position = new Vector3(53, -104, -914);
+                else if (tp.name == "crashedship2")
+                    tp.position = new Vector3(210, -253, -1286);
             }
         }
 

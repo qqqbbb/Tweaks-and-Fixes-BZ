@@ -28,7 +28,6 @@ namespace Tweaks_Fixes
         public int activeSlot = -1;
         public Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>> lockerNames = new Dictionary<string, Dictionary<string, Storage_Patch.SavedLabel>>();
         static public Dictionary<string, float> hpToHeal = new Dictionary<string, float>();
-        public Dictionary<string, HashSet<Vector3Int>> iceFruitsPicked = new Dictionary<string, HashSet<Vector3Int>>();
 
         public Dictionary<string, float> podPower = new Dictionary<string, float>();
         //public Dictionary<string, HashSet<string>> objectsSurvivedDespawn = new Dictionary<string, HashSet<string>> { };
@@ -42,7 +41,6 @@ namespace Tweaks_Fixes
         {
             string currentSlot = SaveLoadManager.main.currentSlot;
             podPower.Remove(currentSlot);
-            iceFruitsPicked.Remove(currentSlot);
             lockerNames.Remove(currentSlot);
             baseLights.Remove(currentSlot);
             hpToHeal.Remove(currentSlot);

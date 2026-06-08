@@ -6,6 +6,7 @@ using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
+using static Tweaks_Fixes.Storage_Patch;
 
 namespace Tweaks_Fixes
 {
@@ -15,7 +16,7 @@ namespace Tweaks_Fixes
         static readonly int zOffset = Shader.PropertyToID("_ZOffset");
         static bool loadedPrefabsFixed;
         readonly Dictionary<TechType, MaterialZoffsetData> glassMaterialZoffsets = new Dictionary<TechType, MaterialZoffsetData> {
-            { TechType.Hoverpad, new MaterialZoffsetData("AnimatedMes h/Hoverpad_geo", 1, 10000) },
+            { TechType.Hoverpad, new MaterialZoffsetData("AnimatedMesh/Hoverpad_geo", 1, 10000) },
             //{ TechType.HoverpadFragment, new MaterialZoffsetData(null, 1, 10000) },
         { TechType.SeaTruckAquariumModule, new MaterialZoffsetData("seatruck_module_aquarium_anim/Seatruck_module_Aquarium_interior_geo", 2, 10000) },
         { TechType.SmallVentGarden, new MaterialZoffsetData("Vent_garden_swimming_anim/vent_garden_geo/newest_standing_geo/vent_garden_bulb_swimming", 3, 10000) }
@@ -39,6 +40,7 @@ namespace Tweaks_Fixes
             { "47c32ae8-b168-4ddf-bbae-7467038e3457",new MaterialZoffsetData("Thermal_reactor_damaged_03", 3, 0) },// -262 -281 -747
             { "06cc39eb-af4c-4573-866a-d92e5d4c2bf1",new MaterialZoffsetData("Thermal_reactor_damaged_02", 3, 0) },
             { "88c4c1fa-0b52-44cb-9db5-2ef18447ae5c",new MaterialZoffsetData("Thermal_reactor_damaged_01", 3, 0) },
+            { "a50c91eb-f7cf-4fbf-8157-0aa8d444820c",new MaterialZoffsetData(null, 3, 0) },
 
         };
 
@@ -47,15 +49,31 @@ namespace Tweaks_Fixes
         static RendererData filtrationMachineGlassData = new RendererData("model/Water_Filtration_Machine/water_filtration_machine_geo/water_filtration_machine_glass");
         static RendererData damagedExosuitData = new RendererData("exosuit_damaged_05/Exosuit_01_cabin007/Exosuit_cabin_01_glass007");
         static RendererData labShelfData = new RendererData("biodome_lab_shelf_01/biodome_lab_shelf_01_thing_glass");
+        static RendererData cargoCrateData = new RendererData("Starship_cargo_damaged_opened_02/dirt_02");
+        static RendererData seatruckFrontConnectionGlassData = new RendererData("frontConnection/closed", new List<string> { "Seatruck_door_ext_glass", "Seatruck_door_int_glass" });
+        static RendererData seatruckRearConnectionGlassData = new RendererData("rearConnection/closed", new List<string> { "Seatruck_door_ext_glass", "Seatruck_door_int_glass" });
 
         Dictionary<TechType, RendererData> glassRenderers = new Dictionary<TechType, RendererData> {
             { TechType.Locker, lockerGlassData},
             { TechType.Aquarium, new RendererData("model/Aquarium_animation2/Aquarium_geo/Aquarium_glass")},
             { TechType.BarTable, barTableGlassData},
-            //{ TechType.BarTable, new RendererData("descent_bar_table_01/descent_bar_table_01_glass")},
             { TechType.Fridge, new RendererData("geo/marg_props_fridge_door")},
             { TechType.BaseFiltrationMachine, filtrationMachineGlassData},
+            {TechType.LargeVentGarden, new RendererData("Vent_garden_anim/vent_garden_bubble" ) },
+            {TechType.Exosuit, new RendererData("exosuit_01/root/Exosuit_cabin_01_glass" ) },
+            {TechType.SeaTruck, new RendererData("model/seatruck_anim", new List<string>{ "Seatruck_cabin_exterior_glass_geo", "Seatruck_cabin_interior_glass_geo" } ) },
+            {TechType.SeaTruckDockingModule, new RendererData("seatruck_module_prawn_anim", new List<string>{ "Seatruck_module_PRAWN_glass_exterior_geo", "Seatruck_module_PRAWN_glass_interior_geo" } ) },
+
         };
+
+        Dictionary<TechType, List<RendererData>> glassRenderers___ = new Dictionary<TechType, List<RendererData>> {
+            {TechType.SeaTruckAquariumModule, new List<RendererData>{new RendererData("seatruck_module_aquarium_anim", new List<string> { "Seatruck_module_Aquarium_glass_exterior_geo", "Seatruck_module_Aquarium_interior_glass_geo" }), seatruckRearConnectionGlassData}},
+            {TechType.SeaTruckFabricatorModule, new List<RendererData>{ seatruckFrontConnectionGlassData, seatruckRearConnectionGlassData}},
+            {TechType.SeaTruckStorageModule, new List<RendererData>{ seatruckFrontConnectionGlassData, seatruckRearConnectionGlassData }},
+            {TechType.SeaTruckTeleportationModule, new List<RendererData>{ seatruckFrontConnectionGlassData, seatruckRearConnectionGlassData }},
+            {TechType.SeaTruckSleeperModule, new List<RendererData>{ seatruckFrontConnectionGlassData, seatruckRearConnectionGlassData, new RendererData("model/seatruck_module_sleeper_anim/Seatruck_Sleeper_Module_interior") }},
+        };
+
 
         Dictionary<string, RendererData> glassRenderers_ = new Dictionary<string, RendererData>
         {
@@ -69,7 +87,9 @@ namespace Tweaks_Fixes
              {"db54c4f1-9433-40ea-9645-58458bdd2562", damagedExosuitData},// exosuit_damaged_05_nodrill -206 -286 -686
              {"71f59e9b-701b-456c-9eae-aefbc53e4d26", new RendererData("exosuit_damaged_02/Exosuit_01_cabin004/Exosuit_cabin_01_glass004")},// exosuit_damaged_02_shipwreck 237 -244 -1264
              {"314d4f3a-b692-4ddf-8244-4dc97d8bf19b", new RendererData("Exosuit_01_cabin006/Exosuit_cabin_01_glass006") },// OutpostZero_exofragment_1  -91 9 303
-             {"ebc835bd-221a-4722-b1d0-becf08bd2f2c", new RendererData("Starship_cargo_damaged_opened_02/dirt_02") },// Starship_cargo_damaged_opened_02
+             {"8c3d54c0-4330-4949-91ad-f046cfd67c7c", new RendererData("Starship_cargo_damaged_opened_01/dirt_01")},// Starship_cargo_damaged_opened_01
+             {"ebc835bd-221a-4722-b1d0-becf08bd2f2c", cargoCrateData},// Starship_cargo_damaged_opened_02
+             {"fb2886c4-7e03-4a47-a122-dc7242e7de5b", cargoCrateData},// Starship_cargo_damaged_opened_large_02
              {"989da7b6-d41e-4a7f-9b58-2fd4a0d4b088", new RendererData("frozenriver_01_section_b_LOD0") },// frozenriver_01_section_b  -8 31 423
              {"b682f66b-4098-4420-9b00-9f967c8e5a56", new RendererData(null, new List<string>{"Quad (1)","Quad (2)", "frozenriver_01_section_c_LOD0"}) },// frozenriver_01_section_c  -8 31 423
              {"0129c709-33e8-4bcf-8355-e14ac6647041", new RendererData("frozenriver_01_section_d_LOD0") },// frozenriver_01_section_d  27 11 370
@@ -108,6 +128,7 @@ namespace Tweaks_Fixes
             { "cb000fd6-a31c-4a3a-97cd-d60a37eb8237", barTableGlassData},// ShipWreck_BarTable 237 -258 -1290
             { "4c8852cb-2b5f-4acc-9494-ecf3b1b72093", labShelfData},// ShipWreck_Biodome_Lab_Shelf 267 -255 -1306
             { "33acd899-72fe-4a98-85f9-b6811974fbeb", labShelfData},// biodome_lab_shelf_01 -1201 21 -717
+            { "2f2a6eeb-2239-4105-ab60-a6f5129f8a38", new RendererData("model/Seatruck_AquariumModule_Fragment_02")},// seatruck_aquariummodule_fragment_02
                 
         };
 
@@ -148,6 +169,15 @@ namespace Tweaks_Fixes
                 {new RendererData("Interior/Props_Int/Props_RoomRight_Int/biodome_lab_containers_tube_01 (7)") },
                 {new RendererData("Interior/Props_Int/Props_RoomRight_Int/biodome_lab_containers_tube_01 (8)") },
             } },
+        };
+
+        List<string> fruitPlants = new List<string> {
+            "7329db6b-7385-4e77-8afa-71830ead9350",// coral_reef_kelp_arctic_01_bulb_b
+            "a17ef178-6952-4a91-8f66-44e1d8ca0575",// coral_reef_kelp_arctic_01_bulb_a
+            "702e2057-e964-4792-8433-2abfe7e9b680",// generic_fruit_ice_plant_short
+            "002749e5-db0a-4d2b-bb0d-aa0725f781a2",// generic_fruit_ice_plant_tall
+            //"",// generic_fruit_ice_plant_peak_01
+            //"",// generic_fruit_ice_plant_peak_01
         };
 
         public void IterateRootGameObjects()
@@ -198,8 +228,12 @@ namespace Tweaks_Fixes
             }
         }
 
-        public void FixGlassPrefabs()
+        public void FixPrefabs()
         {
+            foreach (string classID in fruitPlants)
+            {
+                UWE.CoroutineHost.StartCoroutine(AddFruitPlant(classID));
+            }
             foreach (var kv in glassRenderers)
             {
                 UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(kv.Key, kv.Value));
@@ -209,6 +243,10 @@ namespace Tweaks_Fixes
                 UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(kv.Key, kv.Value));
             }
             foreach (var kv in glassRenderers__)
+            {
+                UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(kv.Key, kv.Value));
+            }
+            foreach (var kv in glassRenderers___)
             {
                 UWE.CoroutineHost.StartCoroutine(DisableShadowCasting(kv.Key, kv.Value));
             }
@@ -227,6 +265,49 @@ namespace Tweaks_Fixes
             foreach (string classID in shipWrecks)
             {
                 UWE.CoroutineHost.StartCoroutine(FixShipwreck(classID));
+            }
+            UWE.CoroutineHost.StartCoroutine(FixMargGreenhouseMelons());
+            UWE.CoroutineHost.StartCoroutine(RemoveCollisionTwistyBridgeCoralLong());
+            UWE.CoroutineHost.StartCoroutine(RemoveCollisionTrianglePlant());
+            UWE.CoroutineHost.StartCoroutine(RemoveCollisionCyanFlower());
+            UWE.CoroutineHost.StartCoroutine(RemoveCollisionTapePlant());
+            if (ConfigToEdit.trypophobiaMode.Value)
+                UWE.CoroutineHost.StartCoroutine(DisableHoneyCombPlants());
+        }
+
+        private IEnumerator FixMargGreenhouseMelons()
+        {
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync("62292143-8a6c-459e-9196-cf780628ad41");// Marguerite_GreenHouse 990 31 -890
+            yield return request;
+            GameObject prefab;
+            request.TryGetPrefab(out prefab);
+            Transform scannables = prefab.transform.Find("Scannable");
+            for (int i = 26; i < 30; i++)
+            {
+                if (i == 27)
+                    continue;
+
+                Transform scannable = scannables.GetChild(i);
+                SphereCollider collider = scannable.GetComponentInChildren<SphereCollider>();
+                collider.radius = 0.25f; // fix: melons could not be picked up
+            }
+        }
+
+        private IEnumerator DisableHoneyCombPlants()
+        {
+            List<string> classIDs = new List<string> { "8e29762d-e18b-4304-8c24-c43534b737d1", "82e8005f-be3b-4fcb-a2aa-b9c159bcef0c", "71c45285-5170-4704-93e4-cb668015a5b1" };
+            foreach (string classID in classIDs)
+            {
+                IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+                yield return request;
+                GameObject prefab;
+                if (request.TryGetPrefab(out prefab) == false)
+                {
+                    Main.logger.LogError("DisableHoneyCombPlants No prefab for " + classID);
+                    continue;
+                }
+                foreach (Transform child in prefab.transform)
+                    child.gameObject.SetActive(false);
             }
         }
 
@@ -299,9 +380,25 @@ namespace Tweaks_Fixes
                 Main.logger.LogError($"DisableShadowCasting no prefab for {techType}");
                 yield break;
             }
-            PrefabIdentifier identifier = prefab.GetComponent<PrefabIdentifier>();
+            //PrefabIdentifier identifier = prefab.GetComponent<PrefabIdentifier>();
             //Main.logger.LogError($"DisableShadowCasting techType {techType} {identifier.classId}");
             prefab.transform.DisableShadowCasting(data);
+        }
+
+        private IEnumerator DisableShadowCasting(TechType techType, List<RendererData> datas)
+        {
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType);
+            yield return request;
+            GameObject prefab = request.GetResult();
+            if (prefab == null)
+            {
+                Main.logger.LogError($"DisableShadowCasting no prefab for {techType}");
+                yield break;
+            }
+            //PrefabIdentifier identifier = prefab.GetComponent<PrefabIdentifier>();
+            //Main.logger.LogError($"DisableShadowCasting prefab classId");
+            foreach (RendererData data in datas)
+                prefab.transform.DisableShadowCasting(data);
         }
 
         private IEnumerator DisableShadowCasting(string classID, List<RendererData> datas)
@@ -336,7 +433,7 @@ namespace Tweaks_Fixes
 
         IEnumerator ChangeMaterialZoffsetAsync(TechType techType, MaterialZoffsetData data)
         {
-            //Main.logger.LogDebug("ChangeMaterialZoffsetAsync " + techType);
+            //Main.logger.LogDebug("ChangeMaterialZoffsetAsync techType " + techType);
             CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(techType);
             yield return request;
             GameObject prefab = request.GetResult();
@@ -345,26 +442,33 @@ namespace Tweaks_Fixes
                 Main.logger.LogError($"ChangeMaterialZoffsetAsync no prefab for {techType}");
                 yield break;
             }
-            //else
-            //    Main.logger.LogDebug($"ChangeMaterialZoffsetAsync {techType} {prefab.name}");
+            ChangeMaterialZoffset(prefab, data);
+        }
 
+        void ChangeMaterialZoffset(GameObject go, MaterialZoffsetData data)
+        {
+            //Main.logger.LogDebug($"ChangeMaterialZoffset {go.name} ");
+            //PrefabIdentifier identifier = go.GetComponent<PrefabIdentifier>();
+            //Main.logger.LogDebug($"ChangeMaterialZoffset {go.name} {identifier.classId}");
             Renderer renderer;
             if (data.rendererPath == null)
-                renderer = prefab.GetComponentInChildren<Renderer>();
+                renderer = go.GetComponentInChildren<Renderer>();
             else
             {
-                Transform rendererT = prefab.transform.Find(data.rendererPath);
+                Transform rendererT = go.transform.Find(data.rendererPath);
                 renderer = rendererT.GetComponent<Renderer>();
             }
-            //Main.logger.LogDebug($"ChangeMaterialZoffset {techType} {renderer.name} materials");
             if (renderer == null)
             {
-                Main.logger.LogDebug($"ChangeMaterialZoffsetAsync {techType} {prefab.name} renderer null");
+                Main.logger.LogError($"ChangeMaterialZoffset {go.name} renderer null");
+                return;
             }
+            //Main.logger.LogDebug($"ChangeMaterialZoffset renderer {renderer.name}");
+            //Main.logger.LogDebug($"ChangeMaterialZoffset {go.name} materialIndex {data.materialIndex} renderer.materials.Length {renderer.materials.Length}");
             if (data.materialIndex >= renderer.materials.Length)
             {
-                //Main.logger.LogDebug("ChangeMaterialZoffsetAsync wrong materialIndex");
-                yield break;
+                Main.logger.LogError("ChangeMaterialZoffset wrong materialIndex");
+                return;
             }
             Material material = renderer.materials[data.materialIndex];
             //Main.logger.LogDebug("Set offset " + material.name);
@@ -373,6 +477,7 @@ namespace Tweaks_Fixes
 
         IEnumerator ChangeMaterialZoffsetAsync(string classID, MaterialZoffsetData data)
         {
+            //Main.logger.LogDebug("ChangeMaterialZoffsetAsync " + classID);
             IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
             yield return request;
             GameObject prefab;
@@ -381,29 +486,104 @@ namespace Tweaks_Fixes
                 Main.logger.LogError("ChangeMaterialZoffsetAsync No prefab for " + classID);
                 yield break;
             }
-            Renderer renderer;
-            if (data.rendererPath == null)
-            {
-                renderer = prefab.transform.GetComponentInChildren<Renderer>();
-            }
-            else
-            {
-                Transform rendererT = prefab.transform.Find(data.rendererPath);
-                renderer = rendererT.GetComponent<Renderer>();
-            }
-            //Main.logger.LogDebug($"ChangeMaterialZoffset {techType} {renderer.name} materials");
-            if (data.materialIndex >= renderer.materials.Length)
-            {
-                //Main.logger.LogDebug("ChangeMaterialZoffsetAsync wrong materialIndex");
-                yield break;
-            }
-            Material material = renderer.materials[data.materialIndex];
-            //Material material = renderer.sharedMaterials[data.materialIndex];
-            //Main.logger.LogDebug("Set offset " + material.name);
-            material.SetFloat(zOffset, data.offsetValue);
+            ChangeMaterialZoffset(prefab, data);
         }
 
-        private static void FixShipwreckGlass(Transform wreck)
+        IEnumerator RemoveCollisionTwistyBridgeCoralLong()
+        {
+            HashSet<string> twistyBridgeLongCorals = new HashSet<string> { "e6708774-d20c-4f0f-a4fe-6fdc35d0b512", "d792dd71-eac2-4208-b291-ef6e771126e3", "7e6f0b45-59b8-4383-befb-f680643b7248", "14cc520f-c417-46ad-a678-daee76210d15", "19223fd5-9dfd-45ae-b1b9-c046fb6d5509", "56ef4e45-2b9c-487a-aa12-6c4d37eec98a", "524c456a-7a6d-4c75-92fb-9f6cef8e51fa" };
+
+            foreach (string classID in twistyBridgeLongCorals)
+            {
+                IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+                yield return request;
+                GameObject prefab;
+                if (request.TryGetPrefab(out prefab) == false)
+                {
+                    Main.logger.LogError("RemoveCollisionTwistyBridgeCoralLong No prefab for " + classID);
+                    continue;
+                }
+                Collider collider = prefab.GetComponent<Collider>();
+                if (collider)
+                    UnityEngine.Object.Destroy(collider);
+
+                Transform tr = prefab.transform.Find("GameObject");
+                if (tr)
+                {
+                    BoxCollider bc = tr.GetComponent<BoxCollider>();
+                    bc.isTrigger = true;
+                }
+            }
+        }
+
+        IEnumerator RemoveCollisionTrianglePlant()
+        {
+            List<string> trianglePlants = new List<string> { "22e0569d-1983-4c5f-953b-e546e999d916", "9b3fedc4-e8df-4f17-9bdb-d8e9b5062fd6", "7a675e26-b75f-4575-b712-1a9593be15f5" };
+
+            foreach (string classID in trianglePlants)
+            {
+                IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+                yield return request;
+                GameObject prefab;
+                if (request.TryGetPrefab(out prefab) == false)
+                {
+                    Main.logger.LogError("RemoveCollisionTrianglePlant No prefab for " + classID);
+                    continue;
+                }
+                Collider collider = prefab.GetComponentInChildren<Collider>();
+                collider.isTrigger = true;
+            }
+        }
+
+        IEnumerator RemoveCollisionCyanFlower()
+        {
+            List<string> cyanFlowers = new List<string> { "7e133c95-e0b5-463b-9a87-230402707cec", "c90f0639-e22c-43cf-aa80-3abaa75a0629" };
+
+            foreach (string classID in cyanFlowers)
+            {
+                IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+                yield return request;
+                GameObject prefab;
+                if (request.TryGetPrefab(out prefab) == false)
+                {
+                    Main.logger.LogError("RemoveCollisionCyanFlower No prefab for " + classID);
+                    continue;
+                }
+                Transform collision = prefab.transform.Find("collision");
+                if (collision)
+                {
+                    collision.gameObject.layer = LayerID.Useable;
+                    CapsuleCollider cc = collision.GetComponent<CapsuleCollider>();
+                    cc.isTrigger = true;
+                }
+            }
+        }
+
+        IEnumerator RemoveCollisionTapePlant()
+        {
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(TechType.TapePlant);
+            yield return request;
+            GameObject prefab = request.GetResult();
+            if (prefab == null)
+            {
+                Main.logger.LogError($"RemoveCollisionTapePlant prefab null");
+                yield break;
+            }
+            CapsuleCollider oldCollider = prefab.GetComponent<CapsuleCollider>();
+            GameObject col = new GameObject("Collision");
+            col.layer = LayerID.Useable;
+            col.transform.SetParent(prefab.transform);
+            col.transform.localPosition = Vector3.zero;
+            CapsuleCollider c = col.AddComponent<CapsuleCollider>();
+            c.isTrigger = true;
+            c.center = new Vector3(0, 5.5f, 0);
+            c.height = 11;
+            c.radius = oldCollider.radius;
+            //Main.logger.LogError($"RemoveCollisionTapePlant {prefab.name} c.height {c.height}");
+            UnityEngine.Object.Destroy(oldCollider);
+        }
+
+        private void FixShipwreckGlass(Transform wreck)
         {
             //Main.logger.LogDebug("FixShipwreckGlass " + wreck.name);
             Transform rooms = wreck.Find("Rooms");
@@ -425,6 +605,115 @@ namespace Tweaks_Fixes
                     }
                 }
             }
+        }
+
+        IEnumerator AddFruitPlant(string classID)
+        {
+            IPrefabRequest request = PrefabDatabase.GetPrefabAsync(classID);
+            yield return request;
+            GameObject prefab;
+            if (request.TryGetPrefab(out prefab) == false)
+            {
+                Main.logger.LogError("AddFruitPlant No prefab for " + classID);
+                yield break;
+            }
+            PickPrefab[] pickPrefabs = prefab.GetComponentsInChildren<PickPrefab>(true);
+            if (pickPrefabs.Length == 0)
+            {
+                Main.logger.LogError("AddFruitPlant No pickPrefabs on " + classID);
+                yield break;
+            }
+            FruitPlant fruitPlant = prefab.GetComponent<FruitPlant>();
+            if (fruitPlant == null)
+            {
+                Main.logger.LogDebug("AddFruitPlant No FruitPlant on " + prefab.name);
+                fruitPlant = prefab.AddComponent<FruitPlant>();
+            }
+            fruitPlant.allowFruitSpawnByDefault = true;
+            fruitPlant.fruitSpawnEnabled = true;
+
+            if (ConfigToEdit.fruitGrowTime.Value == 0)
+                fruitPlant.fruitSpawnInterval = 300;
+            else
+            {
+                yield return new WaitUntil(() => DayNightCycle.main != null);
+                fruitPlant.fruitSpawnInterval = ConfigToEdit.fruitGrowTime.Value * DayNightCycle.main.dayLengthSeconds;
+            }
+            Main.logger.LogDebug($"AddFruitPlant {prefab.name} fruitSpawnInterval {fruitPlant.fruitSpawnInterval} fruitSpawnEnabled {fruitPlant.fruitSpawnEnabled}");
+            fruitPlant.fruits = pickPrefabs;
+            foreach (PickPrefab pp in pickPrefabs)
+            {
+                if (!pp.gameObject.activeSelf && !fruitPlant.inactiveFruits.Contains(pp))
+                    fruitPlant.inactiveFruits.Add(pp);
+            }
+        }
+
+        static IEnumerator AddLabel(Transform door)
+        {
+            //while (door.parent == null)
+            //    yield return null;
+
+            //AddDebug("AddLabel " + cyclops + " " + techType);
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(TechType.Sign);
+            yield return request;
+            GameObject go = request.GetResult();
+            if (go == null)
+            {
+                Main.logger.LogError($"AddFruitPlant AddLabel prefab null");
+                yield break;
+            }
+            //GameObject go = Utils.CreatePrefab(result1);
+            go.transform.position = door.transform.position;
+            go.transform.SetParent(door);
+            go.transform.localPosition = new Vector3(.32f, -.58f, .26f);
+            go.transform.localEulerAngles = new Vector3(0f, 90f, 90f);
+            Transform tr = go.transform.Find("Trigger");
+            UnityEngine.Object.Destroy(tr.gameObject);
+            tr = go.transform.Find("UI/Base/Up");
+            UnityEngine.Object.Destroy(tr.gameObject);
+            tr = go.transform.Find("UI/Base/Down");
+            UnityEngine.Object.Destroy(tr.gameObject);
+            tr = go.transform.Find("UI/Base/Left");
+            UnityEngine.Object.Destroy(tr.gameObject);
+            tr = go.transform.Find("UI/Base/Right");
+            UnityEngine.Object.Destroy(tr.gameObject);
+            tr = go.transform.Find("ConsturctableModel");
+            UnityEngine.Object.Destroy(tr.gameObject);
+            //tr = go.transform.Find("UI/Base/BackgroundToggle");
+            tr = go.transform.Find("UI/Base/Minus");
+            tr.localPosition = new Vector3(tr.localPosition.x - 130f, tr.localPosition.y - 320f, tr.localPosition.z);
+            tr = go.transform.Find("UI/Base/Plus");
+            tr.localPosition = new Vector3(tr.localPosition.x + 130f, tr.localPosition.y - 320f, tr.localPosition.z);
+            Constructable c = go.GetComponent<Constructable>();
+            UnityEngine.Object.Destroy(c);
+            TechTag tt = go.GetComponent<TechTag>();
+            UnityEngine.Object.Destroy(tt);
+            ConstructableBounds cb = go.GetComponent<ConstructableBounds>();
+            UnityEngine.Object.Destroy(cb);
+            PrefabIdentifier pi = go.GetComponent<PrefabIdentifier>();
+            UnityEngine.Object.Destroy(pi);
+
+            uGUI_SignInput si = go.GetComponentInChildren<uGUI_SignInput>(true);
+            if (si)
+            {
+                //si.stringDefaultLabel = "SmallLockerDefaultLabel";
+                //si.inputField.text = Language.main.Get(si.stringDefaultLabel);
+                //si.inputField.characterLimit = 58;
+                //string slot = SaveLoadManager.main.currentSlot;
+                //if (Main.configMain.lockerNames.ContainsKey(slot))
+                //{
+                //    string key = GetKey(door);
+                //    if (Main.configMain.lockerNames[slot].ContainsKey(key))
+                //    {
+                //        SavedLabel sl = Main.configMain.lockerNames[slot][key];
+                //        si.inputField.text = sl.text;
+                //        si.colorIndex = sl.color;
+                //        si.SetBackground(sl.background);
+                //        si.scaleIndex = sl.scale; // range -3 3 
+                //    }
+                //}
+            }
+            Main.logger.LogError($"AddFruitPlant AddLabel !!!");
         }
 
     }

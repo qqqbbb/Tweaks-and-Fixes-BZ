@@ -8,42 +8,18 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {// -217 -394 -1420
-    // 71 -97 -866
     [HarmonyPatch(typeof(LargeWorldEntity))]
     class LargeWorldEntity_
     {
         internal static bool spawningNearPlayer;
-        static HashSet<TechType> plantSurfaces = new HashSet<TechType>
+
+        HashSet<TechType> plantSurfaces = new HashSet<TechType>
 { TechType.PurpleVegetablePlant, TechType.Creepvine, TechType.HeatFruitPlant, TechType.IceFruitPlant, TechType.FrozenRiverPlant2, TechType.JellyPlant, TechType.LeafyFruitPlant, TechType.KelpRoot, TechType.KelpRootPustule, TechType.HangingFruitTree, TechType.MelonPlant, TechType.SnowStalkerPlant, TechType.CrashHome, TechType.DeepLilyShroom, TechType.DeepLilyPadsLanternPlant, TechType.BlueFurPlant, TechType.GlacialTree, TechType.GlowFlower, TechType.OrangePetalsPlant, TechType.HoneyCombPlant, TechType.CavePlant, TechType.GlacialPouchBulb, TechType.PurpleRattle, TechType.ThermalLily, TechType.GlacialBulb, TechType.PinkFlower, TechType.SmallMaroonPlant, TechType.DeepTwistyBridgesLargePlant, TechType.GenericShellDouble, TechType.TwistyBridgeCliffPlant, TechType.GenericCrystal, TechType.CaveFlower, TechType.TrianglePlant, TechType.PurpleBranches, TechType.GenericBigPlant2, TechType.GenericBigPlant1, TechType.GenericShellSingle, TechType.OxygenPlant, TechType.TwistyBridgeCoralLong, TechType.GenericCage, TechType.TapePlant, TechType.GenericBowl, TechType.TallShootsPlant, TechType.TreeSpireMushroom, TechType.RedBush, TechType.GenericRibbon, TechType.MohawkPlant, TechType.GenericSpiral, TechType.SpottedLeavesPlant, TechType.TornadoPlates, TechType.ThermalSpireBarnacle, TechType.TwistyBridgesLargePlant, TechType.PurpleStalk, TechType.LargeVentGarden, TechType.SmallVentGarden };
 
-        static HashSet<TechType> LilyPadTechtypes = new HashSet<TechType> { TechType.LilyPadFallen, TechType.LilyPadMature, TechType.LilyPadResource, TechType.LilyPadRoot, TechType.LilyPadStage1, TechType.LilyPadStage2, TechType.LilyPadStage3 };
-        static HashSet<TechType> coralTechtypes = new HashSet<TechType> { TechType.TwistyBridgesCoralShelf, TechType.JeweledDiskPiece, TechType.GenericJeweledDisk };
+        HashSet<TechType> LilyPadTechtypes = new HashSet<TechType> { TechType.LilyPadFallen, TechType.LilyPadMature, TechType.LilyPadResource, TechType.LilyPadRoot, TechType.LilyPadStage1, TechType.LilyPadStage2, TechType.LilyPadStage3 };
 
-        static Dictionary<string, int> shipwrecks = new Dictionary<string, int> { { "ShipWreck1(Clone)", 9 }, { "ShipWreck2(Clone)", 6 } };
+        HashSet<TechType> coralTechtypes = new HashSet<TechType> { TechType.TwistyBridgesCoralShelf, TechType.JeweledDiskPiece, TechType.GenericJeweledDisk };
 
-        static Dictionary<TechType, List<string>> glassRenderers_ = new Dictionary<TechType, List<string>> {
-            {TechType.Locker, new List<string>{ "model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_L/submarine_Storage_locker_big_01_door_L", "model/submarine_Storage_locker_big_01/submarine_Storage_locker_big_01_hinges_R/submarine_Storage_locker_big_01_door_R"}},
-            {TechType.BarTable, new List<string>{"descent_bar_table_01/descent_bar_table_01_glass"}},
-            {TechType.BaseFiltrationMachine, new List<string>{"model/Water_Filtration_Machine/water_filtration_machine_geo/water_filtration_machine_glass"}},
-            //{TechType.StarshipCargoCrate, new List<string>{"Starship_cargo_damaged_opened_02/dirt_02", "Starship_cargo_damaged_opened_01/dirt_01" }},
-            {TechType.Aquarium, new List<string>{"model/Aquarium_animation2/Aquarium_geo/Aquarium_glass" }},
-            {TechType.LabContainer, new List<string>{"biodome_lab_containers_close_01/biodome_lab_containers_close_01_glass" }},
-            {TechType.LabContainer3, new List<string>{"biodome_lab_containers_tube_01/biodome_lab_containers_tube_01_glass" }},
-            //{TechType.Jellyfish, null },
-            {TechType.LargeVentGarden, new List<string>{"Vent_garden_anim/vent_garden_bubble" }},
-            //{TechType.SmallVentGarden, new List<string>{"Vent_garden_swimming_anim/vent_garden_geo/newest_standing_geo/vent_garden_bulb_swimming" }},
-            {TechType.Exosuit, new List<string>{"exosuit_01/root/Exosuit_cabin_01_glass" }},
-            {TechType.SeaTruck, new List<string>{"model/seatruck_anim/Seatruck_cabin_exterior_glass_geo", "model/seatruck_anim/Seatruck_cabin_interior_glass_geo" }},
-            {TechType.SeaTruckAquariumModule, new List<string>{ "seatruck_module_aquarium_anim/Seatruck_module_Aquarium_glass_exterior_geo", "seatruck_module_aquarium_anim/Seatruck_module_Aquarium_interior_glass_geo", "rearConnection/closed/Seatruck_door_int_glass", "rearConnection/closed/Seatruck_door_ext_glass" }},
-            {TechType.SeaTruckDockingModule, new List<string>{ "seatruck_module_prawn_anim/Seatruck_module_PRAWN_glass_exterior_geo", "seatruck_module_prawn_anim/Seatruck_module_PRAWN_glass_interior_geo"}},
-            {TechType.SeaTruckFabricatorModule, new List<string>{ "frontConnection/closed/Seatruck_door_ext_glass", "frontConnection/closed/Seatruck_door_int_glass", "rearConnection/closed/Seatruck_door_int_glass", "rearConnection/closed/Seatruck_door_ext_glass"}},
-            {TechType.SeaTruckStorageModule, new List<string>{ "frontConnection/closed/Seatruck_door_ext_glass", "frontConnection/closed/Seatruck_door_int_glass", "rearConnection/closed/Seatruck_door_int_glass", "rearConnection/closed/Seatruck_door_ext_glass"}},
-            {TechType.SeaTruckTeleportationModule, new List<string>{ "frontConnection/closed/Seatruck_door_ext_glass", "frontConnection/closed/Seatruck_door_int_glass", "rearConnection/closed/Seatruck_door_int_glass", "rearConnection/closed/Seatruck_door_ext_glass"}},
-            {TechType.SeaTruckSleeperModule, new List<string>{ "frontConnection/closed/Seatruck_door_ext_glass", "frontConnection/closed/Seatruck_door_int_glass", "rearConnection/closed/Seatruck_door_int_glass", "rearConnection/closed/Seatruck_door_ext_glass", "model/seatruck_module_sleeper_anim/Seatruck_Sleeper_Module_interior"}},
-            {TechType.BaseWaterPark, new List<string>{ "Large_Aquarium_generic_room/Large_Aquarium_generic_room_glass_01", "high/glass"}},
-
-
-        };
 
         static Dictionary<Vector3Int, PosRotData> instancesToDisable = new Dictionary<Vector3Int, PosRotData> {
             {new Vector3Int(-208, -410, -1500), new PosRotData("treespires_eroded_rock_01_d(Clone)", default, default) }
@@ -84,14 +60,15 @@ namespace Tweaks_Fixes
            
             };
 
+        static HashSet<string> corals = new HashSet<string>();
+
         [HarmonyPostfix, HarmonyPatch("Start")]
         public static void StartPostfix(LargeWorldEntity __instance)
-        { // not run for items in container
-            TechType techType = CraftData.GetTechType(__instance.gameObject);
+        {
+            //TechType techType = CraftData.GetTechType(__instance.gameObject);
             //Main.logger.LogDebug("LargeWorldEntity start " + tt);
             Vector3 posV3 = __instance.transform.position;
             Vector3Int posV3int = new Vector3Int((int)posV3.x, (int)posV3.y, (int)posV3.z);
-            //techType = TechType.lily
             if (newPosRots.ContainsKey(posV3int))
             {
                 foreach (var newPosRot in newPosRots[posV3int])
@@ -101,138 +78,45 @@ namespace Tweaks_Fixes
             {
                 __instance.gameObject.SetActive(false);
             }
-            //if (glassRenderers_.ContainsKey(techType))
+            //if (plantSurfaces.Contains(techType))
+            //{
+            //    Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
+            //}
+            //if (LilyPadTechtypes.Contains(techType) || techType == TechType.TwistyBridgesMushroom)
+            //{
+            //    Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.lilypad);
+            //}
+            //if (__instance.TryGetComponent(out FruitPlant fruitPlant))
             {
-                //AddDebug("glassRenderer " + techType);
-                //PrefabIdentifier identifier = __instance.GetComponent<PrefabIdentifier>();
-                //Main.logger.LogDebug($"glassRenderer {__instance.name} {posV3int} {identifier.classId}");
-                //__instance.transform.DisableShadowCasting(glassRenderers_[techType]);
+                //PickPrefab pickPrefab = __instance.GetComponentInChildren<PickPrefab>();
+                //if (pickPrefab)
+                {
+                    //PrefabIdentifier identifier = __instance.GetComponent<PrefabIdentifier>();
+                    //if (corals.Contains(identifier.classId) == false)
+                    //{
+                    //    Main.logger.LogDebug($"fruit {__instance.name} {identifier.classId}");
+                    //AddDebug($"fruit {__instance.name}");
+                    //corals.Add(identifier.classId);
+                    //}
+                    //Plants_Patch.AttachFruitPlant(__instance.gameObject);
+                }
             }
-            if (plantSurfaces.Contains(techType))
-            {
-                Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.vegetation);
-            }
-            if (LilyPadTechtypes.Contains(techType) || techType == TechType.TwistyBridgesMushroom)
-            {
-                Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.lilypad);
-            }
-            if (coralTechtypes.Contains(techType))
-            {
-                Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
-            }
-
-            if (techType == TechType.GenericJeweledDisk)
-            {
-                if (ConfigToEdit.fixCoral.Value)
-                    FixCoral(__instance.gameObject);
-            }
-            else if (techType == TechType.SmallMelon)
-            {
-                FixGreenhouseMelons(__instance.gameObject);
-            }
-            else if (techType == TechType.TrianglePlant)
-            {
-                Collider collider = __instance.GetComponentInChildren<Collider>();
-                collider.isTrigger = true;
-            }
-            else if (techType == TechType.IceFruitPlant || techType == TechType.Creepvine || techType == TechType.SnowStalkerPlant)
-            { // bad Creepvine -680 -630
-              //PickPrefab[] pickPrefabs = __instance.GetAllComponentsInChildren<PickPrefab>();
-              //if (Main.config.fruitGrowTime > 0)
-                Plants_Patch.AttachFruitPlant(__instance.gameObject);
-            }
-            else if (techType == TechType.TwistyBridgeCoralLong)
-            {
-                DisableCollisionPinkNarrowLeaf(__instance.gameObject);
-            }
-            else if (techType == TechType.TapePlant)
-            {
-                DisableCollisionPurpleCattail(__instance.gameObject);
-            }
-            else if (techType == TechType.CyanFlower)
-            {
-                DisableCollisionBloomingRaindrops(__instance);
-            }
-            else if (techType == TechType.HoneyCombPlant && ConfigToEdit.trypophobiaMode.Value)
-            {
-                UnityEngine.Object.Destroy(__instance.gameObject);
-            }
-            else if (techType == TechType.LilyPadMature || techType == TechType.LilyPadStage1 || techType == TechType.LilyPadStage2 || techType == TechType.LilyPadStage3)
-            {
-                __instance.gameObject.AddVFXsurfaceComponent(VFXSurfaceTypes.vegetation);
-            }
-            else if (techType == TechType.LilyPadRoot)
-            {
-                __instance.gameObject.AddVFXsurfaceComponent(VFXSurfaceTypes.lilypad);
-            }
-
-            else if (techType == TechType.None)
-            {
-                //if (__instance.name.Contains("talactite"))
-                //{
-                //    VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
-                //    surface.surfaceType = VFXSurfaceTypes.rock;
-                //}
-            }
+            //if (coralTechtypes.Contains(techType))
+            //{
+            //    Util.AddVFXsurfaceComponent(__instance.gameObject, VFXSurfaceTypes.coral);
+            //}
+            //else if (techType == TechType.LilyPadMature || techType == TechType.LilyPadStage1 || techType == TechType.LilyPadStage2 || techType == TechType.LilyPadStage3)
+            //{
+            //    __instance.gameObject.AddVFXsurfaceComponent(VFXSurfaceTypes.vegetation);
+            //}
+            //else if (techType == TechType.LilyPadRoot)
+            //{
+            //    __instance.gameObject.AddVFXsurfaceComponent(VFXSurfaceTypes.lilypad);
+            //}
             if (ConfigMenu.useBestLOD.Value)
             {
                 __instance.gameObject.ForceLODs();
             }
-        }
-
-        private static void DisableCollisionBloomingRaindrops(LargeWorldEntity __instance)
-        {
-            Transform tr = __instance.transform.Find("collision");
-            if (tr)
-            {
-                tr.gameObject.layer = LayerID.Useable;
-                CapsuleCollider cc = tr.GetComponent<CapsuleCollider>();
-                cc.isTrigger = true;
-            }
-        }
-
-        private static void DisableCollisionPurpleCattail(GameObject go)
-        {
-            go.layer = LayerID.Useable;
-            CapsuleCollider cc = go.GetComponent<CapsuleCollider>();
-            cc.isTrigger = true;
-            cc.height *= cc.height;
-        }
-
-        private static void DisableCollisionPinkNarrowLeaf(GameObject go)
-        {
-            // disable collision but allow scanning
-            Collider collider = go.GetComponent<Collider>();
-            if (collider)
-                UnityEngine.Object.Destroy(collider);
-
-            Transform tr = go.transform.Find("GameObject");
-            if (tr)
-            {
-                BoxCollider bc = tr.GetComponent<BoxCollider>();
-                bc.isTrigger = true;
-            }
-        }
-
-        private static void FixGreenhouseMelons(GameObject go)
-        {
-            int x = (int)go.transform.position.x;
-            int y = (int)go.transform.position.y;
-            int z = (int)go.transform.position.z;
-            if ((x == 989 && y == 30 && z == -897) || (x == 989 && y == 29 && z == -896) || (x == 986 && y == 29 && z == -895))
-            { // make melons in Marg greenhouse pickupable
-                go.GetComponent<SphereCollider>().radius = .4f;
-                //AddDebug("make melons in Marg greenhouse pickupable " + x +" " + y +" " + z);
-            }
-        }
-
-        private static void FixCoral(GameObject go)
-        {
-            Vector3 rot = go.transform.eulerAngles;
-            go.transform.eulerAngles = new Vector3(rot.x, rot.y, 0f);
-            Animator a = go.GetComponentInChildren<Animator>();
-            if (a != null)
-                a.enabled = false;
         }
 
         private static IEnumerator SetNewPosRot(GameObject go, PosRotData data)

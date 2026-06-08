@@ -23,7 +23,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.9.0";
+            VERSION = "3.9.1";
 
         public static bool baseLightSwitchLoaded = false;
         public static bool visibleLockerInteriorModLoaded = false;
@@ -110,6 +110,7 @@ namespace Tweaks_Fixes
             MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
             Application.runInBackground = MiscSettings.runInBackground;
             Drop_items_anywhere.OnGameLoadingFinished();
+            Testing.FixTeleportPositions();
             gameLoaded = true;
         }
 
@@ -234,7 +235,7 @@ namespace Tweaks_Fixes
         {
             AddTechTypesToClassIDtable();
             PrefabFixer prefabFixer = new PrefabFixer();
-            prefabFixer.FixGlassPrefabs();
+            prefabFixer.FixPrefabs();
             BasePrefabFixer basePrefabFixer = new BasePrefabFixer();
             UWE.CoroutineHost.StartCoroutine(basePrefabFixer.FixBasePrefabs());
             Application.runInBackground = true;

@@ -748,6 +748,14 @@ namespace Tweaks_Fixes
             return result;
         }
 
+        public static Vector3Int Vecto3ToVecto3int(Vector3 pos)
+        {
+            int x = Mathf.RoundToInt(pos.x);
+            int y = Mathf.RoundToInt(pos.y);
+            int z = Mathf.RoundToInt(pos.z);
+            return new Vector3Int(x, y, z);
+        }
+
 
     }
 }

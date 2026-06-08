@@ -1,8 +1,6 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Tweaks_Fixes;
 using UnityEngine;
 using static ErrorMessage;
@@ -10,7 +8,7 @@ using static ErrorMessage;
 namespace Tweaks_and_Fixes
 {
     [HarmonyPatch(typeof(Constructor))]
-    class Constructor_Patch
+    class Constructor_
     {
         [HarmonyPostfix]
         [HarmonyPatch("OnEnable")]
@@ -48,7 +46,7 @@ namespace Tweaks_and_Fixes
         [HarmonyPatch("Update")]
         static void UpdatePostfix(Constructor __instance)
         {
-            if (Main.gameLoaded && Player.main.transform.position.y > 1f)
+            if (Main.gameLoaded && __instance.climbTrigger.activeSelf && Player.main.transform.position.y > 1f)
                 __instance.climbTrigger.SetActive(false);
         }
     }
@@ -57,8 +55,6 @@ namespace Tweaks_and_Fixes
     [HarmonyPatch(typeof(CinematicModeTrigger))]
     class CinematicModeTrigger_Patch
     {
-        public static HashSet<CinematicModeTrigger> cmtSet = new HashSet<CinematicModeTrigger>();
-
         [HarmonyPostfix]
         [HarmonyPatch("OnHandHover")]
         static void OnHandHoverPostfix(CinematicModeTrigger __instance, GUIHand hand)
@@ -67,7 +63,7 @@ namespace Tweaks_and_Fixes
             if (parent == null || parent.parent == null || parent.parent.parent == null)
                 return;
 
-            if (cmtSet.Contains(__instance))
+            if (parent.parent.parent.name == "Constructor(Clone)")
             {
                 //AddDebug("CinematicModeTrigger OnHandHover");
                 HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
@@ -79,10 +75,6 @@ namespace Tweaks_and_Fixes
                     if (constructor && constructor.pickupable)
                         constructor.pickupable.OnHandClick(hand);
                 }
-            }
-            else if (parent.parent.parent.name == "Constructor(Clone)")
-            {
-                cmtSet.Add(__instance);
             }
         }
 
