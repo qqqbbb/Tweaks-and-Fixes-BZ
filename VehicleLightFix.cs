@@ -18,16 +18,22 @@ namespace Tweaks_Fixes
         public static Color seatruckLightColor;
         public static Color exosuitLightColor;
         public static Vector3 volLightRot = new Vector3(0, 90f, 90f);
-        //public static Vector3 exosuitVolLightScale = new Vector3(2f, 2f, 2f);
         public static Vector3 seatruckVolLightScale = new Vector3(3, 3, 3);
+        static WaitUntil volLightBeamNotNull = new WaitUntil(() => volLightBeam != null);
+        public static bool fixed_;
 
-        public static void AddLightBeam(GameObject parent, Vector3 pos = default, Vector3 scale = default)
+        public IEnumerator GetLightBeamPrefab()
         {
-            if (volLightBeam == null)
-            {
-                Main.logger.LogWarning("can not add vol Light to " + parent.name);
-                return;
-            }
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(TechType.Flashlight);
+            yield return request;
+            GameObject prefab = request.GetResult();
+            Transform cone = prefab.transform.Find("lights_parent/x_flashlightCone");
+            volLightBeam = cone.gameObject;
+        }
+
+        public static IEnumerator AddLightBeam(GameObject parent, Vector3 pos = default, Vector3 scale = default)
+        {
+            yield return volLightBeamNotNull;
             GameObject lightBeam = UnityEngine.Object.Instantiate(volLightBeam, Vector3.zero, Quaternion.identity);
             lightBeam.transform.parent = parent.transform;
             lightBeam.transform.localPosition = pos;
@@ -72,20 +78,20 @@ namespace Tweaks_Fixes
 
         private static void ToggleLights(Exosuit exosuit)
         {
-            Transform lightsT = Util.GetExosuitLightsTransform(exosuit);
-            if (lightsT)
+            Transform lightParent = Util.GetExosuitLightsTransform(exosuit);
+            if (lightParent)
             {
                 //AddDebug("IngameMenu isActiveAndEnabled " + IngameMenu.main.isActiveAndEnabled);
-                if (!lightsT.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
+                if (!lightParent.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
                 {
-                    lightsT.gameObject.SetActive(true);
+                    lightParent.gameObject.SetActive(true);
                     Main.configMain.DeleteExosuitLights(exosuit.gameObject);
                     if (Exosuit_Sounds.lightOnSound)
                         Utils.PlayFMODAsset(Exosuit_Sounds.lightOnSound, exosuit.gameObject.transform.position);
                 }
-                else if (lightsT.gameObject.activeSelf)
+                else if (lightParent.gameObject.activeSelf)
                 {
-                    lightsT.gameObject.SetActive(false);
+                    lightParent.gameObject.SetActive(false);
                     Main.configMain.SaveExosuitLights(exosuit.gameObject);
                     if (Exosuit_Sounds.lightOffSound)
                         Utils.PlayFMODAsset(Exosuit_Sounds.lightOffSound, exosuit.gameObject.transform.position);
@@ -102,40 +108,101 @@ namespace Tweaks_Fixes
             Util.GetExosuitLightsTransform(exosuit).gameObject.SetActive(on);
         }
 
+        public IEnumerator FixExosuit()
+        {
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(TechType.Exosuit);
+            yield return request;
+            GameObject prefab = request.GetResult();
+            Transform lights_parent = prefab.transform.Find("lights_parent");
+            Exosuit exosuit = prefab.GetComponent<Exosuit>();
+            lights_parent.SetParent(exosuit.leftArmAttach);
+            FixExosuitLight(exosuit);
+            EnergyEffect energyEffect = exosuit.GetComponent<EnergyEffect>();
+            // it turns off lights when left battery is removed
+            UnityEngine.Object.Destroy(energyEffect);
+        }
+
+        public IEnumerator FixSeaTruckLight()
+        {
+            CoroutineTask<GameObject> request = CraftData.GetPrefabForTechTypeAsync(TechType.SeaTruck);
+            yield return request;
+            GameObject prefab = request.GetResult();
+            SeaTruckLights seaTruckLights = prefab.GetComponent<SeaTruckLights>();
+            Light[] lights = seaTruckLights.floodLight.GetComponentsInChildren<Light>();
+            for (int i = 0; i < lights.Length; i++)
+            {
+                Light light = lights[i];
+                if (ConfigToEdit.seatruckLightIntensityMult.Value < 1)
+                    light.intensity *= ConfigToEdit.seatruckLightIntensityMult.Value;
+
+                if (seatruckLightColor != default)
+                    light.color = seatruckLightColor;
+
+                Vector3 pos;
+                if (i == 0) // left
+                    pos = new Vector3(-0.01f, 0.03f, -0.25f);
+                else if (i == 1) // center
+                    pos = new Vector3(0, 0.1f, -0.1f);
+                else // right
+                    pos = new Vector3(0.01f, 0.03f, -0.25f);
+
+                UWE.CoroutineHost.StartCoroutine(AddLightBeam(light.gameObject, pos, seatruckVolLightScale));
+            }
+        }
+
+        private void FixExosuitLight(Exosuit exosuit)
+        {
+            Transform lightTransform = Util.GetExosuitLightsTransform(exosuit);
+            Light[] Lights = lightTransform.GetComponentsInChildren<Light>();
+            for (int i = 0; i < Lights.Length; i++)
+            {
+                Light light = Lights[i];
+                //Main.logger.LogInfo("Exosuit light color " + light.color);
+                if (ConfigToEdit.exosuitLightIntensityMult.Value < 1)
+                    light.intensity *= ConfigToEdit.exosuitLightIntensityMult.Value;
+
+                if (exosuitLightColor != default)
+                    light.color = exosuitLightColor;
+
+                Vector3 pos;
+                if (i == 0)
+                    pos = new Vector3(-0.05f, -0.2f, -0.5f);
+                else
+                    pos = new Vector3(0, -0.2f, -0.5f);
+
+                UWE.CoroutineHost.StartCoroutine(AddLightBeam(light.gameObject, pos, seatruckVolLightScale));
+            }
+        }
+
+        [HarmonyPatch(typeof(Vehicle))]
+        class Vehicle_Patch
+        {
+            [HarmonyPostfix, HarmonyPatch("OnPoweredChanged")]
+            public static void OnPoweredChangedPostfix(Vehicle __instance, bool powered)
+            {
+                //AddDebug("Vehicle OnPoweredChanged " + powered);
+                Exosuit exosuit = __instance as Exosuit;
+                if (exosuit)
+                {
+                    Transform lightParent = Util.GetExosuitLightsTransform(exosuit);
+                    lightParent.gameObject.SetActive(powered);
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(Exosuit))]
         class Exosuit_Patch
         {
-            private static void FixExosuitLight(Exosuit exosuit)
-            {
-                Transform lightTransform = Util.GetExosuitLightsTransform(exosuit);
-                Light[] Lights = lightTransform.GetComponentsInChildren<Light>();
-                for (int i = 0; i < Lights.Length; i++)
-                {
-                    Light light = Lights[i];
-                    //Main.logger.LogInfo("Exosuit light color " + light.color);
-                    if (ConfigToEdit.exosuitLightIntensityMult.Value < 1)
-                        light.intensity *= ConfigToEdit.exosuitLightIntensityMult.Value;
-
-                    if (exosuitLightColor != default)
-                        light.color = exosuitLightColor;
-
-                    Vector3 pos;
-                    if (i == 0)
-                        pos = new Vector3(-0.05f, 0.2f, -0.5f);
-                    else
-                        pos = new Vector3(0, 0.2f, -0.5f);
-
-                    AddLightBeam(light.gameObject, pos, seatruckVolLightScale);
-                }
-            }
-
             [HarmonyPostfix, HarmonyPatch("Start")]
             public static void Startostfix(Exosuit __instance)
             {
-                Util.GetExosuitLightsTransform(__instance).SetParent(__instance.leftArmAttach);
-                FixExosuitLight(__instance);
-                if (Main.configMain.GetExosuitLights(__instance.gameObject))
-                    SetLights(__instance, false);
+                //Util.GetExosuitLightsTransform(__instance).SetParent(__instance.leftArmAttach);
+                //FixExosuitLight(__instance);
+                //if (Main.configMain.GetExosuitLights(__instance.gameObject))
+                //    SetLights(__instance, false);
+
+                bool off = Main.configMain.GetExosuitLights(__instance.gameObject);
+                SetLights(__instance, !off);
             }
 
             [HarmonyPostfix, HarmonyPatch("Update")]
@@ -159,7 +226,7 @@ namespace Tweaks_Fixes
 
             static IEnumerator DisableLightBeam(Exosuit exosuit)
             {
-                yield return new WaitUntil(() => Main.gameLoaded);
+                yield return Main.waitUntilGameLoaded;
                 ToggleLightBeam(exosuit, false);
             }
 
@@ -169,8 +236,8 @@ namespace Tweaks_Fixes
                 Light[] lights = lightT.GetComponentsInChildren<Light>();
                 foreach (var light in lights)
                 {
-                    foreach (Transform child in light.transform)
-                        child.gameObject.SetActive(on);
+                    foreach (Transform beam in light.transform)
+                        beam.gameObject.SetActive(on);
                 }
             }
 
@@ -213,7 +280,7 @@ namespace Tweaks_Fixes
             }
         }
 
-        [HarmonyPatch(typeof(SeaTruckLights))]
+        //[HarmonyPatch(typeof(SeaTruckLights))]
         class SeaTruckLights_patch
         {
             //[HarmonyPrefix, HarmonyPatch("Awake")]
@@ -222,7 +289,7 @@ namespace Tweaks_Fixes
                 //GetSeaMothVolLight(__instance);
             }
 
-            [HarmonyPrefix, HarmonyPatch("Start")]
+            //[HarmonyPrefix, HarmonyPatch("Start")]
             public static void StartPrefix(SeaTruckLights __instance)
             {
                 if (__instance.floodLight == null)
@@ -250,9 +317,10 @@ namespace Tweaks_Fixes
                     else // right
                         pos = new Vector3(0.01f, 0.03f, -0.25f);
 
-                    AddLightBeam(light.gameObject, pos, seatruckVolLightScale);
+                    UWE.CoroutineHost.StartCoroutine(AddLightBeam(light.gameObject, pos, seatruckVolLightScale));
                 }
             }
+
 
 
 

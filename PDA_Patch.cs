@@ -1,8 +1,6 @@
 ﻿using HarmonyLib;
-using RootMotion.FinalIK;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
@@ -47,6 +45,17 @@ namespace Tweaks_Fixes
 
             //pda.transform.Translate(-.2f * Camera.main.transform.right);
             pda.transform.position = pda.transform.position - .2f * cameraTr.right;
+        }
+
+        [HarmonyPatch(typeof(PDA), "Open")]
+        class PDA_Open_Patch
+        {
+            static void Postfix(PDA __instance)
+            {
+                //AddDebug("PDA Open");
+                if (ConfigMenu.invMultWater.Value > 0 || ConfigMenu.invMultLand.Value > 0)
+                    Util.SaveInventoryItemMass();
+            }
         }
 
         //[HarmonyPatch(typeof(MainCameraControl), "Update")]

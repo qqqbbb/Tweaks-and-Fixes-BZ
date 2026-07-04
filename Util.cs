@@ -15,6 +15,7 @@ namespace Tweaks_Fixes
 {
     internal static class Util
     {
+        static Dictionary<TechType, float> itemMassDic = new Dictionary<TechType, float>();
 
         public static IEnumerator SpawnAsync(TechType techType, Vector3 pos = default, bool fadeIn = false)
         {
@@ -756,6 +757,35 @@ namespace Tweaks_Fixes
             return new Vector3Int(x, y, z);
         }
 
+        public static void SaveInventoryItemMass()
+        {
+            if (Inventory.main == null || Inventory.main._container == null)
+                return;
+
+            foreach (InventoryItem inventoryItem in Inventory.main._container)
+            {
+                Rigidbody rb = inventoryItem.item.GetComponent<Rigidbody>();
+                itemMassDic[inventoryItem._techType] = rb.mass;
+            }
+        }
+
+        public static float GetItemMass(InventoryItem inventoryItem)
+        {
+            if (itemMassDic.TryGetValue(inventoryItem._techType, out float mass))
+                return mass;
+
+            Rigidbody rb = inventoryItem.item.GetComponent<Rigidbody>();
+            itemMassDic[inventoryItem._techType] = rb.mass;
+            return rb.mass;
+        }
+
+        public static float GetItemMass(TechType techType)
+        {
+            if (itemMassDic.TryGetValue(techType, out float mass))
+                return mass;
+
+            return 0;
+        }
 
     }
 }

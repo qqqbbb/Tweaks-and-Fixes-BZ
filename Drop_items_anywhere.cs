@@ -232,7 +232,7 @@ namespace Tweaks_Fixes
 
             private static IEnumerator Setup(Pickupable pickupable)
             {
-                yield return new WaitUntil(() => Main.gameLoaded);
+                yield return Main.waitUntilGameLoaded;
 
                 if (pickupable.inventoryItem != null)
                     yield break;

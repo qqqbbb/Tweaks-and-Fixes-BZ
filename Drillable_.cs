@@ -90,7 +90,7 @@ namespace Tweaks_Fixes
             return false;
         }
 
-        [HarmonyPostfix, HarmonyPatch("HoverDrillable")]
+        //[HarmonyPostfix, HarmonyPatch("HoverDrillable")]
         public static void HoverDrillablePostfix(Drillable __instance)
         {
             if (ConfigToEdit.disableHints.Value)

@@ -54,7 +54,7 @@ namespace Tweaks_Fixes
 
             static IEnumerator FixVehicleDockingBayLights(VehicleDockingBay vehicleDockingBay)
             {
-                yield return new WaitUntil(() => Main.gameLoaded);
+                yield return Main.waitUntilGameLoaded;
                 List<Light> lights = GetPillarLights(vehicleDockingBay);
                 if (lights == null || lights.Count == 0)
                     yield return null;
@@ -64,7 +64,7 @@ namespace Tweaks_Fixes
                 {// no VFXVolumetricLight
                     Light light = lights[i];
                     Vector3 lightBeamPos = vehicleDockingBayLightBeamPos[i];
-                    VehicleLightFix.AddLightBeam(light.gameObject, lightBeamPos, vehicleDockingBayLightScale);
+                    UWE.CoroutineHost.StartCoroutine(VehicleLightFix.AddLightBeam(light.gameObject, lightBeamPos, vehicleDockingBayLightScale));
                     //Main.logger.LogInfo("VehicleDockingBay lightColor " + light.color);
                     if (vehicleDockingBayLightColor != default) // 0.361, 1.000, 1.000
                         light.color = vehicleDockingBayLightColor;

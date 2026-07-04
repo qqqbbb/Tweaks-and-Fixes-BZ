@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UWE;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
     class Testing
     {// purpleVent -29 -79 -861
-     // lava geyser -140 -500
+     // lava geyser -140 -500   -238 -80 -515
      // crypto -90 -7 -340
      // spikey trap -351 -351 -325
      // ladder -1274 22 -558   -207 47 -726   -1271 3 -1009   -1086 20 -850
@@ -714,28 +715,6 @@ namespace Tweaks_Fixes
         }
 
 
-        [HarmonyPatch(typeof(FreecamController), "LateUpdate")]
-        class FreecamController_LateUpdate_patch
-        {
-            public static void Prefix(FreecamController __instance)
-            {
-                if (__instance.GetActive() == false)
-                    return;
-
-                float scroll = Input.GetAxis("Mouse ScrollWheel");
-                if (scroll == 0)
-                    return;
-
-                if (scroll > 0)
-                    __instance.speed *= 1.5f;
-                else if (scroll < 0)
-                    __instance.speed *= .375f;
-
-                if (__instance.speed < 1)
-                    __instance.speed = 1;
-            }
-        }
-
         //[HarmonyPatch(typeof(GotoConsoleCommand))]
         class GotoConsoleCommand_Patch
         {
@@ -765,7 +744,7 @@ namespace Tweaks_Fixes
         public static void FixTeleportPositions()
         {
             //List<TeleportPosition> tps = new List<TeleportPosition>();
-            Main.logger.LogMessage("Teleport Positions ");
+            //Main.logger.LogMessage("Teleport Positions ");
             foreach (TeleportPosition tp in GotoConsoleCommand.main.data.locations)
             {
                 //Main.logger.LogMessage($"{tp.name} {tp.position}");
@@ -777,6 +756,7 @@ namespace Tweaks_Fixes
                     tp.position = new Vector3(210, -253, -1286);
             }
         }
+
 
     }
 }

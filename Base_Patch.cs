@@ -210,6 +210,12 @@ namespace Tweaks_Fixes
                 //if (Main.config.useRealTempForColdMeter)
                 __result = ConfigToEdit.insideBaseTemp.Value;
             }
+            [HarmonyPostfix, HarmonyPatch("IsValidForRespawn")]
+            public static void IsValidForRespawnPostfix(SubRoot __instance, ref bool __result)
+            {// fix: player respawns in flooded base
+                //AddDebug($" IsValidForRespawn {__instance.name} {__result}");
+                __result = __instance.IsLeaking() == false;
+            }
         }
 
         [HarmonyPatch(typeof(BaseCellLighting), "ApplyCurrentIntensity")]
@@ -338,6 +344,7 @@ namespace Tweaks_Fixes
             {
                 TechType tt = CraftData.GetTechType(__instance.gameObject);
                 //AddDebug("SwitchOn " + tt);
+
                 if (tt == TechType.SmallStove)
                 {
                     PlayerTool heldTool = Inventory.main.GetHeldTool();

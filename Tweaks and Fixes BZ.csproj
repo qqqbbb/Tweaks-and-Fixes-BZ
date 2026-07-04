@@ -117,6 +117,8 @@
     <Compile Include="Camera.cs" />
     <Compile Include="Charger_.cs" />
     <Compile Include="BasePrefabFixer.cs" />
+    <Compile Include="ThermalPlant_.cs" />
+    <Compile Include="Command_Console.cs" />
     <Compile Include="Trashcan_.cs" />
     <Compile Include="Fruits.cs" />
     <Compile Include="Table_Coral.cs" />

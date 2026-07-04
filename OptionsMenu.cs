@@ -50,7 +50,9 @@ namespace Tweaks_Fixes
             ModSliderOption batteryChargeSlider = ConfigMenu.batteryChargeMult.ToModSliderOption(0.5f, 3f, .1f, "{0:0.#}");
             ModSliderOption craftedBatteryChargeSlider = ConfigMenu.craftedBatteryCharge.ToModSliderOption(0, 100, 1);
             ModSliderOption invMultWaterSlider = ConfigMenu.invMultWater.ToModSliderOption(0f, 5f, .01f, "{0:0.##}");
+            invMultWaterSlider.OnChanged += SaveInventoryItemMass;
             ModSliderOption invMultLandSlider = ConfigMenu.invMultLand.ToModSliderOption(0f, 5f, .01f, "{0:0.##}");
+            invMultLandSlider.OnChanged += SaveInventoryItemMass;
             ModSliderOption waterFreezeSlider = ConfigMenu.waterFreezeRate.ToModSliderOption(0f, 5f, .1f, "{0:0.#}");
             //ModSliderOption snowballWaterSlider = ConfigMenu.snowballWater.ToModSliderOption(0, 30, 1);
             ModSliderOption baseHullStrengthSlider = ConfigMenu.baseHullStrengthMult.ToModSliderOption(1f, 10f, .1f, "{0:0.#}");
@@ -129,6 +131,11 @@ namespace Tweaks_Fixes
             AddItem(ConfigMenu.previousPDATabKey.ToModKeybindOption());
             AddItem(ConfigMenu.nextPDATabKey.ToModKeybindOption());
 
+        }
+
+        private void SaveInventoryItemMass(object sender, SliderChangedEventArgs e)
+        {
+            Util.SaveInventoryItemMass();
         }
 
         void TimeSpeedUpdated(object sender, SliderChangedEventArgs e)

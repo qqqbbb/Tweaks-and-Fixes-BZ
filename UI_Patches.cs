@@ -352,23 +352,6 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(TooltipFactory), "ItemCommons")]
-        class TooltipFactory_ItemCommons_Prefix_Patch
-        {
-            static void Prefix(StringBuilder sb, TechType techType, GameObject obj)
-            {
-                CreatureEgg creatureEgg = obj.GetComponent<CreatureEgg>();
-                if (creatureEgg)
-                {
-                    LiveMixin liveMixin = obj.GetComponent<LiveMixin>();
-                    if (!liveMixin.IsAlive())
-                    {
-                        TooltipFactory.WriteTitle(sb, "Dead ");
-                    }
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(TooltipFactory))]
         class TooltipFactory_Patch
         {
@@ -491,11 +474,21 @@ namespace Tweaks_Fixes
                 }
                 if (ConfigMenu.invMultLand.Value > 0f || ConfigMenu.invMultWater.Value > 0f)
                 {
-                    Rigidbody rb = obj.GetComponent<Rigidbody>();
-                    if (rb)
+                    float massTotal = 0;
+                    StringBuilder sb_ = new StringBuilder(Language.main.Get("TF_mass"));
+                    if (techType == TechType.SmallStorage)
                     {
-                        TooltipFactory.WriteDescription(sb, Language.main.Get("TF_mass") + rb.mass + Language.main.Get("TF_kg"));
+                        PickupableStorage ps = obj.GetComponentInChildren<PickupableStorage>();
+                        if (ps)
+                        {
+                            foreach (InventoryItem inventoryItem in ps.storageContainer.container)
+                                massTotal += Util.GetItemMass(inventoryItem);
+                        }
                     }
+                    massTotal += Util.GetItemMass(techType);
+                    sb_.Append(massTotal);
+                    sb_.Append(Language.main.Get("TF_kg"));
+                    TooltipFactory.WriteDescription(sb, sb_.ToString());
                 }
             }
 
@@ -550,8 +543,6 @@ namespace Tweaks_Fixes
                 }
                 return food;
             }
-
-
         }
 
         [HarmonyPatch(typeof(HandReticle), "SetTextRaw")]
@@ -620,51 +611,6 @@ namespace Tweaks_Fixes
                 }
             }
         }
-
-        [HarmonyPatch(typeof(ThermalPlant))]
-        public static class ThermalPlant_Patch
-        {
-
-            [HarmonyPostfix, HarmonyPatch("UpdateUI")]
-            public static void UpdateUIPostfix(ThermalPlant __instance)
-            {
-                //AddDebug("ThermalPlant UpdateUI");
-                if (!Main.gameLoaded)
-                    return;
-
-                if (ConfigToEdit.showTempFahrenhiet.Value)
-                {
-                    __instance.temperatureText.text = (int)Util.CelciusToFahrenhiet(__instance.temperature) + "°F";
-                }
-            }
-
-            [HarmonyPostfix, HarmonyPatch("Start")]
-            public static void StartPostfix(ThermalPlant __instance)
-            {
-                //AddDebug("ThermalPlant Start");
-                CoroutineHost.StartCoroutine(FixTempDisplay(__instance.gameObject));
-            }
-
-            [HarmonyPrefix, HarmonyPatch("OnHandHover")]
-            public static bool OnHandHoverPrefix(ThermalPlant __instance, GUIHand hand)
-            {
-                if (!__instance.constructable.constructed)
-                    return false;
-
-                HandReticle.main.SetText(HandReticle.TextType.Hand, Language.main.GetFormat<int, int>("ThermalPlantStatus", Mathf.RoundToInt(__instance.powerSource.GetPower()), Mathf.RoundToInt(__instance.powerSource.GetMaxPower())), false);
-                HandReticle.main.SetText(HandReticle.TextType.HandSubscript, string.Empty, false);
-                //HandReticle.main.SetIcon(HandReticle.IconType.Interact);
-                return false;
-            }
-
-            public static IEnumerator FixTempDisplay(GameObject go)
-            {// fix disappearing temp display
-                yield return new WaitForSeconds(2);
-                go.SetActive(false);
-                go.SetActive(true);
-            }
-        }
-
 
     }
 }

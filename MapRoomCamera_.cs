@@ -26,7 +26,7 @@ namespace Tweaks_Fixes
                 if (lightColor != default)
                     light.color = lightColor;
             }
-            VehicleLightFix.AddLightBeam(__instance.lightsParent, beamPos, beamScale);
+            UWE.CoroutineHost.StartCoroutine(VehicleLightFix.AddLightBeam(__instance.lightsParent, beamPos, beamScale));
         }
     }
 }

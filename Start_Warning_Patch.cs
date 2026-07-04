@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Tweaks_Fixes
@@ -17,7 +16,7 @@ namespace Tweaks_Fixes
             static bool TryToShowPrefix(FlashingLightsDisclaimer __instance)
             {
                 bool noText = String.IsNullOrEmpty(ConfigToEdit.gameStartWarningText.Value);
-                Main.logger.LogDebug("FlashingLightsDisclaimer TryToShow noText " + noText);
+                //Main.logger.LogDebug("FlashingLightsDisclaimer TryToShow noText " + noText);
                 return !noText;
             }
             [HarmonyPrefix]

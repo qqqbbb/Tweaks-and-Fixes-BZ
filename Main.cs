@@ -23,7 +23,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.9.1";
+            VERSION = "3.10.0";
 
         public static bool baseLightSwitchLoaded = false;
         public static bool visibleLockerInteriorModLoaded = false;
@@ -34,7 +34,9 @@ namespace Tweaks_Fixes
         public static ConfigFile configMenu;
         public static ConfigMain configMain = new ConfigMain();
         public static ConfigFile configToEdit;
-        public static bool gameLoaded; // uGUI.isLoading is false in main menu
+        public static bool gameLoaded; // uGUI.isLoading
+        public static WaitForSeconds oneSecondInterval = new WaitForSeconds(1f);
+        public static WaitUntil waitUntilGameLoaded = new WaitUntil(() => gameLoaded);
 
         //[HarmonyPatch(typeof(IngameMenu), "QuitGameAsync")]
         internal class IngameMenu_QuitGameAsync_Patch
@@ -234,10 +236,26 @@ namespace Tweaks_Fixes
         private static void StartLoadingSetup()
         {
             AddTechTypesToClassIDtable();
-            PrefabFixer prefabFixer = new PrefabFixer();
-            prefabFixer.FixPrefabs();
-            BasePrefabFixer basePrefabFixer = new BasePrefabFixer();
-            UWE.CoroutineHost.StartCoroutine(basePrefabFixer.FixBasePrefabs());
+            if (PrefabFixer.prefabsFixed == false)
+            {
+                PrefabFixer prefabFixer = new PrefabFixer();
+                prefabFixer.FixPrefabs();
+                PrefabFixer.prefabsFixed = true;
+            }
+            if (BasePrefabFixer.basePrefabsFixed == false)
+            {
+                BasePrefabFixer basePrefabFixer = new BasePrefabFixer();
+                UWE.CoroutineHost.StartCoroutine(basePrefabFixer.FixBasePrefabs());
+                BasePrefabFixer.basePrefabsFixed = true;
+            }
+            if (VehicleLightFix.fixed_ == false)
+            {
+                VehicleLightFix vehicleLightFix = new VehicleLightFix();
+                UWE.CoroutineHost.StartCoroutine(vehicleLightFix.GetLightBeamPrefab());
+                UWE.CoroutineHost.StartCoroutine(vehicleLightFix.FixExosuit());
+                UWE.CoroutineHost.StartCoroutine(vehicleLightFix.FixSeaTruckLight());
+                VehicleLightFix.fixed_ = true;
+            }
             Application.runInBackground = true;
         }
 

@@ -2,9 +2,9 @@
 using HarmonyLib;
 using System;
 using System.Collections;
+using System.Text;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using static ErrorMessage;
 
 namespace Tweaks_Fixes
@@ -19,6 +19,7 @@ namespace Tweaks_Fixes
         {
             private TextMeshProUGUI textComponent;
             //private const float oneHour = 0.0416666679084301f;
+            static StringBuilder sb = new StringBuilder();
 
             private void Awake()
             {
@@ -43,8 +44,24 @@ namespace Tweaks_Fixes
                 {
                     //AddDebug("ApplyTimeToText " + Player.main.pda.isInUse);
                     DateTime dateTime = DayNightCycle.ToGameDateTime(DayNightCycle.main.timePassedAsFloat);
-                    textComponent.text = dateTime.Hour.ToString("00") + " : " + dateTime.Minute.ToString("00");
-                    yield return new WaitForSeconds(1);
+                    if (GameModeManager.GetOption<bool>(GameOption.BodyTemperatureDecreases))
+                    {
+                        int temp = (int)Util.GetPlayerTemperature();
+                        if (ConfigToEdit.showTempFahrenhiet.Value)
+                            temp = (int)Util.CelciusToFahrenhiet(temp);
+
+                        sb.Append(temp.ToString());
+                        if (ConfigToEdit.showTempFahrenhiet.Value)
+                            sb.AppendLine("°F");
+                        else
+                            sb.AppendLine("°C");
+                    }
+                    sb.Append(dateTime.Hour.ToString("00"));
+                    sb.Append(" : ");
+                    sb.AppendLine(dateTime.Minute.ToString("00"));
+                    textComponent.text = sb.ToString();
+                    sb.Clear();
+                    yield return Main.oneSecondInterval;
                     //AddDebug($"ApplyTimeToText isOpen {Player.main.pda.isOpen} isInUse {Player.main.pda.isInUse}");
                     //AddDebug("ApplyTimeToText " + gameObject.activeSelf + " " + gameObject.activeInHierarchy);
                     //float dayScalar = DayNightCycle.main.GetDayScalar();

@@ -225,6 +225,20 @@ namespace Tweaks_Fixes
                 UWE.CoroutineHost.StartCoroutine(SetupSmallStorage(__instance));
             }
 
+            [HarmonyPrefix, HarmonyPatch("Throw")]
+            static bool ThrowPrefix(DeployableStorage __instance)
+            {// do not drop to seafloor
+                //AddDebug("DeployableStorage Throw");
+                __instance._isInUse = false;
+                //__instance.pickupable.Drop(__instance.transform.position, MainCameraControl.main.transform.forward * 2f);
+                __instance.pickupable.Drop(__instance.transform.position, MainCameraControl.main.transform.forward * 2f, false);
+                if (__instance.throwSound && Player.main.IsUnderwater())
+                {
+                    Utils.PlayFMODAsset(__instance.throwSound, __instance.transform);
+                }
+                return false;
+            }
+
             private static IEnumerator SetupSmallStorage(DeployableStorage ds)
             {
                 Transform t = ds.transform.Find("collider_main");

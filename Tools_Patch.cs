@@ -21,7 +21,7 @@ namespace Tweaks_Fixes
         {
             Transform lightParentTransform = go.transform.Find("lights_parent");
             Transform cone = lightParentTransform.Find("x_flashlightCone");
-            VehicleLightFix.volLightBeam = cone.gameObject;
+            //VehicleLightFix.volLightBeam = cone.gameObject;
             Light[] lights = lightParentTransform.GetComponentsInChildren<Light>(true);
             foreach (var light in lights)
             {
@@ -53,6 +53,7 @@ namespace Tweaks_Fixes
                 FixFlashLight(__instance.gameObject);
             }
         }
+
         [HarmonyPatch(typeof(PlayerTool))]
         class PlayerTool_Patch
         {

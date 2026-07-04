@@ -88,7 +88,7 @@ namespace Tweaks_Fixes
             if (ConfigToEdit.seaglideLightIntensityMult.Value < 1)
                 light.intensity *= ConfigToEdit.seaglideLightIntensityMult.Value;
 
-            VehicleLightFix.AddLightBeam(light.gameObject, volLightPos, volLightScale);
+            UWE.CoroutineHost.StartCoroutine(VehicleLightFix.AddLightBeam(light.gameObject, volLightPos, volLightScale));
         }
 
         [HarmonyPrefix, HarmonyPatch("OnHolster")]

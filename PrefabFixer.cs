@@ -13,6 +13,7 @@ namespace Tweaks_Fixes
     internal class PrefabFixer
     {
         static public Color bloodColor;
+        static public bool prefabsFixed;
         static readonly int zOffset = Shader.PropertyToID("_ZOffset");
         static bool loadedPrefabsFixed;
         readonly Dictionary<TechType, MaterialZoffsetData> glassMaterialZoffsets = new Dictionary<TechType, MaterialZoffsetData> {
@@ -179,6 +180,7 @@ namespace Tweaks_Fixes
             //"",// generic_fruit_ice_plant_peak_01
             //"",// generic_fruit_ice_plant_peak_01
         };
+
 
         public void IterateRootGameObjects()
         {

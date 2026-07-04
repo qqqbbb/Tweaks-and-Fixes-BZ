@@ -39,12 +39,6 @@ namespace Tweaks_Fixes
         public static ConfigEntry<bool> crushDamageScreenEffect;
         public static ConfigEntry<bool> disableGravityForExosuit;
         public static ConfigEntry<bool> replaceDealDamageOnImpactScript;
-        //public static ConfigEntry<float> exosuitDealDamageMinSpeed;
-        //public static ConfigEntry<float> exosuitTakeDamageMinSpeed;
-        //public static ConfigEntry<float> exosuitTakeDamageMinMass;
-        //public static ConfigEntry<float> seamothDealDamageMinSpeed;
-        //public static ConfigEntry<float> seamothTakeDamageMinSpeed;
-        //public static ConfigEntry<float> seamothTakeDamageMinMass;
         public static ConfigEntry<float> solarPanelMaxDepth;
         public static ConfigEntry<bool> newStorageUI;
         public static ConfigEntry<bool> canReplantMelon;
@@ -163,7 +157,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> thirstThreshold;
         public static ConfigEntry<int> hungerThreshold;
         public static ConfigEntry<bool> grassCastShadow;
-        //public static ConfigEntry<bool> baseSunlight;
+        public static ConfigEntry<bool> pressShiftToOpenConsole;
 
         public static AcceptableValueRange<float> lightIntensityRange = new AcceptableValueRange<float>(0.1f, 1f);
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
@@ -171,8 +165,7 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         { // “ ” ‛
-          //Main.logger.LogMessage("ConfigToEdit bind start ");
-          //baseSunlight = Main.configToEdit.Bind("BASE", "Sunlight affects lighting in your base", false);
+            pressShiftToOpenConsole = Main.configToEdit.Bind("MISC", "Need to press shift to open command console", true);
             grassCastShadow = Main.configToEdit.Bind("VISUAL", "Grass casts shadow", false, "This will affect performance");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
             dontSpawnKnownFragments = Main.configToEdit.Bind("MISC", "Do not spawn fragments for unlocked blueprints", false);
