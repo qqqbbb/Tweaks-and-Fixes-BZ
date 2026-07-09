@@ -6,7 +6,7 @@ using static ErrorMessage;
 
 namespace Tweaks_Fixes
 {
-    class Seatruck_Patch
+    class Seatruck_
     {
         public static GameObject wcpGO = null;
         //public static GameObject seaTruckAquarium = null;
@@ -41,8 +41,7 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SeaTruckSegment))]
         class SeaTruckSegment_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(SeaTruckSegment __instance)
             {
                 VFXSurface surface = __instance.gameObject.EnsureComponent<VFXSurface>();
@@ -55,8 +54,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPrefix]
-            [HarmonyPatch("OnClickHatch")]
+            [HarmonyPrefix, HarmonyPatch("OnClickHatch")]
             public static bool OnClickHatchPrefix(SeaTruckSegment __instance, HandTargetEventData eventData)
             { // delay exit sound when exiting cabin or docking module
                 //AddDebug("SeaTruckSegment OnClickHatch");
@@ -112,8 +110,7 @@ namespace Tweaks_Fixes
                 return false;
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("Exit")]
+            [HarmonyPostfix, HarmonyPatch("Exit")]
             public static void ExitPostfix(SeaTruckSegment __instance)
             {
                 //AddDebug("isMainCab " + __instance.isMainCab);
@@ -126,8 +123,7 @@ namespace Tweaks_Fixes
                 }
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("IInteriorSpace.GetInsideTemperature")]
+            [HarmonyPostfix, HarmonyPatch("IInteriorSpace.GetInsideTemperature")]
             public static void GetInsideTemperaturePostfix(SeaTruckSegment __instance, ref float __result)
             {
                 if (ConfigMenu.useRealTempForPlayer.Value && !__instance.relay.IsPowered())
@@ -166,42 +162,6 @@ namespace Tweaks_Fixes
             }
         }
 
-
-        //[HarmonyPatch(typeof(SeaTruckLights), "Start")]
-        class SeaTruckLights_Start_Patch
-        {
-            public static void Prefix(SeaTruckLights __instance)
-            {
-                //if (__instance.name == "SeaTruck(Clone)")
-                //{
-                //    Transform transform = __instance.transform.Find("model/seatruck_anim/Seatruck_Interior_geo/");
-                //    SkinnedMeshRenderer smr = transform.GetComponent<SkinnedMeshRenderer>();
-                //    AddDebug("SeaTruck material name " + smr.materials[2].name);
-                //    foreach (Material m in smr.materials)
-                //    {
-                //m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
-                //m.shaderKeywords = new string[] { "MARMO_SPECMAP", "UWE_3COLOR", "_NORMALMAP", "_ZWRITE_ON" };
-                //Main.Log("SeaTruck shaderKeywords " + item);
-                //}
-                //smr.materials[2].globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
-                //smr.materials[2].shaderKeywords = new string[0];
-
-                //}
-                //if (__instance.name == "SeaTruckStorageModule(Clone)")
-                // fix storage module lights 
-                __instance.lightingController = __instance.GetComponent<LightingController>();
-                //AddDebug(__instance.name + "SeaTruckStorageModule fix lights " );
-                //}
-                //Light[] lights = Main.GetComponentsInDirectChildren<Light>(__instance, true);
-                //foreach (Light light in lights)
-                //{
-                //light.enabled = false;
-                //Main.Log(light.name + " turnofflights " + Main.GetParent(__instance.gameObject));
-                //AddDebug(light.name + " turnofflights " + Main.GetParent(__instance.gameObject));
-                //}
-            }
-        }
-
         [HarmonyPatch(typeof(LightingController), "LerpToState", new Type[] { typeof(int), typeof(float) })]
         class LightingController_LerpToState_Patch
         { // turn off light in teleporter and docking module
@@ -232,65 +192,10 @@ namespace Tweaks_Fixes
             }
         }
 
-        //[HarmonyPatch(typeof(LightingController), "Update")]
-        class LightingController_Update_Patch
-        {
-            public static bool Prefix(LightingController __instance)
-            {
-
-                float deltaTime = Time.deltaTime;
-                if (deltaTime <= 0F)
-                    return false;
-                //AddDebug(__instance.name + " Update lights " + __instance.fadeDuration);
-                __instance.timer.Update(deltaTime);
-                int state = (int)__instance.state;
-                if (__instance.prevState != state)
-                {
-                    //AddDebug(__instance.name + " Update lights ");
-                    __instance.LerpToState(state);
-                    __instance.prevState = state;
-                }
-                __instance.UpdateIntensities();
-                return false;
-            }
-        }
-
-        //[HarmonyPatch(typeof(SeaTruckSegment), "Start")]
-        class SeaTruckSegment_Start_Patch
-        {
-            public static void Postfix(SeaTruckSegment __instance)
-            {
-                //if (__instance.isMainCab)
-                //    seaTruckCab = __instance.gameObject;
-                Transform wcpTransform = __instance.transform.Find("WaterClipProxy");
-                if (wcpTransform)
-                {
-                    //AddDebug("WaterClipProxy");
-                    //Main.Log("WaterClipProxy");
-                    wcpGO = wcpTransform.gameObject;
-                }
-                //else if (Main.GetComponentsInDirectChildren<SeaTruckAquarium>(__instance).Length > 0)
-                {
-                    //AddDebug("SeaTruckAquarium");
-                    //Main.Log("SeaTruckAquarium");
-                    //seaTruckAquarium = Main.GetParent(__instance.gameObject);
-                    //if (wcpGO)
-                    //    DoStuff(__instance.transform.parent.gameObject);
-
-                    //else
-                    //    Main.Log("Aquarium start no seaTruckCab " + __instance.name);
-                }
-
-
-                //seaTruckUpgrades = __instance;
-            }
-        }
-
         [HarmonyPatch(typeof(SeaTruckUpgrades))]
         class SeaTruckUpgrades_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("OnUpgradeModuleChange")]
+            [HarmonyPostfix, HarmonyPatch("OnUpgradeModuleChange")]
             public static void OnUpgradeModuleChangePostfix(SeaTruckUpgrades __instance, TechType techType, bool added)
             {// this used to somehow break slot extender mod
                 //powerUpgrades = GetNumPowerUpgrades(__instance);
@@ -303,8 +208,7 @@ namespace Tweaks_Fixes
                 GetUpgradesNames();
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("NotifySelectSlot")]
+            [HarmonyPostfix, HarmonyPatch("NotifySelectSlot")]
             public static void NotifySelectSlotPostfix(SeaTruckUpgrades __instance, int slotID)
             {
                 //Main.Log("SeaTruckUpgrades NotifySelectSlot " + slotID);
@@ -322,16 +226,14 @@ namespace Tweaks_Fixes
         [HarmonyPatch(typeof(SeaTruckMotor))]
         class SeaTruckMotor_Patch
         {
-            [HarmonyPostfix]
-            [HarmonyPatch("Start")]
+            [HarmonyPostfix, HarmonyPatch("Start")]
             public static void StartPostfix(SeaTruckMotor __instance)
             {
                 stopPilotSound = __instance.stopPilotSound;
                 __instance.stopPilotSound = null;// dont play exit sound when not exiting cabin 
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch("StartPiloting")]
+            [HarmonyPostfix, HarmonyPatch("StartPiloting")]
             public static void StartPilotingPostfix(SeaTruckMotor __instance)
             {
                 GetUpgradesNames();

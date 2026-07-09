@@ -158,6 +158,7 @@ namespace Tweaks_Fixes
         public static ConfigEntry<int> hungerThreshold;
         public static ConfigEntry<bool> grassCastShadow;
         public static ConfigEntry<bool> pressShiftToOpenConsole;
+        public static ConfigEntry<bool> hints;
 
         public static AcceptableValueRange<float> lightIntensityRange = new AcceptableValueRange<float>(0.1f, 1f);
         public static AcceptableValueRange<float> medKitHPperSecondRange = new AcceptableValueRange<float>(0.001f, 100f);
@@ -165,6 +166,7 @@ namespace Tweaks_Fixes
 
         public static void Bind()
         { // “ ” ‛
+            hints = Main.configToEdit.Bind("UI", "Hints", true, "Blueprint name will be shown when you look at databox. When you look at drillable resource you will be told you need prawn suit to drill it. Battery charger will tell you number of seconds until next charge attempt.");
             pressShiftToOpenConsole = Main.configToEdit.Bind("MISC", "Need to press shift to open command console", true);
             grassCastShadow = Main.configToEdit.Bind("VISUAL", "Grass casts shadow", false, "This will affect performance");
             heatBladeCooks = Main.configToEdit.Bind("TOOLS", "Thermoblade cooks fish on kill", true);
@@ -228,7 +230,7 @@ namespace Tweaks_Fixes
             craftVehicleUpgradesOnlyInMoonpool = Main.configToEdit.Bind("VEHICLES", "Only Vehicle upgrade console can craft vehicle upgrades", false, "Fabricator will not be able to craft vehicle upgrades if this is true.");
             warmTemp = Main.configToEdit.Bind("SURVIVAL", "Warm temperature", 15, "Player is warm when ambient temperature is above this celsius value.");
             insideBaseTemp = Main.configToEdit.Bind("SURVIVAL", "Temperature inside base", 22, "Celsius temperature inside powered base or vehicle. Used only when 'Only ambient tempterature makes player warm' setting is on.");
-            gameStartWarningText = Main.configToEdit.Bind("MISC", "Game start warning text", "", "Text shown when the game starts. If this field is empty the warning will be skipped.");
+            gameStartWarningText = Main.configToEdit.Bind("MISC", "Game start warning text", "", "Text shown when the game starts.");
             propulsionCannonGrabFX = Main.configToEdit.Bind("TOOLS", "Propulsion cannon sphere effect", true, "Blue sphere visual effect you see when holding an object with propulsion cannon will be disabled if this is false.");
             rockPuncherChanceToFindRock = Main.configToEdit.Bind("CREATURES", "Rock puncher chance percent to find rock", 20, new ConfigDescription("", percentRange));
             lowOxygenWarning = Main.configToEdit.Bind("MISC", "Low oxygen onscreen warning", true);

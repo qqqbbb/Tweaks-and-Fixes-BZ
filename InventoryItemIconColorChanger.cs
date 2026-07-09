@@ -52,8 +52,8 @@ namespace Tweaks_Fixes
                 else
                     icon.SetChroma(0);
 
-                if (IsCharger(openContainer))
-                    DoBattery(item, icon);
+                //if (IsCharger(openContainer))
+                //    DoBattery(item, icon);
             }
         }
 
@@ -131,7 +131,7 @@ namespace Tweaks_Fixes
                                     pair.Value.SetChroma(0f);
                                     continue;
                                 }
-                                DoBattery(pair.Key, pair.Value);
+                                //DoBattery(pair.Key, pair.Value);
                             }
                         }
                         else

@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using TMPro;
 using UnityEngine;
 using UWE;
 using static ErrorMessage;
@@ -14,58 +15,34 @@ namespace Tweaks_Fixes
     {
         public static HashSet<TechType> notRechargableBatteries = new HashSet<TechType>();
 
-        public static IEnumerator CloseUIafterAnimationFinished(Charger charger)
+        public static void TrimUnpoweredNotifyStrings(Charger charger)
         {
-            //AddDebug("WaitForAnimationToFinish " + charger.animTimeOpen);
-            yield return new WaitForSeconds(charger.animTimeOpen);
-            //AddDebug("WaitForAnimationToFinish !");
-            charger.ui.SetActive(false);
+            string s = Language.main.Get("ChargerInsufficientPower");
+            s = RemoveAfterNewLine(s);
+            //AddDebug(s);
+            for (int i = 0; i <= Charger.chargeAttemptInterval; i++)
+                charger.unpoweredNotifyStrings[i] = s;
         }
 
-        [HarmonyPrefix, HarmonyPatch("ToggleUI")]
-        public static bool ToggleUIPrefix(Charger __instance, bool active)
+        public static string RemoveAfterNewLine(string input)
         {
-            //AddDebug($"ToggleUI {active}");
-            if (active == false)
-            {
-                CoroutineHost.StartCoroutine(CloseUIafterAnimationFinished(__instance));
-                return false;
-            }
-            return true;
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            int newLineIndex = input.IndexOfAny(new char[] { '\n', '\r' });
+
+            if (newLineIndex == -1)
+                return input;
+
+            return input.Substring(0, newLineIndex);
         }
 
-        [HarmonyPostfix, HarmonyPatch("ToggleUIPowered")]
-        public static void ToggleUIPoweredPostfix(Charger __instance, bool powered)
-        {
-            //AddDebug($"ToggleUIPowered {powered} ui.activeSelf {__instance.ui.activeSelf}");
-            bool powered_ = __instance.powerConsumer.IsPowered();
-            if (__instance.ui.activeSelf && powered_ == false)
-                __instance.ui.SetActive(false);
-            else if (__instance.ui.activeSelf == false && powered_)
-                __instance.ui.SetActive(true);
-        }
 
-        [HarmonyPrefix, HarmonyPatch("OnHandClick")]
-        public static bool OnHandClickPrefix(Charger __instance)
+        [HarmonyPrefix, HarmonyPatch("ToggleUIPowered")]
+        public static void ToggleUIPoweredPreix(Charger __instance, ref bool powered)
         {
-            //AddDebug($"nextChargeAttemptTimer {__instance.nextChargeAttemptTimer}");
-            if (__instance.opened == false && __instance.powerConsumer.IsPowered() == false)
-                return false;
-
-            bool animPlaying = Util.IsAnimationPlaying(__instance.animator);
-            //AddDebug($"OnHandClick {animPlaying}");
-            return animPlaying == false;
-        }
-
-        [HarmonyPrefix, HarmonyPatch("OnCloseCallback")]
-        public static bool OnCloseCallbackPreix(Charger __instance)
-        {
-            if (__instance.enabled && __instance.opened)
-            { // dont play animation when unpowered
-                if (__instance.powerConsumer.IsPowered() == false)
-                    return false;
-            }
-            return true;
+            //AddDebug($"Charger ToggleUIPowered {powered} {__instance.powerConsumer.IsPowered()}");
+            powered = __instance.powerConsumer.IsPowered();
         }
 
         [HarmonyPostfix, HarmonyPatch("Start")]
@@ -85,9 +62,16 @@ namespace Tweaks_Fixes
                     //AddDebug("remove " + tt + " from " + __instance.name);
                 }
             }
-            //Main.logger.LogMessage(__instance.name + " Charger Start");
-            //foreach (var tt in __instance.allowedTech)
-            //    Main.logger.LogMessage(__instance.name + " allowedTech " + tt);
+            if (ConfigToEdit.hints.Value == false)
+            {
+                TrimUnpoweredNotifyStrings(__instance);
+                if (__instance is PowerCellCharger)
+                {
+                    Transform unpoweredUI = __instance.transform.Find("UI/Unpowered/Text");
+                    TextMeshProUGUI textMeshProUGUI = unpoweredUI.GetComponent<TextMeshProUGUI>();
+                    textMeshProUGUI.fontSizeMax = 110;
+                }
+            }
         }
 
 

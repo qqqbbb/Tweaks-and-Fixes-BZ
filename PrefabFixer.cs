@@ -59,7 +59,7 @@ namespace Tweaks_Fixes
             { TechType.Aquarium, new RendererData("model/Aquarium_animation2/Aquarium_geo/Aquarium_glass")},
             { TechType.BarTable, barTableGlassData},
             { TechType.Fridge, new RendererData("geo/marg_props_fridge_door")},
-            { TechType.BaseFiltrationMachine, filtrationMachineGlassData},
+            //{ TechType.BaseFiltrationMachine, filtrationMachineGlassData},
             {TechType.LargeVentGarden, new RendererData("Vent_garden_anim/vent_garden_bubble" ) },
             {TechType.Exosuit, new RendererData("exosuit_01/root/Exosuit_cabin_01_glass" ) },
             {TechType.SeaTruck, new RendererData("model/seatruck_anim", new List<string>{ "Seatruck_cabin_exterior_glass_geo", "Seatruck_cabin_interior_glass_geo" } ) },
@@ -628,7 +628,7 @@ namespace Tweaks_Fixes
             FruitPlant fruitPlant = prefab.GetComponent<FruitPlant>();
             if (fruitPlant == null)
             {
-                Main.logger.LogDebug("AddFruitPlant No FruitPlant on " + prefab.name);
+                //Main.logger.LogDebug("AddFruitPlant No FruitPlant on " + prefab.name);
                 fruitPlant = prefab.AddComponent<FruitPlant>();
             }
             fruitPlant.allowFruitSpawnByDefault = true;

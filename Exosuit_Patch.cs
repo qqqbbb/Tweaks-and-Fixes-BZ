@@ -958,5 +958,20 @@ namespace Tweaks_Fixes
         }
     }
 
+    [HarmonyPatch(typeof(CollisionSound), "OnCollisionEnter")]
+    class CollisionSound_OnCollisionEnter_Patch
+    {
+        static bool Prefix(CollisionSound __instance, Collision col)
+        {
+            Exosuit exosuit = Player.main.currentMountedVehicle as Exosuit;
+            //AddDebug("OnCollisionEnter " + col.gameObject.name);
+            if (exosuit && col.gameObject.name == "ChunkCollider(Clone)")
+            {// no collision sound when walking on ground
+                if (__instance.GetComponent<Exosuit>() == exosuit)
+                    return false;
+            }
+            return true;
+        }
+    }
 }
 

@@ -21,6 +21,7 @@ namespace Tweaks_Fixes
 
         public static void CacheSettings()
         {
+
             seatruckBackwardMod = 1 - Mathf.Clamp(ConfigToEdit.seatruckBackwardSpeedMod.Value, 0, 100) * .01f;
             seatruckSidewardMod = 1 - Mathf.Clamp(ConfigToEdit.seatruckSidewardSpeedMod.Value, 0, 100) * .01f;
             seatruckVertMod = 1 - Mathf.Clamp(ConfigToEdit.seatruckVertSpeedMod.Value, 0, 100) * .01f;
@@ -70,17 +71,6 @@ namespace Tweaks_Fixes
                 if (ConfigToEdit.seatruckAfterburnerWithoutCooldown.Value && techType == TechType.SeaTruckUpgradeAfterburner)
                     afterBurnerActive = true;
 
-            }
-            //[HarmonyPostfix, HarmonyPatch("OnUpgradeModuleChange")]
-            public static void OnUpgradeModuleChangePostfix(SeaTruckUpgrades __instance, int slotID, TechType techType, bool added)
-            {
-                //AddDebug($"OnUpgradeModuleChange {techType} acc {__instance.motor.acceleration}");
-                origSeatruckPowerEfficiency = __instance.motor.powerEfficiencyFactor;
-                horsePowerUpgrades = GetNumHPUpgrades(__instance);
-                //if (origAcceleration != __instance.motor.acceleration)
-                //    origAcceleration = __instance.motor.acceleration;
-                //AddDebug("OnUpgradeModuleChange horsePowerUpgrades " + horsePowerUpgrades);
-                //AddDebug("OnUpgradeModuleChange seatruckPowerEfficiency " + seatruckPowerEfficiency);
             }
         }
 

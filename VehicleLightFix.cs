@@ -21,6 +21,35 @@ namespace Tweaks_Fixes
         public static Vector3 seatruckVolLightScale = new Vector3(3, 3, 3);
         static WaitUntil volLightBeamNotNull = new WaitUntil(() => volLightBeam != null);
         public static bool fixed_;
+        public static FMODAsset lightOnSound;
+        public static FMODAsset lightOffSound;
+
+        private static void CreateExosuitSounds(GameObject exosuit)
+        {
+            lightOnSound = ScriptableObject.CreateInstance<FMODAsset>();
+            lightOnSound.path = "event:/sub/seamoth/seaglide_light_on";
+            lightOnSound.id = "{fe76457f-0c94-4245-a080-8a5b2f8853c4}";
+            lightOffSound = ScriptableObject.CreateInstance<FMODAsset>();
+            lightOffSound.path = "event:/sub/seamoth/seaglide_light_off";
+            lightOffSound.id = "{b52592a9-19f5-45d1-ad56-7d355fc3dcc3}";
+            CollisionSound collisionSound = exosuit.EnsureComponent<CollisionSound>();
+            FMODAsset so = ScriptableObject.CreateInstance<FMODAsset>();
+            so.path = "event:/sub/common/fishsplat";
+            so.id = "{0e47f1c6-6178-41bd-93bf-40bfca179cb6}";
+            collisionSound.hitSoundSmall = so;
+            so = ScriptableObject.CreateInstance<FMODAsset>();
+            so.path = "event:/sub/seamoth/impact_solid_hard";
+            so.id = "{ed65a390-2e80-4005-b31b-56380500df33}";
+            collisionSound.hitSoundFast = so;
+            so = ScriptableObject.CreateInstance<FMODAsset>();
+            so.path = "event:/sub/seamoth/impact_solid_medium";
+            so.id = "{cb2927bf-3f8d-45d8-afe2-c82128f39062}";
+            collisionSound.hitSoundMedium = so;
+            so = ScriptableObject.CreateInstance<FMODAsset>();
+            so.path = "event:/sub/seamoth/impact_solid_soft";
+            so.id = "{15dc7344-7b0a-4ffd-9b5c-c40f923e4f4d}";
+            collisionSound.hitSoundSlow = so;
+        }
 
         public IEnumerator GetLightBeamPrefab()
         {
@@ -76,35 +105,29 @@ namespace Tweaks_Fixes
             return new Color(light.color.r * .5f + .1f, light.color.g * .5f + .1f, light.color.b * .5f + .1f, a);
         }
 
-        private static void ToggleLights(Exosuit exosuit)
+        private static void ToggleExosuitLights(Exosuit exosuit)
         {
             Transform lightParent = Util.GetExosuitLightsTransform(exosuit);
-            if (lightParent)
+            //AddDebug("IngameMenu isActiveAndEnabled " + IngameMenu.main.isActiveAndEnabled);
+            if (!lightParent.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
             {
-                //AddDebug("IngameMenu isActiveAndEnabled " + IngameMenu.main.isActiveAndEnabled);
-                if (!lightParent.gameObject.activeSelf && exosuit.energyInterface.hasCharge)
-                {
-                    lightParent.gameObject.SetActive(true);
-                    Main.configMain.DeleteExosuitLights(exosuit.gameObject);
-                    if (Exosuit_Sounds.lightOnSound)
-                        Utils.PlayFMODAsset(Exosuit_Sounds.lightOnSound, exosuit.gameObject.transform.position);
-                }
-                else if (lightParent.gameObject.activeSelf)
-                {
-                    lightParent.gameObject.SetActive(false);
-                    Main.configMain.SaveExosuitLights(exosuit.gameObject);
-                    if (Exosuit_Sounds.lightOffSound)
-                        Utils.PlayFMODAsset(Exosuit_Sounds.lightOffSound, exosuit.gameObject.transform.position);
-                }
-                //AddDebug("lights " + lightsT.gameObject.activeSelf);
+                lightParent.gameObject.SetActive(true);
+                Main.configMain.DeleteExosuitLights(exosuit.gameObject);
+                if (lightOnSound)
+                    Utils.PlayFMODAsset(lightOnSound, exosuit.gameObject.transform.position);
             }
+            else if (lightParent.gameObject.activeSelf)
+            {
+                lightParent.gameObject.SetActive(false);
+                Main.configMain.SaveExosuitLights(exosuit.gameObject);
+                if (lightOffSound)
+                    Utils.PlayFMODAsset(lightOffSound, exosuit.gameObject.transform.position);
+            }
+            //AddDebug("lights " + lightsT.gameObject.activeSelf);
         }
 
-        private static void SetLights(Exosuit exosuit, bool on)
+        private static void SetExosuitLights(Exosuit exosuit, bool on)
         {
-            if (on && !exosuit.energyInterface.hasCharge)
-                return;
-
             Util.GetExosuitLightsTransform(exosuit).gameObject.SetActive(on);
         }
 
@@ -117,7 +140,8 @@ namespace Tweaks_Fixes
             Exosuit exosuit = prefab.GetComponent<Exosuit>();
             lights_parent.SetParent(exosuit.leftArmAttach);
             FixExosuitLight(exosuit);
-            EnergyEffect energyEffect = exosuit.GetComponent<EnergyEffect>();
+            CreateExosuitSounds(prefab);
+            EnergyEffect energyEffect = prefab.GetComponent<EnergyEffect>();
             // it turns off lights when left battery is removed
             UnityEngine.Object.Destroy(energyEffect);
         }
@@ -172,6 +196,7 @@ namespace Tweaks_Fixes
 
                 UWE.CoroutineHost.StartCoroutine(AddLightBeam(light.gameObject, pos, seatruckVolLightScale));
             }
+            lightTransform.gameObject.SetActive(false);
         }
 
         [HarmonyPatch(typeof(Vehicle))]
@@ -196,13 +221,11 @@ namespace Tweaks_Fixes
             [HarmonyPostfix, HarmonyPatch("Start")]
             public static void Startostfix(Exosuit __instance)
             {
-                //Util.GetExosuitLightsTransform(__instance).SetParent(__instance.leftArmAttach);
-                //FixExosuitLight(__instance);
-                //if (Main.configMain.GetExosuitLights(__instance.gameObject))
-                //    SetLights(__instance, false);
-
-                bool off = Main.configMain.GetExosuitLights(__instance.gameObject);
-                SetLights(__instance, !off);
+                if (Main.gameLoaded == false)
+                {
+                    bool off = Main.configMain.GetExosuitLights(__instance.gameObject);
+                    SetExosuitLights(__instance, !off);
+                }
             }
 
             [HarmonyPostfix, HarmonyPatch("Update")]
@@ -214,7 +237,7 @@ namespace Tweaks_Fixes
                 if (!IngameMenu.main.isActiveAndEnabled && !Player.main.pda.isInUse && Player.main.currentMountedVehicle == __instance)
                 {
                     if (GameInput.GetButtonDown(GameInput.Button.MoveDown))
-                        ToggleLights(__instance);
+                        ToggleExosuitLights(__instance);
                 }
             }
 
@@ -274,7 +297,7 @@ namespace Tweaks_Fixes
             public static IEnumerator TurnOffLightsDelay(Exosuit exosuit, float delay)
             {
                 yield return new WaitForSeconds(delay);
-                SetLights(exosuit, false);
+                SetExosuitLights(exosuit, false);
                 Main.configMain.SaveExosuitLights(exosuit.gameObject);
                 //AddDebug("Set Lights off");
             }

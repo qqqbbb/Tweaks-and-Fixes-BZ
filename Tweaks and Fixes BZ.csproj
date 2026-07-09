@@ -137,7 +137,6 @@
     <Compile Include="Creature_aggression.cs" />
     <Compile Include="Drillable_.cs" />
     <Compile Include="Drop_items_anywhere.cs" />
-    <Compile Include="Exosuit_Sounds.cs" />
     <Compile Include="Exosuit_Drill.cs" />
     <Compile Include="Exosuit_movement.cs" />
     <Compile Include="Food.cs" />
@@ -157,7 +156,7 @@
     <Compile Include="Seaglide_.cs" />
     <Compile Include="Silent_Creatures.cs" />
     <Compile Include="SnowBall_.cs" />
-    <Compile Include="Start_Warning_Patch.cs" />
+    <Compile Include="FlashingLightsDisclaimer_.cs" />
     <Compile Include="ConfigToEdit.cs" />
     <Compile Include="Drop_Pod_Patch.cs" />
     <Compile Include="Flare_.cs" />
@@ -176,7 +175,7 @@
     <Compile Include="Time_Flow_Speed.cs" />
     <Compile Include="Hoverbike_.cs" />
     <Compile Include="Exosuit_Patch.cs" />
-    <Compile Include="Seatruck_Patch.cs" />
+    <Compile Include="Seatruck_.cs" />
     <Compile Include="Tools_Patch.cs" />
     <Compile Include="Testing.cs" />
     <Compile Include="QuickSlots_Patch.cs" />

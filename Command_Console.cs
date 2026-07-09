@@ -87,5 +87,19 @@ namespace Tweaks_Fixes
                 obj.SendMessage("StartConstruction", SendMessageOptions.DontRequireReceiver);
             }
         }
+
+        [HarmonyPatch(typeof(Player), "OnConsoleCommand_fastswim")]
+        class Player_OnConsoleCommand_fastswim_patch
+        {
+            public static void Postfix(Player __instance)
+            {
+                if (__instance.debugFastSwimAllowed)
+                {
+                    ErrorMessage.AddDebug($"Hold {Language.main.Get("OptionSprint")} button to swim faster");
+                }
+            }
+        }
+
+
     }
 }

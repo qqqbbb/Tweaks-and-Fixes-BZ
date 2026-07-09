@@ -23,7 +23,7 @@ namespace Tweaks_Fixes
         public const string
             MODNAME = "Tweaks and Fixes",
             GUID = "qqqbbb.subnauticaBZ.tweaksAndFixes",
-            VERSION = "3.10.0";
+            VERSION = "3.11.0";
 
         public static bool baseLightSwitchLoaded = false;
         public static bool visibleLockerInteriorModLoaded = false;
@@ -73,7 +73,7 @@ namespace Tweaks_Fixes
             Crush_Damage.extraCrushDepth = 0;
             Crush_Damage.crushDamageResistance = 0;
             Gravsphere_Patch.gravSphereFish.Clear();
-            Seatruck_Patch.installedUpgrades.Clear();
+            Seatruck_.installedUpgrades.Clear();
             //fridges.Clear();
             Base_Patch.baseHullStrengths.Clear();
             PowerConsumption.seatruckPRs.Clear();
@@ -112,7 +112,7 @@ namespace Tweaks_Fixes
             MiscSettings.cameraBobbing = ConfigToEdit.cameraBobbing.Value;
             Application.runInBackground = MiscSettings.runInBackground;
             Drop_items_anywhere.OnGameLoadingFinished();
-            Testing.FixTeleportPositions();
+            //Testing.FixTeleportPositions();
             gameLoaded = true;
         }
 
@@ -255,6 +255,11 @@ namespace Tweaks_Fixes
                 UWE.CoroutineHost.StartCoroutine(vehicleLightFix.FixExosuit());
                 UWE.CoroutineHost.StartCoroutine(vehicleLightFix.FixSeaTruckLight());
                 VehicleLightFix.fixed_ = true;
+            }
+            if (Constructor_.fixed_ == false)
+            {
+                Constructor_ constructor = new Constructor_();
+                UWE.CoroutineHost.StartCoroutine(constructor.FixConstructor());
             }
             Application.runInBackground = true;
         }
